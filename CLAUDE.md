@@ -1,0 +1,56 @@
+# JellyJet 2 - project context for Claude
+
+## What this is
+
+A **React + TypeScript web app** (Vite) that is a music-only client for the
+owner's self-hosted **Jellyfin** server. It is installed from Safari to the
+phone's home screen - there is no native app. **Read `PLAN.md` first**: it
+holds every product decision and the build steps.
+
+The original JellyJet (Flutter, `~/Desktop/JellyJet`) is a separate project.
+Its design spec is the look to follow: `~/Desktop/JellyJet/design_handoff_jellyfin_music_ios/`
+(tokens are ported to `src/theme/tokens.css`). Its Jellyfin API usage is a
+useful reference; don't port its code wholesale.
+
+## Who you're working with
+
+The owner has **no coding background**. Explain in plain language, recommend
+one option when there's a choice, and put any command they run in its own
+fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
+`PLAN.md`.
+
+## Rules
+
+- Never put credentials (Jellyfin, slskd, orchestrator key) in source, commits
+  or output. Don't use the owner's real Jellyfin token for API exploration.
+- Never perform destructive library actions yourself.
+- Commit and push to `origin` (github.com/timursezgin/JellyJet2) after each
+  tested step. Don't commit `.claude/launch.json`.
+- Commit messages end with the Co-Authored-By line from the session.
+
+## Running it
+
+- Toolchain: Node via Homebrew - prefix commands with
+  `export PATH="/opt/homebrew/bin:$PATH"`.
+- `npm run dev` - dev server on :5173. `/jellyfin/*` and `/pipeline/*` are
+  proxied to tim-box over Tailscale (`vite.config.ts`).
+- `npm run build` - typecheck + production build to `dist/`.
+- `sh tool/deploy.sh` - build and copy to tim-box `Desktop\JellyJet2\site`
+  (SMB mount `/Volumes/Users/Windows 11/Desktop/JellyJet2`). Served by the
+  `JellyJet2` Caddy container (`deploy/`), port 8091.
+
+## How it's hosted
+
+Caddy (`deploy/Caddyfile`): `/pipeline/*` → orchestrator :8420, `/web*` → 404,
+app files from `site/`, everything else → Jellyfin :8096. So in production the
+Jellyfin server URL is the page's own origin (`src/lib/server.ts`). Cloudflare
+tunnel in front provides HTTPS; Cloudflare edge-caches static files, which is
+why build files must keep content-hashed names and `/`, `/sw.js` are no-cache.
+
+## iOS web-app notes
+
+- Home-screen web apps have storage separate from Safari tabs; deleting the
+  icon deletes downloads.
+- `viewport-fit=cover` + `black-translucent` is fine for this HTML app (layout
+  uses `env(safe-area-inset-*)`). It only broke taps in the old Flutter build.
+- Inputs need font-size ≥ 16px or iOS zooms the page.

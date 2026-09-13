@@ -1,0 +1,109 @@
+/*
+ * JellyJet design tokens, from design_handoff_jellyfin_music_ios/README.md
+ * (the same values the iOS app uses). Dark mode only.
+ */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: block;
+}
+
+:root {
+  /* Surfaces */
+  --bg: #0a0a0b;
+  --surface: #15151a;
+  --sheet-surface: #18181d;
+  --mini-player-fill: rgba(28, 28, 32, 0.82);
+  --top-bar-fill: rgba(10, 10, 11, 0.72);
+  --tab-bar-fill: rgba(10, 10, 11, 0.8);
+  --art-placeholder: #26262b;
+  --art-placeholder-mini: #33333a;
+
+  /* Ink (text and icons) */
+  --ink: #f5f4f3;
+  --ink-70: rgba(245, 244, 243, 0.7);
+  --ink-60: rgba(245, 244, 243, 0.6);
+  --ink-50: rgba(245, 244, 243, 0.5);
+  --ink-45: rgba(245, 244, 243, 0.45);
+  --ink-42: rgba(245, 244, 243, 0.42);
+  --ink-35: rgba(245, 244, 243, 0.35);
+  --ink-30: rgba(245, 244, 243, 0.3);
+  --ink-28: rgba(245, 244, 243, 0.28);
+
+  /* Lines and fills */
+  --hairline: rgba(255, 255, 255, 0.07);
+  --art-border: rgba(255, 255, 255, 0.06);
+  --control-fill: rgba(255, 255, 255, 0.09);
+  --field-fill: rgba(255, 255, 255, 0.08);
+  --switch-off: rgba(255, 255, 255, 0.16);
+
+  /* Accent and status */
+  --accent: #ec3013;
+  --accent-tint: rgba(236, 48, 19, 0.12);
+  --accent-border: rgba(236, 48, 19, 0.35);
+  --online: #3ecf6a;
+
+  /* Spacing and geometry */
+  --page-gutter: 20px;
+  --sheet-gutter: 20px;
+  --player-gutter: 26px;
+  --shelf-gap: 14px;
+  --grid-column-gap: 16px;
+  --grid-row-gap: 20px;
+  --primary-button-height: 44px;
+  --tab-icon-size: 23px;
+  --mini-player-art: 42px;
+
+  /* Radii */
+  --radius-art: 10px;
+  --radius-card: 14px;
+  --radius-tag-tile: 12px;
+  --radius-button: 12px;
+  --radius-sheet-top: 22px;
+  --radius-mini-player-art: 8px;
+  --radius-full-player-art: 14px;
+  --radius-pill: 999px;
+
+  /* Shadows (the only three; everything else uses hairlines) */
+  --shadow-mini-player: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-sheet: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-full-player-art: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  --bar-blur: blur(20px) saturate(160%);
+
+  /* Motion */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-full-player: 340ms;
+  --dur-sheet: 300ms;
+  --dur-backdrop: 200ms;
+  --dur-toast: 200ms;
+
+  /* Safe areas (notch, status bar, home indicator) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Typography */
+  --font: 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}

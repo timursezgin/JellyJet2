@@ -1,0 +1,23 @@
+/* Typography scale from the design spec. Line height 1.2 throughout. */
+
+.t-large-title { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+.t-artist-detail { font-size: 27px; font-weight: 700; letter-spacing: -0.5px; }
+.t-playlist-detail { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; }
+.t-album-detail { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.t-now-playing-title { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; }
+.t-section-header { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+.t-sheet-title { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+.t-mix-card-name { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+.t-library-row { font-size: 17px; font-weight: 500; letter-spacing: -0.2px; }
+.t-now-playing-artist { font-size: 16px; font-weight: 400; color: var(--ink-50); }
+.t-button { font-size: 16px; font-weight: 600; }
+.t-row-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.1px; }
+.t-track-title { font-size: 15px; font-weight: 500; }
+.t-shelf-title-lg { font-size: 14px; font-weight: 600; }
+.t-shelf-title-sm { font-size: 13px; font-weight: 600; }
+.t-secondary { font-size: 12.5px; font-weight: 400; color: var(--ink-45); }
+.t-meta { font-size: 12.5px; font-weight: 400; color: var(--ink-35); font-variant-numeric: tabular-nums; }
+.t-caption { font-size: 12px; font-weight: 400; color: var(--ink-30); }
+.t-tab-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1px; }
+.t-kicker { font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px; color: var(--accent); text-transform: uppercase; }
+.t-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; color: var(--ink-35); text-transform: uppercase; }
