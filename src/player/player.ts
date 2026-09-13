@@ -440,10 +440,23 @@ function syncMediaSession() {
   }
 }
 
-if ('mediaSession' in navigator) {
-  const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
-    ['play', () => play()],
-    ['pause', () => pause()],
+/**
+ * Which lock-screen buttons exist. Re-sent every time a song starts: iOS
+ * forgets a list given before any audio has played and falls back to its
+ * video-style skip-15-seconds buttons.
+ *
+ * Play and pause are deliberately left to the audio element itself - iOS can
+ * carry those out without waking this app's code, which may be asleep after
+ * a while paused in the background. The element's play/pause events keep the
+ * app's state in step.
+ */
+function registerRemoteCommands() {
+  if (!('mediaSession' in navigator)) return;
+  const handlers: [MediaSessionAction, MediaSessionActionHandler | null][] = [
+    ['play', null],
+    ['pause', null],
+    ['seekbackward', null],
+    ['seekforward', null],
     ['previoustrack', () => previous()],
     ['nexttrack', () => next()],
     ['seekto', (details) => details.seekTime !== undefined && seek(details.seekTime)],
@@ -456,6 +469,9 @@ if ('mediaSession' in navigator) {
     }
   }
 }
+
+registerRemoteCommands();
+audio.addEventListener('playing', registerRemoteCommands);
 
 // --- Remembering the queue between launches -------------------------------
 
