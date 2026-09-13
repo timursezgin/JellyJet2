@@ -1,6 +1,7 @@
 import { useSession } from '@/auth/session';
 import { CLIENT_VERSION } from '@/jellyfin/identity';
 import { useNavigation } from '@/nav/navigation';
+import { clearQueue } from '@/player/player';
 import { ListGroup, ListRow } from '@/ui/list-row';
 import { Page } from '@/ui/page';
 import styles from './settings-screen.module.css';
@@ -34,6 +35,7 @@ export function SettingsScreen() {
           label="Sign out"
           tone="accent"
           onClick={() => {
+            clearQueue();
             void signOut();
             resetNavigation();
           }}

@@ -23,6 +23,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Defaults to 30s: an old, busy server can take a while on big queries. */
   timeoutMs?: number;
+  /** Let the request finish even if the page is closing (playback reports). */
+  keepalive?: boolean;
 }
 
 /** Thin HTTP layer over one Jellyfin server. */
@@ -68,7 +70,13 @@ export class JellyfinClient {
 
     let response: Response;
     try {
-      response = await fetch(this.url(path, options.query), { method, headers, body, signal });
+      response = await fetch(this.url(path, options.query), {
+        method,
+        headers,
+        body,
+        signal,
+        keepalive: options.keepalive,
+      });
     } catch (error) {
       if (options.signal?.aborted) throw error;
       throw new JellyfinError('Can’t reach the server', undefined, true);

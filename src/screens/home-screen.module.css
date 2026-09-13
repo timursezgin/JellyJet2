@@ -14,3 +14,25 @@
   border-radius: var(--radius-pill);
   background: var(--online);
 }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px var(--page-gutter) 8px;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  margin-right: -12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}

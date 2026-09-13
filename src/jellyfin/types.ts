@@ -19,3 +19,43 @@ export interface AuthenticationResult {
   ServerId: string;
   User: UserDto;
 }
+
+export interface NameId {
+  Id: string;
+  Name: string;
+}
+
+export interface UserItemData {
+  IsFavorite?: boolean;
+  PlayCount?: number;
+  LastPlayedDate?: string;
+}
+
+/** A slice of Jellyfin's BaseItemDto. */
+export interface BaseItem {
+  Id: string;
+  Name: string;
+  Type: 'Audio' | 'MusicAlbum' | 'MusicArtist' | 'Playlist' | 'MusicGenre' | 'Folder' | string;
+  Album?: string;
+  AlbumId?: string;
+  AlbumArtist?: string;
+  AlbumPrimaryImageTag?: string;
+  Artists?: string[];
+  ArtistItems?: NameId[];
+  AlbumArtists?: NameId[];
+  ImageTags?: { Primary?: string };
+  RunTimeTicks?: number;
+  ProductionYear?: number;
+  IndexNumber?: number;
+  ParentIndexNumber?: number;
+  ChildCount?: number;
+  Container?: string;
+  UserData?: UserItemData;
+  PlaylistItemId?: string;
+}
+
+export interface ItemsResult {
+  Items: BaseItem[];
+  TotalRecordCount: number;
+  StartIndex?: number;
+}

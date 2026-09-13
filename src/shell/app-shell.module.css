@@ -3,9 +3,17 @@
   /* Everything docked at the bottom that page content must scroll clear of.
      The mini-player adds its height here in step 2. */
   --chrome-bottom: calc(var(--tab-bar-height) + 24px);
+  --mini-player-height: 60px;
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100%);
   background: var(--bg);
+}
+
+.shell[data-mini] {
+  --chrome-bottom: calc(var(--tab-bar-height) + var(--mini-player-height) + 8px + 24px);
 }
 
 .stacks {

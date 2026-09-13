@@ -1,0 +1,63 @@
+.scrubber {
+  width: 100%;
+}
+
+/* A tall invisible strip so the thin bar is easy to grab. */
+.hit {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.13);
+  overflow: hidden;
+  transition: height 120ms ease;
+}
+
+.hit[data-dragging] .track {
+  height: 9px;
+}
+
+.fill {
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: left;
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  pointer-events: none;
+}
+
+.hit[data-dragging] .knob {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: rgba(245, 244, 243, 0.4);
+  font-variant-numeric: tabular-nums;
+}

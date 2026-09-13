@@ -1,0 +1,34 @@
+.art {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--art-placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--art-border);
+  pointer-events: none;
+}
+
+.art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.art img[data-loaded] {
+  opacity: 1;
+}
+
+.glyph {
+  color: var(--ink-28);
+}

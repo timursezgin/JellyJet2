@@ -27,9 +27,11 @@ html {
   overscroll-behavior: none;
 }
 
+/* No overflow clipping on html/body: on iOS it would cut the app off at the
+   (too short) window height reported to home-screen apps. The layers are
+   fixed, so the document itself never scrolls. */
 body {
   background: var(--bg);
-  overflow: hidden;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;

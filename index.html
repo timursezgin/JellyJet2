@@ -2,8 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- viewport-fit=cover lets the dark app run under the status bar; the
-         layout pads itself with env(safe-area-inset-*). -->
+    <!-- Status bar style "black": the app starts below a solid black status
+         bar. "black-translucent" draws under it, but iOS then stops painting
+         the app 62pt above the bottom edge of home-screen apps.
+         viewport-fit=cover still gives env(safe-area-inset-bottom) for the
+         home indicator. -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
@@ -12,7 +15,7 @@
     <meta name="color-scheme" content="dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="JellyJet" />
     <meta name="description" content="A music client for Jellyfin." />
     <link rel="icon" type="image/png" href="/favicon.png" />

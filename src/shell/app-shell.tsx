@@ -1,5 +1,10 @@
 import { ArrowDownToLine, House, Library, Search, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
+import { FullPlayer } from '@/player/full-player';
+import { MiniPlayer } from '@/player/mini-player';
+import { restoreQueue, usePlayer } from '@/player/player';
+import { ToastHost } from '@/ui/toast';
 import { StackView } from '@/nav/stack-view';
 import { TAB_IDS, useNavigation, type Route, type TabId } from '@/nav/navigation';
 import { DownloadedScreen } from '@/screens/downloaded-screen';
@@ -40,9 +45,15 @@ export function AppShell() {
   const tab = useNavigation((s) => s.tab);
   const stacks = useNavigation((s) => s.stacks);
   const selectTab = useNavigation((s) => s.selectTab);
+  const hasQueue = usePlayer((s) => s.queue.length > 0);
+
+  useEffect(restoreQueue, []);
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-mini={hasQueue || undefined}>
+      <FullPlayer />
+      <ToastHost />
+      <MiniPlayer />
       <div className={styles.stacks}>
         {TAB_IDS.map((id) => (
           <StackView key={id} entries={stacks[id]} visible={id === tab} renderRoute={renderRoute} />
