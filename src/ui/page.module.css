@@ -1,0 +1,91 @@
+.page {
+  --back-row: 0px;
+  --bar-height: calc(var(--safe-top) + var(--back-row) + 48px);
+  position: absolute;
+  inset: 0;
+}
+
+.page[data-has-back] {
+  --back-row: 34px;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: var(--bar-height);
+  padding-top: var(--safe-top);
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.bar[data-scrolled] {
+  background: var(--top-bar-fill);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  border-bottom-color: var(--hairline);
+}
+
+/* The whole label is the button, with room for a thumb. */
+.back {
+  height: var(--back-row);
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px 0 calc(6px + var(--safe-left));
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.back span {
+  margin-left: -2px;
+}
+
+.titleRow {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 0 calc(var(--page-gutter) + var(--safe-right)) 7px calc(var(--page-gutter) + var(--safe-left));
+  min-width: 0;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trailing {
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.content {
+  min-height: 100%;
+  padding-top: var(--bar-height);
+  padding-bottom: var(--chrome-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}

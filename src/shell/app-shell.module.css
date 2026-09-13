@@ -1,0 +1,46 @@
+.shell {
+  --tab-bar-height: calc(57px + max(var(--safe-bottom), 10px));
+  /* Everything docked at the bottom that page content must scroll clear of.
+     The mini-player adds its height here in step 2. */
+  --chrome-bottom: calc(var(--tab-bar-height) + 24px);
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+}
+
+.stacks {
+  position: absolute;
+  inset: 0;
+}
+
+.tabBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  height: var(--tab-bar-height);
+  display: flex;
+  padding: 9px var(--safe-right) 0 var(--safe-left);
+  background: var(--tab-bar-fill);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  border-top: 1px solid var(--hairline);
+}
+
+/* The whole column is the button, not just the icon. */
+.tab {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding-top: 2px;
+  color: var(--ink-42);
+}
+
+.tab[data-active] {
+  color: var(--accent);
+}

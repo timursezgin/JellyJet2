@@ -1,0 +1,45 @@
+.server {
+  margin: 12px var(--page-gutter) 0;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+
+.server p {
+  margin: 0;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--online);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--online);
+}
+
+.name {
+  margin-top: 8px !important;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.detail {
+  margin-top: 4px !important;
+  font-size: 13px;
+  color: var(--ink-45);
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  margin: 22px var(--page-gutter) 0;
+  text-align: center;
+}

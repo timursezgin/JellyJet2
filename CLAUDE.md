@@ -34,10 +34,27 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   `export PATH="/opt/homebrew/bin:$PATH"`.
 - `npm run dev` - dev server on :5173. `/jellyfin/*` and `/pipeline/*` are
   proxied to tim-box over Tailscale (`vite.config.ts`).
+- `VITE_LAYOUT_TEST=1 npm run dev` - opens signed in with a pretend session
+  (server unreachable) for testing layout and navigation without an account.
+  Real sign-in needs the owner; never type their password.
 - `npm run build` - typecheck + production build to `dist/`.
 - `sh tool/deploy.sh` - build and copy to tim-box `Desktop\JellyJet2\site`
   (SMB mount `/Volumes/Users/Windows 11/Desktop/JellyJet2`). Served by the
   `JellyJet2` Caddy container (`deploy/`), port 8091.
+
+## Code layout
+
+- `src/jellyfin/` - `JellyfinClient` (fetch + MediaBrowser auth header),
+  `identity.ts` (device id/name, ASCII-only header values), response types.
+- `src/auth/session.ts` - zustand session store (restore / signIn / signOut,
+  permissions from the user policy), persisted to localStorage `jj.session`.
+  Restore opens the app immediately and only signs out on a 401.
+- `src/nav/` - per-tab page stacks (`navigation.ts`), `StackView` with iOS
+  push/pop slides and left-edge swipe-back (Web Animations API), `PageContext`.
+- `src/shell/app-shell.tsx` - tabs + route → screen mapping. `--chrome-bottom`
+  is the space pages keep clear at the bottom.
+- `src/ui/` - shared pieces (`Page` large-title scaffold, `ListRow`, ...).
+- `src/screens/` - one file per screen.
 
 ## How it's hosted
 

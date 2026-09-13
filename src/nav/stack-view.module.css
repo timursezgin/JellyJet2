@@ -1,0 +1,36 @@
+.stack {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+  /* Horizontal drags belong to swipe-back; the pages still scroll vertically. */
+  touch-action: pan-y;
+}
+
+.stack[data-visible] {
+  visibility: visible;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  will-change: transform;
+}
+
+/* Pages further down the stack keep their scroll position but aren't painted. */
+.page[data-hidden] {
+  visibility: hidden;
+}
+
+.page[data-covered] {
+  pointer-events: none;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}

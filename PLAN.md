@@ -66,7 +66,7 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 ## Steps
 
 0. **Setup** - toolchain, project, design tokens, container, publish script. ✅
-1. **Sign-in and app frame** - sign-in, five tabs, page slide animations.
+1. **Sign-in and app frame** - sign-in, five tabs, page slide animations. ✅ (real-account sign-in to be confirmed by the owner)
 2. **Player** - mini + full player, queue, lock-screen controls, instant next
    song. *Checkpoint: owner tests locked-screen playback on the iPhone.*
 3. **Browsing** - Home, Library, albums, artists, playlists, Liked Songs,

@@ -1,0 +1,13 @@
+.empty {
+  padding: 64px calc(var(--page-gutter) + 12px);
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+}
+
+.empty p + p {
+  margin-top: 6px;
+  line-height: 1.4;
+}
