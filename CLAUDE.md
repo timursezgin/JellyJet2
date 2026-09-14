@@ -43,6 +43,11 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
 - `tool/offline-test.mjs` - end-to-end downloads/offline test in Playwright
   WebKit against a pretend Jellyfin (see its header). Zustand selectors that
   build objects need `useShallow` or React loops (#185) - this test caught it.
+- `tool/swipe-test.mjs` - swipe-back stress test (fast repeat swipes, swipe
+  then open a page, second finger, random abuse) in Playwright WebKit against
+  the pretend-session dev server on :5199. Run it after touching `StackView`.
+  A swipe's end must run exactly once: re-finishing an old animation used to
+  pop a second page and freeze pages half-shifted.
 - The Browser pane can't register service workers; use Playwright WebKit or
   the Simulator for anything offline.
 - `sh tool/deploy.sh` - build and copy to tim-box `Desktop\JellyJet2\site`

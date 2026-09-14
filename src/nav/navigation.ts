@@ -38,7 +38,11 @@ interface NavigationState {
   instant: boolean;
   selectTab(tab: TabId): void;
   push(route: Route): void;
-  pop(options?: { instant?: boolean }): void;
+  /**
+   * Go back one page. `tab` and `key` pin it to a particular page: nothing
+   * happens if that page is no longer on top of that tab.
+   */
+  pop(options?: { instant?: boolean; tab?: TabId; key?: string }): void;
   popToRoot(tab?: TabId): void;
   reset(): void;
 }
@@ -71,9 +75,12 @@ export const useNavigation = create<NavigationState>((set, get) => ({
   },
 
   pop(options) {
-    const { tab, stacks } = get();
-    if (stacks[tab].length < 2) return;
-    set({ instant: options?.instant ?? false, stacks: { ...stacks, [tab]: stacks[tab].slice(0, -1) } });
+    const { stacks } = get();
+    const tab = options?.tab ?? get().tab;
+    const stack = stacks[tab];
+    if (stack.length < 2) return;
+    if (options?.key && stack[stack.length - 1].key !== options.key) return;
+    set({ instant: options?.instant ?? false, stacks: { ...stacks, [tab]: stack.slice(0, -1) } });
   },
 
   popToRoot(tab = get().tab) {

@@ -99,7 +99,7 @@ export function AppShell() {
       <MiniPlayer />
       <div className={styles.stacks}>
         {TAB_IDS.map((id) => (
-          <StackView key={id} entries={stacks[id]} visible={id === tab} renderRoute={renderRoute} />
+          <StackView key={id} tab={id} entries={stacks[id]} visible={id === tab} renderRoute={renderRoute} />
         ))}
       </div>
 
