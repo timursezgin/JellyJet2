@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useRef } from 'react';
 
 import { useOnline } from '@/connectivity/connection';
 import { useIsDownloaded } from '@/downloads/downloads';
@@ -9,6 +9,7 @@ import { SongButtons } from '@/songs/song-buttons';
 import type { SongContext } from '@/songs/song-menu';
 import { Artwork } from './artwork';
 import { toast } from './toast';
+import { useCloseWhenTappedElsewhere } from './use-close-when-tapped-elsewhere';
 import styles from './track-row.module.css';
 
 /** Fixed height, so long lists can be drawn only where they're visible. */
@@ -44,7 +45,7 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
   const downloaded = useIsDownloaded(track.id);
   const unavailable = !online && !downloaded;
 
-  useCloseWhenTappedElsewhere(revealed, unlikeButton);
+  useCloseWhenTappedElsewhere(revealed, unlikeButton, () => revealUnlike(null));
 
   return (
     <div
@@ -100,35 +101,4 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
       </div>
     </div>
   );
-}
-
-/**
- * While a row is open, the next touch anywhere else (or a scroll) closes it -
- * and that first tap does nothing else, as in iOS lists.
- */
-function useCloseWhenTappedElsewhere(open: boolean, keep: RefObject<HTMLButtonElement | null>) {
-  useEffect(() => {
-    if (!open) return;
-    const swallowNextClick = () => {
-      const stop = (event: Event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      };
-      document.addEventListener('click', stop, { capture: true, once: true });
-      // If the touch turns into a scroll there's no click; don't eat a later one.
-      setTimeout(() => document.removeEventListener('click', stop, { capture: true }), 600);
-    };
-    const onPointerDown = (event: PointerEvent) => {
-      if (keep.current?.contains(event.target as Node)) return;
-      swallowNextClick();
-      revealUnlike(null);
-    };
-    const onScroll = () => revealUnlike(null);
-    document.addEventListener('pointerdown', onPointerDown, { capture: true });
-    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown, { capture: true });
-      document.removeEventListener('scroll', onScroll, { capture: true });
-    };
-  }, [open, keep]);
 }

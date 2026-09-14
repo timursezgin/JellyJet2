@@ -121,7 +121,7 @@ const results = [
     files: [{ filename: 'Shares\\Other Album\\01.flac', size: 40_000_000 }],
   },
 ];
-const orchestrator = { auth: [], jobs: new Map(), deleted: [], searches: [] };
+const orchestrator = { auth: [], jobs: new Map(), deleted: [], searches: [], made: 0 };
 function pipeline(req, body) {
   const url = new URL(`http://mock${req.url}`);
   orchestrator.auth.push(req.headers.authorization);
@@ -133,7 +133,7 @@ function pipeline(req, body) {
   }
   if (url.pathname === '/download' && req.method === 'POST') {
     const b = JSON.parse(body);
-    const jobId = `job${orchestrator.jobs.size + 1}`;
+    const jobId = `job${++orchestrator.made}`;
     orchestrator.jobs.set(jobId, { jobId, artist: b.artist, album: b.album, folderName: b.folderName, trackCount: b.files.length, polls: 0 });
     return [200, { jobId }];
   }
@@ -317,14 +317,61 @@ await page.waitForTimeout(500);
 check(seen.libraryRefresh > 0, 'when it lands, Jellyfin is asked to look for it');
 await shot('add-albums-landed');
 
-// A second download, cancelled.
+// Swiping a download row left uncovers its action. Desktop WebKit can't make
+// Touch objects, so an Event carrying the same fields stands in.
+async function swipeLeft(text) {
+  const box = await top().getByText(text, { exact: true }).first().boundingBox();
+  const y = box.y + box.height / 2;
+  await page.evaluate(
+    async ({ x, y }) => {
+      const target = document.elementFromPoint(x, y);
+      const send = (type, px) => {
+        const touch = { identifier: 7, target, clientX: px, clientY: y };
+        const ev = new Event(type, { bubbles: true, cancelable: true });
+        const live = type === 'touchend' ? [] : [touch];
+        Object.defineProperty(ev, 'touches', { value: live });
+        Object.defineProperty(ev, 'changedTouches', { value: [touch] });
+        target.dispatchEvent(ev);
+      };
+      send('touchstart', x);
+      for (let i = 1; i <= 8; i++) {
+        await new Promise((r) => setTimeout(r, 16));
+        send('touchmove', x - i * 18);
+      }
+      send('touchend', x - 144);
+    },
+    { x: 300, y },
+  );
+  await page.waitForTimeout(450);
+}
+
+// The finished download: swipe, Dismiss.
+await swipeLeft('Great Album');
+await shot('add-albums-dismiss');
+await top().getByText('Dismiss', { exact: true }).click();
+await page.waitForTimeout(900);
+check(orchestrator.deleted.includes('job1') && !(await top().getByText('Added to your library').count()), 'a finished download swipes to Dismiss and leaves the list');
+
+// A second download, still going: swipe, Cancel - no popup.
 await top().getByText('Other Album (FLAC)').click();
 await top().getByRole('button', { name: 'Download to library' }).click();
 await page.waitForTimeout(1500);
-await top().getByRole('button', { name: 'Cancel Other Album (FLAC)' }).click();
-await page.getByRole('button', { name: 'Cancel download' }).click();
-await page.waitForTimeout(800);
-check(orchestrator.deleted.includes('job2'), 'cancelling asks first, then stops the download');
+await swipeLeft('Other Album (FLAC)');
+await top().getByRole('button', { name: 'Cancel' }).waitFor();
+await shot('add-albums-cancel');
+check(!(await page.getByRole('alertdialog').count()), 'no popup - the row shows Cancel');
+await top().getByText('Cancel', { exact: true }).click();
+await page.waitForTimeout(900);
+check(orchestrator.deleted.includes('job2') && !(await top().getByText(/Downloading 40%/).count()), 'Cancel stops the download and the row leaves');
+
+// Opening a row and tapping elsewhere closes it again.
+await top().getByText('Great Album', { exact: true }).first().click();
+await top().getByRole('button', { name: 'Download to library' }).click();
+await page.waitForTimeout(1500);
+await swipeLeft('Great Album');
+await top().getByText('Downloads', { exact: true }).click();
+await page.waitForTimeout(500);
+check(!(await top().locator('[data-open]').count()), 'tapping elsewhere closes an open row');
 
 // Forget the key.
 await top().getByRole('button', { name: 'Forget the download server key' }).click();

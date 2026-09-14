@@ -8,14 +8,16 @@ import {
   clearSearch,
   connectPipeline,
   forgetPipeline,
+  cancelOrDismissJob,
+  forgetJob,
   refreshJobs,
-  removeJob,
   searchSoulseek,
   usePipeline,
 } from '@/pipeline/pipeline';
 import { confirm } from '@/ui/confirm';
 import { Page } from '@/ui/page';
 import { SectionHeader } from '@/ui/section';
+import { SwipeRow } from '@/ui/swipe-row';
 import { toast } from '@/ui/toast';
 import { formatBytes } from './downloaded-screen';
 import styles from './add-albums-screen.module.css';
@@ -47,6 +49,7 @@ function Connected() {
   const searchError = usePipeline((s) => s.searchError);
   const jobs = usePipeline((s) => s.jobs);
   const [text, setText] = useState(query);
+  const [openJob, setOpenJob] = useState<string | null>(null);
 
   useEffect(() => {
     void refreshJobs();
@@ -98,7 +101,12 @@ function Connected() {
         <>
           <SectionHeader title="Downloads" />
           {jobs.map((job) => (
-            <JobRow key={job.jobId} job={job} />
+            <JobRow
+              key={job.jobId}
+              job={job}
+              open={openJob === job.jobId}
+              onOpenChange={(open) => setOpenJob((current) => (open ? job.jobId : current === job.jobId ? null : current))}
+            />
           ))}
         </>
       )}
@@ -180,7 +188,8 @@ export function SlotLine({ album }: { album: AlbumResult }) {
   );
 }
 
-function JobRow({ job }: { job: DownloadJob }) {
+/** A download. Swipe it left: Cancel while it's going, Dismiss once it's done. */
+function JobRow({ job, open, onOpenChange }: { job: DownloadJob; open: boolean; onOpenChange(open: boolean): void }) {
   const active = isActiveJob(job);
   const status =
     job.state === 'queued'
@@ -193,53 +202,42 @@ function JobRow({ job }: { job: DownloadJob }) {
             ? 'Added to your library'
             : job.note || 'Couldn’t finish';
 
-  const remove = async () => {
-    if (active) {
-      const ok = await confirm({
-        title: `Cancel “${albumTitle(job)}”?`,
-        message: 'The Soulseek download stops and anything downloaded so far is deleted.',
-        confirmLabel: 'Cancel download',
-        cancelLabel: 'Keep',
-        destructive: true,
-      });
-      if (!ok) return;
-    }
-    const error = await removeJob(job.jobId);
-    if (error) toast(error);
-  };
-
   return (
-    <div className={styles.job} data-state={job.state}>
-      <span className={styles.jobIcon}>
-        {job.state === 'inLibrary' ? (
-          <CircleCheck size={18} strokeWidth={2.2} />
-        ) : job.state === 'failed' ? (
-          <CircleAlert size={18} strokeWidth={2.2} />
-        ) : (
-          <span className={styles.spinner} />
-        )}
-      </span>
-      <span className={styles.jobText}>
-        <span className={styles.jobTitle}>{albumTitle(job)}</span>
-        <span className={styles.jobStatus}>
-          {job.artist ? `${job.artist} · ` : ''}
-          {status}
+    <SwipeRow
+      actionLabel={active ? 'Cancel' : 'Dismiss'}
+      open={open}
+      onOpenChange={onOpenChange}
+      onAction={async () => {
+        const error = await cancelOrDismissJob(job.jobId);
+        if (error) toast(error);
+        return !error;
+      }}
+      onGone={() => forgetJob(job.jobId)}
+    >
+      <div className={styles.job} data-state={job.state}>
+        <span className={styles.jobIcon}>
+          {job.state === 'inLibrary' ? (
+            <CircleCheck size={18} strokeWidth={2.2} />
+          ) : job.state === 'failed' ? (
+            <CircleAlert size={18} strokeWidth={2.2} />
+          ) : (
+            <span className={styles.spinner} />
+          )}
         </span>
-        {job.state === 'downloading' && (
-          <span className={styles.bar}>
-            <span style={{ transform: `scaleX(${Math.max(0.02, job.progress)})` }} />
+        <span className={styles.jobText}>
+          <span className={styles.jobTitle}>{albumTitle(job)}</span>
+          <span className={styles.jobStatus}>
+            {job.artist ? `${job.artist} · ` : ''}
+            {status}
           </span>
-        )}
-      </span>
-      <button
-        type="button"
-        className={styles.jobRemove}
-        onClick={() => void remove()}
-        aria-label={active ? `Cancel ${albumTitle(job)}` : `Dismiss ${albumTitle(job)}`}
-      >
-        <X size={18} strokeWidth={2.2} />
-      </button>
-    </div>
+          {job.state === 'downloading' && (
+            <span className={styles.bar}>
+              <span style={{ transform: `scaleX(${Math.max(0.02, job.progress)})` }} />
+            </span>
+          )}
+        </span>
+      </div>
+    </SwipeRow>
   );
 }
 

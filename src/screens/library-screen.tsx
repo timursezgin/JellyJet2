@@ -32,9 +32,8 @@ export function LibraryScreen() {
       title="Library"
       trailing={
         canAddAlbums && (
-          <button type="button" className={styles.add} onClick={() => navigate({ name: 'add-albums' })}>
-            <Plus size={15} strokeWidth={2.6} />
-            Add albums
+          <button type="button" className={styles.add} onClick={() => navigate({ name: 'add-albums' })} aria-label="Add albums">
+            <Plus size={18} strokeWidth={2.6} />
           </button>
         )
       }

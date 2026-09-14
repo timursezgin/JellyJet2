@@ -179,16 +179,21 @@ export async function downloadAlbum(album: AlbumResult): Promise<string | null> 
   return null;
 }
 
-export async function removeJob(jobId: string): Promise<string | null> {
+/** Stops a download (deleting what arrived) or clears a finished one, on the server. */
+export async function cancelOrDismissJob(jobId: string): Promise<string | null> {
   const key = usePipeline.getState().key;
   if (!key) return 'Not connected.';
   try {
     await cancelJob(key, jobId);
+    return null;
   } catch (error) {
     onError(error);
     return message(error, 'Couldn’t remove that.');
   }
+}
+
+/** Takes a cancelled or dismissed job off the list. */
+export function forgetJob(jobId: string) {
   usePipeline.setState((s) => ({ jobs: s.jobs.filter((j) => j.jobId !== jobId) }));
-  await refreshJobs();
-  return null;
+  void refreshJobs();
 }

@@ -155,15 +155,13 @@
   color: var(--ink-30);
 }
 
-/* A download in progress (or finished) */
+/* A download in progress (or finished); its row swipes (see SwipeRow) */
 .job {
-  margin: 0 var(--page-gutter);
   display: flex;
   align-items: center;
   gap: 12px;
   min-height: 60px;
   padding: 8px 0;
-  border-top: 1px solid var(--hairline);
 }
 
 .jobIcon {
@@ -220,21 +218,6 @@
   background: var(--accent);
   transform-origin: left;
   transition: transform 600ms var(--ease-ios);
-}
-
-.jobRemove {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  margin-right: -10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-35);
-}
-
-.jobRemove:active {
-  color: var(--ink);
 }
 
 .forget {
