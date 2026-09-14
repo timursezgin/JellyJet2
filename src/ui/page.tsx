@@ -93,7 +93,7 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
           </div>
         </header>
       ) : (
-        <header className={styles.detailBar} data-scrolled={showTitle || undefined}>
+        <header className={styles.detailBar} data-scrolled={scrolled || undefined} data-title={showTitle || undefined}>
           <div className={styles.detailSide}>{back}</div>
           <div className={styles.detailTitle}>{title}</div>
           <div className={`${styles.detailSide} ${styles.detailTrailing}`}>{trailing}</div>

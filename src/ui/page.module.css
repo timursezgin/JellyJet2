@@ -50,17 +50,15 @@
   padding-top: var(--safe-top);
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  border-bottom: 1px solid transparent;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-
-.bar[data-scrolled] {
+  /* Always frosted glass, so nothing switches on part way through a scroll. */
   background: var(--top-bar-fill);
   -webkit-backdrop-filter: var(--bar-blur);
   backdrop-filter: var(--bar-blur);
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+
+.bar[data-scrolled] {
   border-bottom-color: var(--hairline);
 }
 
@@ -121,17 +119,14 @@
   padding-top: var(--safe-top);
   display: flex;
   align-items: center;
-  background: var(--bg);
-  border-bottom: 1px solid transparent;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-
-.detailBar[data-scrolled] {
   background: var(--top-bar-fill);
   -webkit-backdrop-filter: var(--bar-blur);
   backdrop-filter: var(--bar-blur);
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+
+.detailBar[data-scrolled] {
   border-bottom-color: var(--hairline);
 }
 
@@ -164,7 +159,7 @@
   transition: opacity 160ms ease;
 }
 
-.detailBar[data-scrolled] .detailTitle {
+.detailBar[data-title] .detailTitle {
   opacity: 1;
 }
 
