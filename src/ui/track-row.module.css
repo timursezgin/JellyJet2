@@ -6,13 +6,17 @@
   border-top: 1px solid var(--hairline);
 }
 
-/* The row's content; it slides over the Unlike button behind it. */
+/* The row's content. It reaches to the screen's right edge (keeping the page
+   margin as padding) so it fully covers the red row underneath, and keeps
+   that margin between its buttons and the red when slid open. */
 .slide {
   position: relative;
   z-index: 1;
   height: 100%;
   display: flex;
   align-items: center;
+  margin-right: calc(-1 * var(--page-gutter));
+  padding-right: var(--page-gutter);
   background: var(--bg);
 }
 
@@ -114,7 +118,7 @@
 /* The song row slides left to uncover it, casting a soft shadow onto the red. */
 .row[data-revealed] .slide,
 .row[data-leaving] .slide {
-  transform: translateX(calc(-1 * (var(--reveal) - var(--page-gutter))));
+  transform: translateX(calc(-1 * var(--reveal)));
   box-shadow: 10px 0 18px -8px rgba(0, 0, 0, 0.7);
 }
 
