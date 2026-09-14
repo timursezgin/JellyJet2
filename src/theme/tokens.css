@@ -39,16 +39,18 @@
   --art-placeholder: #26262b;
   --art-placeholder-mini: #33333a;
 
-  /* Ink (text and icons) */
+  /* Ink (text and icons). Solid colours, each matching the design's
+     see-through white over --bg: see-through strokes double up where an
+     icon's lines cross and show as darker/brighter seams. */
   --ink: #f5f4f3;
-  --ink-70: rgba(245, 244, 243, 0.7);
-  --ink-60: rgba(245, 244, 243, 0.6);
-  --ink-50: rgba(245, 244, 243, 0.5);
-  --ink-45: rgba(245, 244, 243, 0.45);
-  --ink-42: rgba(245, 244, 243, 0.42);
-  --ink-35: rgba(245, 244, 243, 0.35);
-  --ink-30: rgba(245, 244, 243, 0.3);
-  --ink-28: rgba(245, 244, 243, 0.28);
+  --ink-70: #aeaead; /* 0.7 white on --bg */
+  --ink-60: #979696; /* 0.6 white on --bg */
+  --ink-50: #807f7f; /* 0.5 white on --bg */
+  --ink-45: #747373; /* 0.45 white on --bg */
+  --ink-42: #6d6c6c; /* 0.42 white on --bg */
+  --ink-35: #5c5c5c; /* 0.35 white on --bg */
+  --ink-30: #505051; /* 0.3 white on --bg */
+  --ink-28: #4c4c4c; /* 0.28 white on --bg */
 
   /* Lines and fills */
   --hairline: rgba(255, 255, 255, 0.07);
