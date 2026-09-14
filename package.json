@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "node tool/deploy.mjs",
+    "serve-local": "node tool/serve-local.mjs"
   },
   "dependencies": {
     "@tanstack/query-async-storage-persister": "5.102.8",

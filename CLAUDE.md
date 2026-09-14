@@ -7,10 +7,15 @@ owner's self-hosted **Jellyfin** server. It is installed from Safari to the
 phone's home screen - there is no native app. **Read `PLAN.md` first**: it
 holds every product decision and the build steps.
 
-The original JellyJet (Flutter, `~/Desktop/JellyJet`) is a separate project.
-Its design spec is the look to follow: `~/Desktop/JellyJet/design_handoff_jellyfin_music_ios/`
-(tokens are ported to `src/theme/tokens.css`). Its Jellyfin API usage is a
-useful reference; don't port its code wholesale.
+**Read `HANDOFF.md` too**: it carries the decision history from the Mac
+sessions, the next job (the desktop layout) and the remaining ties to
+JellyJet v1. **JellyJet v1 (the Flutter app, github.com/timursezgin/JellyJet)
+is abandoned and will be archived and unreachable** - anything still needed
+from it must be moved here, linked, or made to work with this version (the
+Soulseek download service under `pipeline/` is the main one; see
+`HANDOFF.md`). The design spec to follow is in
+`docs/design/original-design-spec.md` (+ `screenshots/`), tokens are in
+`src/theme/tokens.css`, and the owner's later decisions override it.
 
 ## Who you're working with
 
@@ -30,23 +35,27 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
 
 ## Running it
 
-- Toolchain: Node via Homebrew - prefix commands with
-  `export PATH="/opt/homebrew/bin:$PATH"`.
+- Toolchain: Node 24+ and Git (Windows PC now; on the old Mac, Node came from
+  Homebrew: `export PATH="/opt/homebrew/bin:$PATH"`). Scripts are Node, so
+  they work on both; set environment variables PowerShell-style on Windows
+  (`$env:NAME="value"; npm run ...`).
 - `npm run dev` - dev server on :5173. `/jellyfin/*` and `/pipeline/*` are
   proxied to tim-box over Tailscale (`vite.config.ts`).
 - `VITE_LAYOUT_TEST=1 npm run dev` - opens signed in with a pretend session
   (server unreachable) for testing layout and navigation without an account.
   Real sign-in needs the owner; never type their password.
 - `npm run build` - typecheck + production build to `dist/`.
-- `sh tool/serve-local.sh` - the production build on http://localhost:8792 via
+- `npm run serve-local` - the production build on http://localhost:8792 via
   the real Caddyfile (service worker + downloads work: localhost is secure).
+  Needs Caddy on the PATH. Tests need Playwright (`npm i -D playwright`,
+  `npx playwright install webkit`).
 - `tool/offline-test.mjs` - end-to-end downloads/offline test in Playwright
   WebKit against a pretend Jellyfin (see its header). Zustand selectors that
   build objects need `useShallow` or React loops (#185) - this test caught it.
 - `tool/extras-test.mjs` - step 6 end to end (mixes, save as playlist, radios,
   artist mix, Add albums with a pretend key) in Playwright WebKit against a
   pretend Jellyfin (:8793) and pretend orchestrator (:8795):
-  `JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 sh tool/serve-local.sh`.
+  `JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 npm run serve-local`.
 - `tool/perf-test.mjs` - smoothness numbers against a library-sized pretend
   Jellyfin (12k songs): start-up, React commits, dropped frames scrolling and
   opening pages, cover pop-in/flicker, saved-cache size. With
@@ -60,11 +69,15 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   the pretend-session dev server on :5199. Run it after touching `StackView`.
   A swipe's end must run exactly once: re-finishing an old animation used to
   pop a second page and freeze pages half-shifted.
-- The Browser pane can't register service workers; use Playwright WebKit or
-  the Simulator for anything offline.
-- `sh tool/deploy.sh` - build and copy to tim-box `Desktop\JellyJet2\site`
-  (SMB mount `/Volumes/Users/Windows 11/Desktop/JellyJet2`). Served by the
-  `JellyJet2` Caddy container (`deploy/`), port 8091.
+- The Browser pane can't register service workers; use Playwright WebKit for
+  anything offline. (The iOS Simulator used before is Mac-only.)
+- `npm run deploy` (`tool/deploy.mjs`) - build and copy to tim-box
+  `Desktop\JellyJet2\site`. Finds the folder itself: on tim-box
+  `C:\Users\Windows 11\Desktop\JellyJet2`, from another PC
+  `\\100.115.48.57\Users\Windows 11\Desktop\JellyJet2` (open the share in
+  File Explorer once), from the Mac `/Volumes/Users/Windows 11/Desktop/JellyJet2`;
+  or `JJ_DEPLOY_TARGET`. Served by the `JellyJet2` Caddy container
+  (`deploy/`), port 8091.
 
 ## Code layout
 
@@ -141,7 +154,7 @@ why build files must keep content-hashed names and `/`, `/sw.js` are no-cache.
 - The status bar style is captured when the icon is added: re-add the icon to
   see a change.
 - The Browser pane is often hidden (no rAF, stale screenshots): check visuals
-  on the iOS Simulator home-screen app instead.
+  with Playwright WebKit screenshots at 402x874, and on the owner's iPhone.
 - Player (`src/player/player.ts`): one audio element; the next song is started
   synchronously inside `ended` (iOS lock-screen rule). Stream URL uses
   `ApiKey` (Jellyfin 12 disabled `api_key`). Queue saved per user in
@@ -152,5 +165,6 @@ why build files must keep content-hashed names and `/`, `/sw.js` are no-cache.
   lock-screen player; resuming needs the app opened. The owner rejected
   workarounds (a "silent pause" with a second element was tried and removed:
   it confused the lock-screen state) - genuine solutions only.
-- Never play test audio on the Simulator: it comes out of the owner's Mac.
+- Never play audio out loud while testing: it comes out of the owner's
+  speakers. The pretend servers' audio is silent.
 - Inputs need font-size ≥ 16px or iOS zooms the page.

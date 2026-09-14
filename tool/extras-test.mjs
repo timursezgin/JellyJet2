@@ -2,7 +2,7 @@
 // (Playwright WebKit) against a pretend Jellyfin and a pretend download server.
 // No account, no real key, no sound.
 //   npm run build
-//   JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 sh tool/serve-local.sh   (another terminal)
+//   JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 npm run serve-local   (another terminal)
 //   node tool/extras-test.mjs
 // Needs Playwright once: npm i -D playwright && npx playwright install webkit
 import { webkit } from 'playwright';

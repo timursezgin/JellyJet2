@@ -1,7 +1,7 @@
 // Downloads and offline, end to end, in Safari's engine (Playwright WebKit),
 // against a pretend Jellyfin - no account, no sound.
 //   npm run build
-//   JELLYFIN_UPSTREAM=localhost:8793 sh tool/serve-local.sh   (in another terminal)
+//   JELLYFIN_UPSTREAM=localhost:8793 npm run serve-local   (in another terminal)
 //   node tool/offline-test.mjs
 // Needs Playwright once: npm i -D playwright && npx playwright install webkit
 import { webkit } from 'playwright';
@@ -189,7 +189,9 @@ if (!state.favoritePosts.some(([m, p]) => m === 'POST' && p.endsWith('/t4'))) fa
 
 // The app itself opens with no network at all (served by the service worker).
 // Stop the web server entirely, as if there were no network, and reopen.
-(await import('node:child_process')).execSync('pkill -f "caddy run --config deploy/Caddyfile" || true');
+(await import('node:child_process')).execSync(
+  process.platform === 'win32' ? 'taskkill /IM caddy.exe /F || exit 0' : 'pkill -f "caddy run --config deploy/Caddyfile" || true',
+);
 await new Promise((r) => setTimeout(r, 1000));
 try {
   await page.goto(ORIGIN);

@@ -1,7 +1,7 @@
 // Smoothness measurements in Safari's engine (Playwright WebKit) against a
 // pretend Jellyfin the size of a real library. No account, no sound.
 //   npm run build
-//   JELLYFIN_UPSTREAM=localhost:8793 sh tool/serve-local.sh   (another terminal)
+//   JELLYFIN_UPSTREAM=localhost:8793 npm run serve-local   (another terminal)
 //   node tool/perf-test.mjs
 // Reports: start-up times, React commits, dropped frames while scrolling and
 // opening pages, and how big the saved library cache gets.

@@ -1,7 +1,7 @@
 // App start and updates, in Safari's engine (Playwright WebKit): reopening on
 // a slow connection, and a newly published version reaching an open app.
 //   npm run build
-//   JELLYFIN_UPSTREAM=localhost:8793 sh tool/serve-local.sh   (another terminal)
+//   JELLYFIN_UPSTREAM=localhost:8793 npm run serve-local   (another terminal)
 //   node tool/start-test.mjs
 // A proxy on :8794 in front of the local server holds the page back 1.5s, like
 // weak mobile data.
