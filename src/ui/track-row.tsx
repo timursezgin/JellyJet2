@@ -59,7 +59,7 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
             void setLiked(track, false);
           }}
         >
-          Unlike
+          <span>Unlike</span>
         </button>
       )}
       <div className={styles.slide}>

@@ -1,5 +1,5 @@
 .row {
-  --unlike-width: 92px;
+  --reveal: 100px;
   position: relative;
   height: 64px;
   margin: 0 var(--page-gutter);
@@ -14,7 +14,6 @@
   display: flex;
   align-items: center;
   background: var(--bg);
-  transition: transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .main {
@@ -75,38 +74,54 @@
 
 /* --- Liked Songs: slide open to Unlike, then fly out ----------------------- */
 
+/* A red row lying under the song row, reaching to the screen's right edge.
+   It's only shown while the row is open (or closing), so it never peeks out
+   into the page margin. */
 .unlike {
   position: absolute;
-  top: 6px;
-  bottom: 6px;
-  right: calc(-1 * var(--page-gutter) + 8px);
-  width: calc(var(--unlike-width) - 12px);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: calc(-1 * var(--page-gutter));
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
+  justify-content: flex-end;
+  align-items: stretch;
   background: var(--accent);
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  opacity: 0;
-  transform: scale(0.9);
-  transition:
-    opacity 240ms ease,
-    transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
+  visibility: hidden;
+  transition: visibility 0s linear 360ms;
+}
+
+.unlike span {
+  width: var(--reveal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .unlike:active {
-  filter: brightness(0.88);
+  filter: brightness(0.9);
 }
 
-.row[data-revealed] .slide {
-  transform: translateX(calc(-1 * var(--unlike-width) + var(--page-gutter) - 8px));
+.row[data-revealed] .unlike,
+.row[data-leaving] .unlike {
+  visibility: visible;
+  transition-delay: 0s;
 }
 
-.row[data-revealed] .unlike {
-  opacity: 1;
-  transform: scale(1);
+/* The song row slides left to uncover it, casting a soft shadow onto the red. */
+.row[data-revealed] .slide,
+.row[data-leaving] .slide {
+  transform: translateX(calc(-1 * (var(--reveal) - var(--page-gutter))));
+  box-shadow: 10px 0 18px -8px rgba(0, 0, 0, 0.7);
+}
+
+.slide {
+  transition:
+    transform 340ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 340ms ease;
 }
 
 /* Unliked: the whole row eases away to the left, then it's removed and the
@@ -118,13 +133,4 @@
   transition:
     transform 320ms cubic-bezier(0.55, 0, 0.75, 0.3),
     opacity 320ms cubic-bezier(0.55, 0, 0.75, 0.3);
-}
-
-.row[data-leaving] .unlike {
-  opacity: 1;
-  transform: none;
-}
-
-.row[data-leaving] .slide {
-  transform: translateX(calc(-1 * var(--unlike-width) + var(--page-gutter) - 8px));
 }
