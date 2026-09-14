@@ -76,7 +76,9 @@ export function StackView({ entries, visible, renderRoute }: Props) {
       done?.();
       return;
     }
-    const options: KeyframeAnimationOptions = { duration: DURATION, easing: EASE };
+    // A page sliding out (`done` given) holds its final position until it's
+    // removed; otherwise it would jump back to where it started for a frame.
+    const options: KeyframeAnimationOptions = { duration: DURATION, easing: EASE, fill: done ? 'forwards' : 'none' };
     const move = page.animate(
       [{ transform: `translate3d(${from}px,0,0)` }, { transform: `translate3d(${to}px,0,0)` }],
       options,
