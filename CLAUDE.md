@@ -188,8 +188,10 @@ Testing on this PC:
   icon at the full player's bottom left (AirPlay and queue sit bottom right)
   shows them across the whole area above the song title, edge to edge (not
   inside the cover's square), with the whole cover - edges included -
-  darkened and softly blurred behind; stays on from song to song. Archivo
-  Medium. Timed lyrics light up the sung line, follow the song
+  darkened and softly blurred behind; stays on from song to song. The lyrics
+  area keeps clear of the handle (28px) and the title (36px). Archivo Medium,
+  centred; the sung line is 20% larger (a real font-size change, so long
+  lines re-wrap within the margins). Timed lyrics light up the sung line, follow the song
   (pausing 3.5s after a hand scroll) and seek on tap; plain lyrics just
   scroll; otherwise "No lyrics for this song yet". Fetched only while shown.
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
