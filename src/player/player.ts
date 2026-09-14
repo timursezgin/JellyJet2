@@ -102,7 +102,6 @@ function load(index: number, { autoplay, startAt = 0 }: { autoplay: boolean; sta
   const track = get().queue[index];
   const s = session();
   if (!track || !s) return;
-  endSilentPause();
 
   reportStopped();
   playSessionId = randomId();
@@ -121,6 +120,11 @@ function load(index: number, { autoplay, startAt = 0 }: { autoplay: boolean; sta
 }
 
 function startPlayback() {
+  // Tell the browser this is music playback (Audio Session API), so iOS
+  // treats it like a music app's audio: plays with the silent switch on and
+  // handles interruptions such as calls accordingly.
+  const audioSession = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  if (audioSession && audioSession.type !== 'playback') audioSession.type = 'playback';
   audio.play().catch((error: unknown) => {
     // Refused (e.g. no tap yet after launch) or interrupted by a newer load.
     if (error instanceof DOMException && error.name === 'AbortError') return;
@@ -132,7 +136,6 @@ function startPlayback() {
 /** Replace the queue with these songs and start playing at `startIndex`. */
 export function playTracks(tracks: Track[], startIndex = 0, options: { shuffle?: boolean } = {}) {
   if (tracks.length === 0) return;
-  unlockSilence();
   const items = tracks.map(withUid);
   const shuffle = options.shuffle ?? get().shuffle;
   if (shuffle) {
@@ -149,8 +152,6 @@ export function playTracks(tracks: Track[], startIndex = 0, options: { shuffle?:
 export function play() {
   const track = currentTrack();
   if (!track) return;
-  unlockSilence();
-  endSilentPause();
   if (loadedUid !== track.uid) {
     load(get().index, { autoplay: true, startAt: restoredPosition });
     return;
@@ -270,7 +271,6 @@ export function moveInQueue(from: number, to: number) {
 }
 
 export function clearQueue() {
-  endSilentPause();
   reportStopped();
   audio.pause();
   audio.removeAttribute('src');
@@ -436,9 +436,7 @@ function syncMediaSession() {
     try {
       navigator.mediaSession.setPositionState({
         duration,
-        // A rate of exactly 0 isn't allowed; a tiny one keeps the lock-screen
-        // progress bar still during a silent pause.
-        playbackRate: silentPause ? 1e-6 : audio.playbackRate || 1,
+        playbackRate: audio.playbackRate || 1,
         position: Math.min(audio.currentTime, duration),
       });
     } catch {
@@ -447,112 +445,20 @@ function syncMediaSession() {
   }
 }
 
-// --- Silent pause -----------------------------------------------------------
-//
-// When a home-screen web app stops making sound with the screen off, iOS puts
-// it to sleep within seconds and hands the lock-screen player to another app:
-// play then starts that app's (empty) track and tapping the player opens it.
-// So a pause from the lock screen quietly plays silence on a second element
-// instead: the app stays awake and stays the lock-screen player, and the next
-// press resumes the song from the same spot. After 15 minutes it becomes a
-// real pause. While the app is on screen a pause is always a real pause.
-
-const SILENT_PAUSE_LIMIT = 15 * 60_000;
-const silence = new Audio();
-silence.loop = true;
-silence.preload = 'auto';
-silence.setAttribute('playsinline', '');
-let silenceUnlocked = false;
-let silentPause = false;
-let silentPauseTimer: ReturnType<typeof setTimeout> | undefined;
-
-/** Five seconds of silence as a tiny WAV, made on the spot. */
-function silentWavUrl(): string {
-  const rate = 8000;
-  const samples = rate * 5;
-  const buffer = new ArrayBuffer(44 + samples);
-  const view = new DataView(buffer);
-  const text = (offset: number, value: string) => [...value].forEach((c, i) => view.setUint8(offset + i, c.charCodeAt(0)));
-  text(0, 'RIFF');
-  view.setUint32(4, 36 + samples, true);
-  text(8, 'WAVE');
-  text(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, 1, true); // mono
-  view.setUint32(24, rate, true);
-  view.setUint32(28, rate, true);
-  view.setUint16(32, 1, true);
-  view.setUint16(34, 8, true); // 8-bit: silence is 128
-  text(36, 'data');
-  view.setUint32(40, samples, true);
-  new Uint8Array(buffer, 44).fill(128);
-  return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
-}
-
-/** iOS lets an element play without a tap only once it has played from one. */
-function unlockSilence() {
-  if (silenceUnlocked) return;
-  silenceUnlocked = true;
-  silence.src = silentWavUrl();
-  silence
-    .play()
-    .then(() => silence.pause())
-    .catch(() => {
-      silenceUnlocked = false;
-    });
-}
-
-function startSilentPause() {
-  if (silentPause || !silenceUnlocked) {
-    pause();
-    return;
-  }
-  silentPause = true;
-  silence.play().catch(() => {
-    silentPause = false;
-  });
-  pause();
-  clearTimeout(silentPauseTimer);
-  silentPauseTimer = setTimeout(endSilentPause, SILENT_PAUSE_LIMIT);
-  syncMediaSession();
-}
-
-function endSilentPause() {
-  clearTimeout(silentPauseTimer);
-  if (!silentPause) return;
-  silentPause = false;
-  silence.pause();
-}
-
-// Back on screen, a paused app is simply paused.
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') endSilentPause();
-});
-
 /**
  * Which lock-screen buttons exist. Re-sent every time a song starts: iOS
  * forgets a list given before any audio has played and falls back to its
  * video-style skip-15-seconds buttons.
  *
- * During a silent pause iOS thinks something is playing, so it shows a pause
- * button; either button then resumes the song.
+ * Known iOS limit for home-screen web apps: once paused with the screen off,
+ * iOS suspends the app within moments and gives the lock-screen player to
+ * another app, so resuming from the lock screen needs the app opened again.
  */
-function onRemotePlay() {
-  play();
-}
-
-function onRemotePause() {
-  if (silentPause) play();
-  else if (document.visibilityState === 'hidden' && get().playing) startSilentPause();
-  else pause();
-}
-
 function registerRemoteCommands() {
   if (!('mediaSession' in navigator)) return;
   const handlers: [MediaSessionAction, MediaSessionActionHandler | null][] = [
-    ['play', onRemotePlay],
-    ['pause', onRemotePause],
+    ['play', () => play()],
+    ['pause', () => pause()],
     ['seekbackward', null],
     ['seekforward', null],
     ['previoustrack', () => previous()],
