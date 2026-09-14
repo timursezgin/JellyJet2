@@ -114,9 +114,10 @@
   height: 44px;
 }
 
+/* The back button keeps its full label; the title takes the space left over. */
 .detailSide {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  max-width: 60%;
   display: flex;
 }
 
@@ -126,8 +127,10 @@
 }
 
 .detailTitle {
-  flex: 0 1 auto;
-  max-width: 55%;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 12px;
+  text-align: center;
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;

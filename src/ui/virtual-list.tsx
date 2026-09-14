@@ -64,7 +64,10 @@ export function VirtualList({ count, rowHeight, renderRow, onNearEnd }: VirtualL
   const ref = useRef<HTMLDivElement>(null);
   const { start, end } = useVisibleRows(ref, count, rowHeight, 10, onNearEnd);
   const rows: ReactNode[] = [];
-  for (let i = start; i < end; i++) {
+  // The visible range is worked out after drawing, so when the list has just
+  // shrunk (a search narrowing it) it can still point past the end.
+  const last = Math.min(end, count);
+  for (let i = start; i < last; i++) {
     rows.push(
       <div key={i} style={{ position: 'absolute', top: i * rowHeight, left: 0, right: 0, height: rowHeight }}>
         {renderRow(i)}
@@ -108,7 +111,7 @@ export function VirtualGrid({ count, columns, gap, cellHeight, renderCell, onNea
 
   const cells: ReactNode[] = [];
   if (cellWidth > 0) {
-    for (let row = start; row < end; row++) {
+    for (let row = start; row < Math.min(end, rowCount); row++) {
       for (let col = 0; col < columns; col++) {
         const index = row * columns + col;
         if (index >= count) break;
