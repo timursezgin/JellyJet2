@@ -21,7 +21,7 @@ export function formatBytes(bytes: number) {
 }
 
 /**
- * The Downloaded tab: every song on this phone, ready without internet, with
+ * The Downloaded list (top of Library): every song on this phone, ready without internet, with
  * the downloaded albums and playlists above.
  */
 export function DownloadedScreen() {

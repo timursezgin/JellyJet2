@@ -355,10 +355,10 @@ export function StackView({ tab, entries, visible, renderRoute }: Props) {
 
   const backInfo = useMemo(
     () =>
-      entries.map((_, index): PageInfo => {
+      entries.map((entry, index): PageInfo => {
         const below = entries[index - 1];
         const label = below ? routeTitle(below.route) : null;
-        return { backLabel: label, goBack: () => pop(), active: false };
+        return { backLabel: label, goBack: () => pop(), active: false, route: entry.route };
       }),
     [entries, pop],
   );
@@ -375,7 +375,7 @@ export function StackView({ tab, entries, visible, renderRoute }: Props) {
         // Only the top page and the one below it need painting.
         const hidden = !isExiting && depthFromTop > (exiting ? 0 : 1);
         const info = isExiting
-          ? { backLabel: null, goBack: () => {}, active: false }
+          ? { backLabel: null, goBack: () => {}, active: false, route: item.route }
           : { ...backInfo[index], active: visible && depthFromTop === 0 && !exiting };
         return (
           <div

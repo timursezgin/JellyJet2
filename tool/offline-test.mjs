@@ -105,7 +105,7 @@ await page.waitForTimeout(1500);
 log('service worker controlling:', await page.evaluate(() => !!navigator.serviceWorker.controller));
 
 // Download a playlist.
-await page.getByRole('button', { name: 'Library' }).click();
+await page.locator('nav').getByRole('button', { name: 'Library', exact: true }).click();
 await tapText('Playlists');
 await tapText('Mock Playlist');
 await page.waitForTimeout(800);
@@ -122,13 +122,11 @@ await page.getByRole('button', { name: 'Remove', exact: true }).click();
 await page.waitForTimeout(800);
 const afterRemove = await audioKeys();
 log('after removing Three:', afterRemove);
-await page.getByRole('button', { name: 'Downloaded' }).last().click();
-await page.waitForTimeout(600);
 
-await page.getByRole('button', { name: 'Settings' }).click();
+await page.locator('nav').getByRole('button', { name: 'Settings', exact: true }).click();
 await page.waitForTimeout(400);
 
-await page.getByRole('button', { name: 'Library' }).click();
+await page.locator('nav').getByRole('button', { name: 'Library', exact: true }).click();
 await page.waitForTimeout(400);
 if (afterRemove.join() !== '/offline/audio/t1') fail('removing one download');
 
@@ -151,11 +149,12 @@ if (!state.prefs.downloads?.includes('p1')) fail('backup not written');
 
 // Server unreachable: banner, grey rows for what can't play, downloaded songs play.
 serverDown = true;
-await page.getByRole('button', { name: 'Home' }).click();
-await page.getByRole('button', { name: 'Library' }).click();
+await page.locator('nav').getByRole('button', { name: 'Home', exact: true }).click();
+await page.locator('nav').getByRole('button', { name: 'Library', exact: true }).click();
 await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-await page.getByText('Offline · downloaded music plays').waitFor({ timeout: 20000 });
-log('offline banner shown');
+await visiblePage().getByText(/Offline – Only/).first().waitFor({ timeout: 20000 });
+log('offline notice shown under the title');
+if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/offline-notice.png` });
 await page.waitForTimeout(500);
 const rows = await visiblePage().locator('[data-unavailable]').count();
 log('greyed rows offline (expect 1 - Three):', rows);
@@ -166,6 +165,18 @@ await page.waitForTimeout(2500);
 const playing = await page.evaluate(() => navigator.mediaSession?.playbackState);
 log('offline playback state:', playing);
 if (playing !== 'playing') fail('offline playback');
+
+// "downloads" in the notice opens the Downloaded list.
+await visiblePage().getByRole('button', { name: 'downloads', exact: true }).click();
+await page.waitForTimeout(700);
+const onDownloaded = await visiblePage().getByRole('heading', { name: 'Downloaded' }).count().catch(() => 0) ||
+  (await visiblePage().getByText('Downloaded', { exact: true }).count());
+log('tapping "downloads" opened the Downloaded list:', !!onDownloaded);
+if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/offline-downloaded.png` });
+if (!onDownloaded) fail('offline notice link');
+if (await visiblePage().getByRole('button', { name: 'downloads', exact: true }).count()) fail('no link on the Downloaded page itself');
+await visiblePage().getByRole('button', { name: /^Back to/ }).click();
+await page.waitForTimeout(700);
 
 // Like while offline, then come back online: it syncs.
 await visiblePage().getByRole('button', { name: 'Add Four to Liked Songs' }).click();
@@ -184,7 +195,7 @@ try {
   await page.goto(ORIGIN);
   const offlineRows = await page.evaluate(async () => (await (await caches.open('jellyjet2-audio')).keys()).length);
   log('downloads still on the device after reopening:', offlineRows);
-  await page.getByText('Offline · downloaded music plays').waitFor({ timeout: 15000 });
+  await visiblePage().getByText(/Offline – Only/).first().waitFor({ timeout: 15000 });
   log('app opened with no network, offline banner shown');
 } catch (error) {
   log('(could not check opening with no network in this test browser:', error.message.split('\n')[0], ')');

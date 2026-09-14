@@ -1,8 +1,7 @@
-import { ArrowDownToLine, CloudOff, House, Library, Search, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { House, Library, Search, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { useSession } from '@/auth/session';
-import { useOnline } from '@/connectivity/connection';
 import { startOfflineServices } from '@/downloads/lifecycle';
 import { FullPlayer } from '@/player/full-player';
 import { MiniPlayer } from '@/player/mini-player';
@@ -35,7 +34,6 @@ const TABS: Record<TabId, { label: string; icon: LucideIcon }> = {
   home: { label: 'Home', icon: House },
   search: { label: 'Search', icon: Search },
   library: { label: 'Library', icon: Library },
-  downloaded: { label: 'Downloaded', icon: ArrowDownToLine },
   settings: { label: 'Settings', icon: SlidersHorizontal },
 };
 
@@ -91,20 +89,13 @@ export function AppShell() {
   const selectTab = useNavigation((s) => s.selectTab);
   const hasQueue = usePlayer((s) => s.queue.length > 0);
   const session = useSession((s) => s.session);
-  const online = useOnline();
 
   useEffect(restoreQueue, []);
   // Downloads, offline changes and the backup run while signed in.
   useEffect(() => (session ? startOfflineServices(session) : undefined), [session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={styles.shell} data-mini={hasQueue || undefined} data-offline={!online || undefined}>
-      {!online && (
-        <div className={styles.offline} role="status">
-          <CloudOff size={14} strokeWidth={2.4} />
-          Offline · downloaded music plays
-        </div>
-      )}
+    <div className={styles.shell} data-mini={hasQueue || undefined}>
       <FullPlayer />
       <SongMenuHost />
       <NewPlaylistHost />

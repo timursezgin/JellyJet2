@@ -1,4 +1,4 @@
-import { ChevronLeft, Search, X } from 'lucide-react';
+import { ChevronLeft, CloudOff, Search, X } from 'lucide-react';
 import {
   createContext,
   useContext,
@@ -9,6 +9,8 @@ import {
   type UIEvent,
 } from 'react';
 
+import { useOnline } from '@/connectivity/connection';
+import { navigate } from '@/nav/navigation';
 import { usePage } from '@/nav/page-context';
 import styles from './page.module.css';
 
@@ -42,21 +44,34 @@ const SEARCH_HEIGHT = 52;
 const DETAIL_TITLE_AFTER = 100;
 
 export function Page({ title, variant = 'large', trailing, search, children }: PageProps) {
-  const { backLabel, goBack } = usePage();
+  const { backLabel, goBack, route } = usePage();
+  const online = useOnline();
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
   const searchStarted = useRef(false);
 
   // Start with the search bar tucked out of sight, as iOS lists do.
+  const searchBox = useRef<HTMLDivElement>(null);
+
+  /** The search bar fades as it tucks under the see-through title bar, as in iOS. */
+  const fadeSearch = (top: number) => {
+    const el = searchBox.current;
+    if (!el) return;
+    // Fully shown while at least 60% of it is pulled down, gone once tucked.
+    el.style.opacity = String(Math.max(0, Math.min(1, (SEARCH_HEIGHT - top) / (SEARCH_HEIGHT * 0.6))));
+  };
+
   useLayoutEffect(() => {
     if (scroller && search && !search.value && !searchStarted.current) scroller.scrollTop = SEARCH_HEIGHT;
+    if (scroller) fadeSearch(scroller.scrollTop);
     // Only when the page first appears.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scroller]);
 
   const onScroll = (event: UIEvent<HTMLDivElement>) => {
     const top = event.currentTarget.scrollTop;
+    if (search) fadeSearch(top);
     const nextScrolled = top > (search ? SEARCH_HEIGHT : 0) + 1;
     if (nextScrolled !== scrolled) setScrolled(nextScrolled);
     if (variant === 'detail') {
@@ -78,6 +93,7 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
       data-variant={variant}
       data-has-back={backLabel ? true : undefined}
       data-has-search={search ? true : undefined}
+      data-offline={!online || undefined}
     >
       {variant === 'large' ? (
         <header className={styles.bar} data-scrolled={scrolled || undefined}>
@@ -86,18 +102,22 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
             <h1 className={styles.title}>{title}</h1>
             {trailing && <div className={styles.trailing}>{trailing}</div>}
           </div>
+          {!online && <OfflineNotice onDownloaded={route?.name === 'downloaded'} />}
         </header>
       ) : (
         <header className={styles.detailBar} data-scrolled={scrolled || undefined} data-title={showTitle || undefined}>
-          <div className={styles.detailSide}>{back}</div>
-          <div className={styles.detailTitle}>{title}</div>
-          <div className={`${styles.detailSide} ${styles.detailTrailing}`}>{trailing}</div>
+          <div className={styles.detailRow}>
+            <div className={styles.detailSide}>{back}</div>
+            <div className={styles.detailTitle}>{title}</div>
+            <div className={`${styles.detailSide} ${styles.detailTrailing}`}>{trailing}</div>
+          </div>
+          {!online && <OfflineNotice onDownloaded={route?.name === 'downloaded'} />}
         </header>
       )}
       <div ref={setScroller} className={styles.scroll} onScroll={onScroll}>
         <div className={styles.content}>
           {search && (
-            <div className={styles.search}>
+            <div ref={searchBox} className={styles.search}>
               <label className={styles.searchField}>
                 <Search size={17} strokeWidth={2.2} />
                 <input
@@ -125,5 +145,25 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
         </div>
       </div>
     </div>
+  );
+}
+
+/** Under the title while the server can't be reached; "downloads" opens the Downloaded list. */
+function OfflineNotice({ onDownloaded }: { onDownloaded: boolean }) {
+  return (
+    <p className={styles.offline} role="status">
+      <CloudOff size={14} strokeWidth={2.4} />
+      <span>
+        Offline – Only{' '}
+        {onDownloaded ? (
+          'downloads'
+        ) : (
+          <button type="button" className={styles.offlineLink} onClick={() => navigate({ name: 'downloaded' })}>
+            downloads
+          </button>
+        )}{' '}
+        are available
+      </span>
+    </p>
   );
 }

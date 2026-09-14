@@ -42,14 +42,17 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
   (another collection, or downloading it on its own) keeps it.
 
 ### Offline
-- The normal app with an "Offline" banner. Songs that can't play are grey,
+- The normal app with an "Offline" notice under the page title. Songs that can't play are grey,
   playable ones white; lists stay browsable.
 - Likes and playlist edits made offline save instantly and sync when back
   online.
 
 ### Layout
 - Phone first; desktop layout later.
-- Tabs: **Home · Search · Library · Downloaded · Settings**.
+- Tabs: **Home · Search · Library · Settings** (the Downloaded tab was dropped
+  on 2026-09-14: Downloaded lives at the top of Library).
+- Offline: a notice under each page's title, "Offline – Only downloads are
+  available", where "downloads" opens the Downloaded list.
 - **Liked Songs** and **Downloaded** are special playlists, shown at the top
   of Library (not inside Playlists).
 - **Hidden search**: swipe down to reveal it in playlists (including Liked and

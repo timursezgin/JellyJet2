@@ -5,7 +5,7 @@ import { create } from 'zustand';
  * tabs keeps every other tab's stack exactly where it was.
  */
 
-export const TAB_IDS = ['home', 'search', 'library', 'downloaded', 'settings'] as const;
+export const TAB_IDS = ['home', 'search', 'library', 'settings'] as const;
 export type TabId = (typeof TAB_IDS)[number];
 
 /** Every page the app can show. Each tab's first page is its tab root. */
@@ -59,7 +59,6 @@ const initialStacks = (): Record<TabId, StackEntry[]> => ({
   home: [entry({ name: 'home' })],
   search: [entry({ name: 'search' })],
   library: [entry({ name: 'library' })],
-  downloaded: [entry({ name: 'downloaded' })],
   settings: [entry({ name: 'settings' })],
 });
 

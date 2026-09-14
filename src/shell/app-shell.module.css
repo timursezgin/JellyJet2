@@ -16,39 +16,6 @@
   --chrome-bottom: calc(var(--tab-bar-height) + var(--mini-player-height) + 8px + 24px);
 }
 
-.shell[data-offline] {
-  --offline-height: 30px;
-}
-
-.shell[data-offline] {
-  --chrome-bottom: calc(var(--tab-bar-height) + 24px + var(--offline-height));
-}
-
-.shell[data-offline][data-mini] {
-  --chrome-bottom: calc(var(--tab-bar-height) + var(--mini-player-height) + 8px + 24px + var(--offline-height));
-}
-
-/* A quiet strip above the player and tabs while Jellyfin can't be reached. */
-.offline {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: var(--tab-bar-height);
-  z-index: 12;
-  height: var(--offline-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--tab-bar-fill);
-  -webkit-backdrop-filter: var(--bar-blur);
-  backdrop-filter: var(--bar-blur);
-  border-top: 1px solid var(--hairline);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-60);
-}
-
 .stacks {
   position: absolute;
   inset: 0;
