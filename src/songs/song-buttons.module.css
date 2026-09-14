@@ -21,16 +21,23 @@
   color: var(--ink-60);
 }
 
-.button[data-active] {
+.button[data-active],
+.buttons[data-large] .button[data-active] {
   color: var(--accent);
 }
 
-.button[data-muted] {
+.button[data-muted],
+.buttons[data-large] .button[data-muted] {
   color: var(--ink-28);
 }
 
-.button:active {
-  opacity: 0.5;
+/* Pressing shrinks the icon a touch; it never dims and brightens again. */
+.button svg {
+  transition: transform 120ms ease;
+}
+
+.button:active svg {
+  transform: scale(0.84);
 }
 
 .button:last-child {

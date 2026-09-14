@@ -56,11 +56,17 @@ interface VirtualListProps {
   count: number;
   rowHeight: number;
   renderRow(index: number): ReactNode;
+  /**
+   * A stable identity for the row at an index. Without it rows are matched by
+   * position, so when one is removed the next item takes over its element
+   * (and any animation it was in the middle of).
+   */
+  rowKey?(index: number): string;
   /** Called when the last rows come into view (load the next page). */
   onNearEnd?(): void;
 }
 
-export function VirtualList({ count, rowHeight, renderRow, onNearEnd }: VirtualListProps) {
+export function VirtualList({ count, rowHeight, renderRow, rowKey, onNearEnd }: VirtualListProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { start, end } = useVisibleRows(ref, count, rowHeight, 10, onNearEnd);
   const rows: ReactNode[] = [];
@@ -69,7 +75,7 @@ export function VirtualList({ count, rowHeight, renderRow, onNearEnd }: VirtualL
   const last = Math.min(end, count);
   for (let i = start; i < last; i++) {
     rows.push(
-      <div key={i} style={{ position: 'absolute', top: i * rowHeight, left: 0, right: 0, height: rowHeight }}>
+      <div key={rowKey ? rowKey(i) : i} style={{ position: 'absolute', top: i * rowHeight, left: 0, right: 0, height: rowHeight }}>
         {renderRow(i)}
       </div>,
     );

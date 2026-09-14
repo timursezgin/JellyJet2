@@ -82,6 +82,7 @@ export function TrackCollection({ title, art, query, empty, context, fadeUnliked
       <VirtualList
         count={shown.length}
         rowHeight={TRACK_ROW_HEIGHT}
+        rowKey={(i) => `${shown[i].id}:${shown[i].entryId ?? ''}`}
         renderRow={(i) => (
           <TrackRow
             track={shown[i]}
