@@ -50,11 +50,6 @@
   gap: 8px;
   margin-top: 12px;
   overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.chips::-webkit-scrollbar {
-  display: none;
 }
 
 .chip {

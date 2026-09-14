@@ -152,7 +152,7 @@ serverDown = true;
 await page.locator('nav').getByRole('button', { name: 'Home', exact: true }).click();
 await page.locator('nav').getByRole('button', { name: 'Library', exact: true }).click();
 await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-await visiblePage().getByText(/Offline – Only/).first().waitFor({ timeout: 20000 });
+await visiblePage().getByText(/^Offline/).first().waitFor({ timeout: 20000 });
 log('offline notice shown under the title');
 if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/offline-notice.png` });
 await page.waitForTimeout(500);
@@ -166,15 +166,15 @@ const playing = await page.evaluate(() => navigator.mediaSession?.playbackState)
 log('offline playback state:', playing);
 if (playing !== 'playing') fail('offline playback');
 
-// "downloads" in the notice opens the Downloaded list.
-await visiblePage().getByRole('button', { name: 'downloads', exact: true }).click();
+// "Go to Downloaded" in the notice opens the Downloaded list.
+await visiblePage().getByRole('button', { name: 'Go to Downloaded', exact: true }).click();
 await page.waitForTimeout(700);
 const onDownloaded = await visiblePage().getByRole('heading', { name: 'Downloaded' }).count().catch(() => 0) ||
   (await visiblePage().getByText('Downloaded', { exact: true }).count());
-log('tapping "downloads" opened the Downloaded list:', !!onDownloaded);
+log('tapping "Go to Downloaded" opened the Downloaded list:', !!onDownloaded);
 if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/offline-downloaded.png` });
 if (!onDownloaded) fail('offline notice link');
-if (await visiblePage().getByRole('button', { name: 'downloads', exact: true }).count()) fail('no link on the Downloaded page itself');
+if (await visiblePage().getByRole('button', { name: 'Go to Downloaded', exact: true }).count()) fail('no link on the Downloaded page itself');
 await visiblePage().getByRole('button', { name: /^Back to/ }).click();
 await page.waitForTimeout(700);
 
@@ -195,7 +195,7 @@ try {
   await page.goto(ORIGIN);
   const offlineRows = await page.evaluate(async () => (await (await caches.open('jellyjet2-audio')).keys()).length);
   log('downloads still on the device after reopening:', offlineRows);
-  await visiblePage().getByText(/Offline – Only/).first().waitFor({ timeout: 15000 });
+  await visiblePage().getByText(/^Offline/).first().waitFor({ timeout: 15000 });
   log('app opened with no network, offline banner shown');
 } catch (error) {
   log('(could not check opening with no network in this test browser:', error.message.split('\n')[0], ')');

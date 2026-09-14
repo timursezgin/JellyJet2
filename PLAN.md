@@ -51,8 +51,8 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 - Phone first; desktop layout later.
 - Tabs: **Home · Search · Library · Settings** (the Downloaded tab was dropped
   on 2026-09-14: Downloaded lives at the top of Library).
-- Offline: a notice under each page's title, "Offline – Only downloads are
-  available", where "downloads" opens the Downloaded list.
+- Offline: a notice under each page's title, "Offline • Go to Downloaded",
+  where "Go to Downloaded" opens the Downloaded list.
 - **Liked Songs** and **Downloaded** are special playlists, shown at the top
   of Library (not inside Playlists).
 - **Hidden search**: swipe down to reveal it in playlists (including Liked and

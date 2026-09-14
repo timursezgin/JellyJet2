@@ -148,21 +148,21 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
   );
 }
 
-/** Under the title while the server can't be reached; "downloads" opens the Downloaded list. */
+/** Under the title while the server can't be reached, with a way to the Downloaded list. */
 function OfflineNotice({ onDownloaded }: { onDownloaded: boolean }) {
   return (
     <p className={styles.offline} role="status">
       <CloudOff size={14} strokeWidth={2.4} />
       <span>
-        Offline – Only{' '}
-        {onDownloaded ? (
-          'downloads'
-        ) : (
-          <button type="button" className={styles.offlineLink} onClick={() => navigate({ name: 'downloaded' })}>
-            downloads
-          </button>
-        )}{' '}
-        are available
+        Offline
+        {!onDownloaded && (
+          <>
+            {' • '}
+            <button type="button" className={styles.offlineLink} onClick={() => navigate({ name: 'downloaded' })}>
+              Go to Downloaded
+            </button>
+          </>
+        )}
       </span>
     </p>
   );
