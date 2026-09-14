@@ -2,7 +2,7 @@ import { useSession } from '@/auth/session';
 import { useLikedSongs, useRecentlyAddedAlbums, useRecentlyPlayedAlbums } from '@/data/queries';
 import type { BaseItem } from '@/jellyfin/types';
 import { navigate } from '@/nav/navigation';
-import { playTracks } from '@/player/player';
+import { continueIfCurrent, playTracks } from '@/player/player';
 import { artistLine } from '@/player/track';
 import { AlbumCard } from '@/ui/album-card';
 import { Artwork } from '@/ui/artwork';
@@ -37,7 +37,9 @@ export function HomeScreen() {
               key={track.id}
               type="button"
               className={styles.songCard}
-              onClick={() => playTracks(list, i)}
+              onClick={() => {
+                if (!continueIfCurrent(track.id)) playTracks(list, i);
+              }}
             >
               <Artwork art={track.art} size={118} radius={10} />
               <span className={styles.songTitle}>{track.name}</span>

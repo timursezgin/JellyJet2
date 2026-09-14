@@ -2,7 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react';
 
 import { useOnline } from '@/connectivity/connection';
 import { useIsDownloaded } from '@/downloads/downloads';
-import { currentTrack, usePlayer } from '@/player/player';
+import { continueIfCurrent, currentTrack, usePlayer } from '@/player/player';
 import { artistLine, type Track } from '@/player/track';
 import { revealUnlike, setLiked, useIsLeaving, useIsRevealed } from '@/songs/likes';
 import { SongButtons } from '@/songs/song-buttons';
@@ -73,7 +73,13 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
         <button
           type="button"
           className={styles.main}
-          onClick={unavailable ? () => toast('Not downloaded - it needs a connection') : onPlay}
+          onClick={() => {
+            if (unavailable) {
+              toast('Not downloaded - it needs a connection');
+              return;
+            }
+            if (!continueIfCurrent(track.id)) onPlay();
+          }}
           aria-disabled={unavailable || undefined}
         >
           {leading === 'art' ? (

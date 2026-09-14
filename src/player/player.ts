@@ -185,6 +185,16 @@ export function playTracks(tracks: Track[], startIndex = 0, options: { shuffle?:
   load(shuffle ? 0 : startIndex, { autoplay: true });
 }
 
+/**
+ * Tapping a song that's already on doesn't start it over: playing, nothing
+ * happens; paused, it carries on from where it was. Returns whether it was on.
+ */
+export function continueIfCurrent(id: string): boolean {
+  if (currentTrack()?.id !== id) return false;
+  if (!get().playing) play();
+  return true;
+}
+
 export function play() {
   const track = currentTrack();
   if (!track) return;
