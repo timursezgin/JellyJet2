@@ -388,3 +388,51 @@ export const reportPlaybackStopped = (c: JellyfinClient, r: PlaybackReport) =>
   report(c, '/Sessions/Playing/Stopped', r);
 
 export const ticksToSeconds = (ticks: number | undefined) => (ticks ?? 0) / TICKS_PER_SECOND;
+
+// --- Changing things -----------------------------------------------------------
+
+export function setFavorite(client: JellyfinClient, userId: string, itemId: string, favorite: boolean) {
+  const path = `/UserFavoriteItems/${itemId}`;
+  const options = { query: { userId } };
+  return favorite ? client.post(path, options) : client.delete(path, options);
+}
+
+/** What's in a playlist: song id → its entry ids there (removing needs entry ids). */
+export async function playlistEntries(client: JellyfinClient, userId: string, playlistId: string) {
+  const result = await client.get<ItemsResult>(`/Playlists/${playlistId}/Items`, {
+    query: { userId, Limit: 10000, EnableImages: false },
+  });
+  const entries: Record<string, string[]> = {};
+  for (const item of result.Items) {
+    if (!item.PlaylistItemId) continue;
+    (entries[item.Id] ??= []).push(item.PlaylistItemId);
+  }
+  return entries;
+}
+
+/**
+ * Adds songs to a playlist, skipping ones already in it: Jellyfin would
+ * happily store duplicates. Returns how many were added.
+ */
+export async function addToPlaylist(client: JellyfinClient, userId: string, playlistId: string, ids: string[]) {
+  const existing = await playlistEntries(client, userId, playlistId);
+  const fresh = [...new Set(ids)].filter((id) => !existing[id]);
+  if (fresh.length) await client.post(`/Playlists/${playlistId}/Items`, { query: { Ids: fresh, userId } });
+  return fresh.length;
+}
+
+export function removeFromPlaylist(client: JellyfinClient, playlistId: string, entryIds: string[]) {
+  return client.delete(`/Playlists/${playlistId}/Items`, { query: { EntryIds: entryIds } });
+}
+
+export async function createPlaylist(client: JellyfinClient, userId: string, name: string, ids: string[]) {
+  const result = await client.post<{ Id: string }>('/Playlists', {
+    body: { Name: name, Ids: [...new Set(ids)], UserId: userId, MediaType: 'Audio', IsPublic: false },
+  });
+  return result.Id;
+}
+
+/** Permanently deletes an item and its file from the server (needs deletion rights). */
+export function deleteItem(client: JellyfinClient, itemId: string) {
+  return client.delete(`/Items/${itemId}`);
+}

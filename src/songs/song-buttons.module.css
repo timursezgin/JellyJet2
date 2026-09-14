@@ -1,0 +1,38 @@
+.buttons {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+/* Each button is a full-height block, not just its icon. */
+.button {
+  width: 40px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-45);
+}
+
+.buttons[data-large] .button {
+  width: 48px;
+  height: 48px;
+  color: var(--ink-60);
+}
+
+.button[data-active] {
+  color: var(--accent);
+}
+
+.button[data-muted] {
+  color: var(--ink-28);
+}
+
+.button:active {
+  opacity: 0.5;
+}
+
+.button:last-child {
+  margin-right: -8px;
+}

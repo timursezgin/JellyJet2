@@ -13,6 +13,10 @@ export interface Track {
   /** Track and disc number within its album. */
   number?: number;
   disc?: number;
+  /** Liked (a Jellyfin favourite) when this copy was fetched. */
+  liked?: boolean;
+  /** The entry id when this song came from a playlist (removing needs it). */
+  entryId?: string;
 }
 
 export function trackFromItem(item: BaseItem): Track {
@@ -30,6 +34,8 @@ export function trackFromItem(item: BaseItem): Track {
     art: artworkOf(item),
     number: item.IndexNumber,
     disc: item.ParentIndexNumber,
+    liked: item.UserData?.IsFavorite,
+    entryId: item.PlaylistItemId,
   };
 }
 

@@ -18,6 +18,7 @@ import {
 } from './player';
 import { QueueSheet } from './queue-sheet';
 import { Scrubber } from './scrubber';
+import { SongButtons } from '@/songs/song-buttons';
 import { artistLine } from './track';
 import { navigate, type Route } from '@/nav/navigation';
 import styles from './full-player.module.css';
@@ -146,6 +147,7 @@ function PlayerContent() {
               {artistLine(track)}
             </button>
           </div>
+          <SongButtons track={track} large />
         </div>
 
         <Scrubber />

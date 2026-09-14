@@ -1,6 +1,7 @@
 import { GripVertical, X } from 'lucide-react';
 import { useRef, useState, type ButtonHTMLAttributes, type PointerEvent } from 'react';
 
+import { LikeButton } from '@/songs/song-buttons';
 import { Artwork } from '@/ui/artwork';
 import { Sheet } from '@/ui/sheet';
 import { jumpTo, moveInQueue, removeFromQueue, setQueueOpen, usePlayer, type QueueItem } from './player';
@@ -109,6 +110,7 @@ function QueueRow({ item, current = false, onPlay, onRemove, grip }: QueueRowPro
           <span className={styles.artist}>{artistLine(item)}</span>
         </span>
       </button>
+      <LikeButton track={item} />
       {onRemove && (
         <button type="button" className={styles.icon} onClick={onRemove} aria-label={`Remove ${item.name} from the queue`}>
           <X size={18} strokeWidth={2} />

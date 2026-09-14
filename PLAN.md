@@ -80,7 +80,7 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 3. **Browsing** - Home, Library, albums, artists, playlists, Liked Songs,
    Search, swipe-down search. ✅ (owner to check with real data)
 4. **Song buttons** - heart | download | (…) everywhere, the (…) menu,
-   playlist add/remove.
+   playlist add/remove. ✅ (download button placeholder until step 5)
 5. **Downloads and offline** - storage, collection downloads, Downloaded tab,
    grey songs, offline edit sync, quality setting, backup/re-download.
 6. **Extras** - mixes, Stations, Add new albums.

@@ -1,8 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app';
+import { queryClient } from './data/query-client';
 import { ErrorBoundary } from './ui/error-boundary';
 import './theme/global.css';
 
@@ -12,18 +13,6 @@ function syncAppHeight() {
 }
 syncAppHeight();
 window.addEventListener('resize', syncAppHeight);
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Library data changes rarely; refresh in the background, never block.
-      staleTime: 60_000,
-      gcTime: 30 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: true,
-    },
-  },
-});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

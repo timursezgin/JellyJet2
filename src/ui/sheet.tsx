@@ -11,6 +11,8 @@ interface SheetProps {
   subtitle?: string;
   /** The link on the right of the title; defaults to "Done". */
   closeLabel?: string;
+  /** Replaces the title and subtitle (e.g. a song's cover and name). */
+  header?: ReactNode;
   children: ReactNode;
 }
 
@@ -20,7 +22,7 @@ const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
  * The design's bottom sheet: dimmed backdrop, rounded panel sliding up, grab
  * handle. Drag the top of the panel down (or tap the backdrop) to close.
  */
-export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', children }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', header, children }: SheetProps) {
   const { mounted, ref } = usePresence<HTMLDivElement>(
     open,
     (root) => [
@@ -87,8 +89,12 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', chi
           <div className={styles.grabber} />
           <div className={styles.titleRow}>
             <div className={styles.titles}>
-              <h2 className="t-sheet-title">{title}</h2>
-              {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+              {header ?? (
+                <>
+                  <h2 className="t-sheet-title">{title}</h2>
+                  {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+                </>
+              )}
             </div>
             <button
               type="button"

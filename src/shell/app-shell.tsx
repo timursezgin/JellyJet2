@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { FullPlayer } from '@/player/full-player';
 import { MiniPlayer } from '@/player/mini-player';
 import { restoreQueue, usePlayer } from '@/player/player';
+import { NewPlaylistHost, SongMenuHost } from '@/songs/song-menu';
+import { ConfirmHost } from '@/ui/confirm';
 import { ToastHost } from '@/ui/toast';
 import { StackView } from '@/nav/stack-view';
 import { TAB_IDS, useNavigation, type Route, type TabId } from '@/nav/navigation';
@@ -77,6 +79,9 @@ export function AppShell() {
   return (
     <div className={styles.shell} data-mini={hasQueue || undefined}>
       <FullPlayer />
+      <SongMenuHost />
+      <NewPlaylistHost />
+      <ConfirmHost />
       <ToastHost />
       <MiniPlayer />
       <div className={styles.stacks}>

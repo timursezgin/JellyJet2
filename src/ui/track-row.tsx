@@ -1,5 +1,7 @@
 import { currentTrack, usePlayer } from '@/player/player';
-import { artistLine, formatTime, type Track } from '@/player/track';
+import { artistLine, type Track } from '@/player/track';
+import { SongButtons } from '@/songs/song-buttons';
+import type { SongContext } from '@/songs/song-menu';
 import { Artwork } from './artwork';
 import styles from './track-row.module.css';
 
@@ -13,13 +15,15 @@ interface TrackRowProps {
   leading?: 'art' | number;
   /** What goes under the title; defaults to "Artist · Album". */
   subtitle?: string;
+  /** Where the row is shown, for the (…) menu (e.g. inside a playlist). */
+  context?: SongContext;
 }
 
 /**
- * A song row. The whole row starts the song; the heart, download and (…)
- * buttons join on the right in step 4.
+ * A song row: tap anywhere on the song to play it; heart, download and (…)
+ * on the right are their own full-height buttons.
  */
-export function TrackRow({ track, onPlay, leading = 'art', subtitle }: TrackRowProps) {
+export function TrackRow({ track, onPlay, leading = 'art', subtitle, context }: TrackRowProps) {
   const isCurrent = usePlayer((s) => currentTrack(s)?.id === track.id);
   const line = subtitle ?? [artistLine(track), track.album].filter(Boolean).join(' · ');
   return (
@@ -34,8 +38,8 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle }: TrackRowP
           <span className={styles.title}>{track.name}</span>
           {line && <span className={styles.subtitle}>{line}</span>}
         </span>
-        <span className={styles.duration}>{formatTime(track.duration)}</span>
       </button>
+      <SongButtons track={track} context={context} />
     </div>
   );
 }

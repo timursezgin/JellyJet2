@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { filterTracks, useItem, useLikedSongs, usePlaylistTracks } from '@/data/queries';
 import { playTracks } from '@/player/player';
 import type { Track } from '@/player/track';
+import type { SongContext } from '@/songs/song-menu';
 import { LikedCover, PlaylistCover } from '@/ui/covers';
 import { Hero } from '@/ui/hero';
 import { Page } from '@/ui/page';
@@ -22,6 +23,7 @@ export function PlaylistScreen({ id, title }: { id: string; title?: string }) {
       art={<PlaylistCover playlistId={id} size={200} />}
       query={tracks}
       empty="This playlist is empty."
+      context={{ playlist: { id, name } }}
     />
   );
 }
@@ -43,10 +45,11 @@ interface TrackCollectionProps {
   art: ReactNode;
   query: { data?: Track[]; isPending: boolean; isError: boolean; refetch(): unknown };
   empty: string;
+  context?: SongContext;
 }
 
 /** A playlist-shaped page: cover, Play/Shuffle, songs, swipe-down search. */
-export function TrackCollection({ title, art, query, empty }: TrackCollectionProps) {
+export function TrackCollection({ title, art, query, empty, context }: TrackCollectionProps) {
   const [term, setTerm] = useState('');
   const all = query.data ?? [];
   const searching = term.trim().length > 0;
@@ -76,7 +79,9 @@ export function TrackCollection({ title, art, query, empty }: TrackCollectionPro
       <VirtualList
         count={shown.length}
         rowHeight={TRACK_ROW_HEIGHT}
-        renderRow={(i) => <TrackRow track={shown[i]} onPlay={() => playTracks(shown, i, { shuffle: false })} />}
+        renderRow={(i) => (
+          <TrackRow track={shown[i]} context={context} onPlay={() => playTracks(shown, i, { shuffle: false })} />
+        )}
       />
     </Page>
   );

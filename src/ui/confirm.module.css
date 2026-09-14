@@ -1,0 +1,82 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fade var(--dur-backdrop) ease;
+}
+
+.alert {
+  width: 100%;
+  max-width: 290px;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--sheet-surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-sheet);
+  animation: pop 220ms var(--ease-ios);
+}
+
+.text {
+  padding: 20px 18px 16px;
+  text-align: center;
+}
+
+.text h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.text p {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-60);
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--hairline);
+}
+
+.buttons button {
+  height: 46px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.buttons button + button {
+  border-left: 1px solid var(--hairline);
+  font-weight: 600;
+}
+
+.buttons button[data-destructive] {
+  color: var(--accent);
+}
+
+.buttons button:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}

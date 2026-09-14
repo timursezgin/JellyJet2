@@ -41,3 +41,8 @@
   flex-shrink: 0;
   color: var(--ink-30);
 }
+
+.row[data-accent] .title {
+  color: var(--accent);
+  font-size: 16px;
+}

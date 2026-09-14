@@ -60,6 +60,11 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
 - `src/ui/` - shared pieces: `Page` (large or detail header, hidden
   swipe-down search, exposes its scroller), `VirtualList`/`VirtualGrid`
   (draw only visible rows; fixed row heights), `TrackRow`, `Hero`, covers.
+- `src/songs/` - per-song state and actions: `likes.ts` (liked = session
+  change → loaded Liked Songs list → the song's own data), `playlists.ts`
+  (membership, add without duplicates, remove by entry id, create),
+  `song-buttons.tsx` (heart | download | (…)), `song-menu.tsx` (the (…) sheet
+  and New playlist). `src/data/query-client.ts` is the shared cache.
 - `src/screens/` - one file per screen.
 
 ## How it's hosted

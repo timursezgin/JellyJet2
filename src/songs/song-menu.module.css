@@ -1,0 +1,202 @@
+.song {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.songText {
+  min-width: 0;
+}
+
+.songText p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.songArtist {
+  margin-top: 3px !important;
+  font-size: 13px;
+  color: var(--ink-45);
+}
+
+.backTitle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: -6px;
+  max-width: 100%;
+  text-align: left;
+}
+
+.backTitle span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list {
+  padding: 4px 0 8px;
+}
+
+/* --- Menu rows ----------------------------------------------------------- */
+
+.menuRow {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 var(--sheet-gutter);
+  text-align: left;
+  color: var(--ink);
+}
+
+.menuRow:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menuRow svg {
+  flex-shrink: 0;
+  color: var(--ink-60);
+}
+
+.menuRow .filled {
+  color: var(--accent);
+}
+
+.menuRow[data-destructive],
+.menuRow[data-destructive] svg {
+  color: var(--accent);
+}
+
+.menuLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuRow .chevron {
+  color: var(--ink-30);
+}
+
+/* --- Playlist rows --------------------------------------------------------- */
+
+.row {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--sheet-gutter);
+  text-align: left;
+}
+
+.row:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.row:disabled {
+  opacity: 0.5;
+}
+
+.newTile {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+}
+
+.newLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.rowLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 15.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.add,
+.remove {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.check {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.note {
+  margin: 14px var(--sheet-gutter);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-35);
+  text-align: center;
+}
+
+/* --- New playlist ----------------------------------------------------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px var(--sheet-gutter) 8px;
+}
+
+.input {
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-art);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent-border);
+}
+
+.input::placeholder {
+  color: var(--ink-35);
+}
+
+.create {
+  height: 48px;
+  border-radius: var(--radius-button);
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.create:disabled {
+  opacity: 0.45;
+}
