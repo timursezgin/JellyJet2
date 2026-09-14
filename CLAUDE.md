@@ -81,4 +81,10 @@ why build files must keep content-hashed names and `/`, `/sw.js` are no-cache.
   synchronously inside `ended` (iOS lock-screen rule). Stream URL uses
   `ApiKey` (Jellyfin 12 disabled `api_key`). Queue saved per user in
   localStorage `jj.player.<userId>`, only after restore.
+- Lock screen: action handlers are re-registered on every `playing` (iOS drops
+  ones set before audio played and shows skip-15s buttons). A lock-screen
+  pause while hidden is a "silent pause" (a second element loops generated
+  silence, max 15 min) because iOS otherwise suspends the web app and hands
+  the lock-screen player to another app.
+- Never play test audio on the Simulator: it comes out of the owner's Mac.
 - Inputs need font-size ≥ 16px or iOS zooms the page.
