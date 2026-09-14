@@ -36,6 +36,7 @@ export function LikedSongsScreen() {
       art={<LikedCover size={200} />}
       query={liked}
       empty="Tap the heart on any song to add it here."
+      fadeUnliked
     />
   );
 }
@@ -46,10 +47,12 @@ interface TrackCollectionProps {
   query: { data?: Track[]; isPending: boolean; isError: boolean; refetch(): unknown };
   empty: string;
   context?: SongContext;
+  /** Liked Songs: unliked rows fade out before they're removed. */
+  fadeUnliked?: boolean;
 }
 
 /** A playlist-shaped page: cover, Play/Shuffle, songs, swipe-down search. */
-export function TrackCollection({ title, art, query, empty, context }: TrackCollectionProps) {
+export function TrackCollection({ title, art, query, empty, context, fadeUnliked = false }: TrackCollectionProps) {
   const [term, setTerm] = useState('');
   const all = query.data ?? [];
   const searching = term.trim().length > 0;
@@ -80,7 +83,12 @@ export function TrackCollection({ title, art, query, empty, context }: TrackColl
         count={shown.length}
         rowHeight={TRACK_ROW_HEIGHT}
         renderRow={(i) => (
-          <TrackRow track={shown[i]} context={context} onPlay={() => playTracks(shown, i, { shuffle: false })} />
+          <TrackRow
+            track={shown[i]}
+            context={context}
+            fadeWhenUnliked={fadeUnliked}
+            onPlay={() => playTracks(shown, i, { shuffle: false })}
+          />
         )}
       />
     </Page>

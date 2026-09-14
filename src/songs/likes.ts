@@ -18,9 +18,15 @@ import { toast } from '@/ui/toast';
 interface LikesState {
   /** Song id → liked, for changes made in this session. */
   changed: Record<string, boolean>;
+  /** Songs just unliked, fading out of the Liked Songs list before they go. */
+  leaving: Record<string, true>;
 }
 
-const useLikes = create<LikesState>(() => ({ changed: {} }));
+const useLikes = create<LikesState>(() => ({ changed: {}, leaving: {} }));
+
+/** How long an unliked song stays visible (fading) in Liked Songs. */
+const FADE_MS = 2000;
+const removals = new Map<string, ReturnType<typeof setTimeout>>();
 
 export function useIsLiked(track: Pick<Track, 'id' | 'liked'>): boolean {
   const changed = useLikes((s) => s.changed[track.id]);
@@ -30,37 +36,75 @@ export function useIsLiked(track: Pick<Track, 'id' | 'liked'>): boolean {
   return track.liked === true;
 }
 
+/** True while an unliked song is fading out of Liked Songs. */
+export const useIsLeaving = (id: string) => useLikes((s) => s.leaving[id] === true);
+
 function likedSongsKey() {
   return ['liked-songs', useSession.getState().session?.userId ?? ''];
+}
+
+function setLeaving(id: string, leaving: boolean) {
+  useLikes.setState((s) => {
+    const next = { ...s.leaving };
+    if (leaving) next[id] = true;
+    else delete next[id];
+    return { leaving: next };
+  });
+}
+
+function cancelRemoval(id: string) {
+  clearTimeout(removals.get(id));
+  removals.delete(id);
+  setLeaving(id, false);
+}
+
+/** Refresh Liked Songs from the server, but not while a row is still fading. */
+function refreshLikedSongs() {
+  if (removals.size === 0) void queryClient.invalidateQueries({ queryKey: likedSongsKey() });
 }
 
 export async function setLiked(track: Track, liked: boolean) {
   const { client, session } = useSession.getState();
   if (!client || !session) return;
+  const key = likedSongsKey();
 
   useLikes.setState((s) => ({ changed: { ...s.changed, [track.id]: liked } }));
-  // Keep the Liked Songs list in step straight away (and remember it, to put
-  // back if the server says no).
-  const before = queryClient.getQueryData<Track[]>(likedSongsKey());
-  queryClient.setQueryData<Track[]>(likedSongsKey(), (list) => {
-    if (!list) return list;
-    const without = list.filter((t) => t.id !== track.id);
-    return liked ? [...without, { ...track, liked: true }] : without;
-  });
+  cancelRemoval(track.id);
+  const wasListed = queryClient.getQueryData<Track[]>(key)?.some((t) => t.id === track.id) ?? false;
+
+  if (liked) {
+    if (!wasListed) {
+      queryClient.setQueryData<Track[]>(key, (list) => (list ? [...list, { ...track, liked: true }] : list));
+    }
+  } else if (wasListed) {
+    // Let the row fade in place so it's clear what was unliked, then remove it.
+    setLeaving(track.id, true);
+    removals.set(
+      track.id,
+      setTimeout(() => {
+        removals.delete(track.id);
+        setLeaving(track.id, false);
+        queryClient.setQueryData<Track[]>(key, (list) => list?.filter((t) => t.id !== track.id));
+        refreshLikedSongs();
+      }, FADE_MS),
+    );
+  }
 
   try {
     await setFavorite(client, session.userId, track.id, liked);
-    toast(liked ? 'Added to Liked Songs' : 'Removed from Liked Songs');
   } catch {
     useLikes.setState((s) => {
       const changed = { ...s.changed };
       delete changed[track.id];
       return { changed };
     });
-    if (before) queryClient.setQueryData(likedSongsKey(), before);
+    cancelRemoval(track.id);
+    if (liked && !wasListed) {
+      queryClient.setQueryData<Track[]>(key, (list) => list?.filter((t) => t.id !== track.id));
+    }
     toast('Couldn’t update Liked Songs');
   } finally {
-    void queryClient.invalidateQueries({ queryKey: likedSongsKey() });
+    refreshLikedSongs();
   }
 }
 
