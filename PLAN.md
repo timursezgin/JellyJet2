@@ -29,10 +29,17 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 - Taking a song out of a playlist only happens via the (…) menu.
 - Quality: Settings choice, **Original** (default) or **Smaller**.
 - Who can download: Jellyfin's per-user "Allow media downloading" setting.
-- Storage: the site's private file storage on the phone (Origin Private File
-  System), `navigator.storage.persist()` so iOS doesn't clear it, the list of
-  downloads backed up to the Jellyfin account for one-tap re-download.
-  Downloads only from the home-screen app (a Safari tab has separate storage).
+- Storage: the site's own storage on the phone (Cache Storage for the files,
+  IndexedDB for the list - chosen over OPFS because the service worker must
+  read the files to play them offline, which is proven in WebKit),
+  `navigator.storage.persist()` so iOS doesn't clear it, and the list of
+  downloads backed up to the Jellyfin account (display preferences
+  `jellyjet-downloads`) for one-tap re-download. Downloads only from the
+  home-screen app on iOS (a Safari tab has separate storage), and only on the
+  secure (https / localhost) address.
+- Unliking a song in a downloaded Liked Songs, or a song leaving a downloaded
+  playlist on the server, lets go of its download unless something else
+  (another collection, or downloading it on its own) keeps it.
 
 ### Offline
 - The normal app with an "Offline" banner. Songs that can't play are grey,
@@ -82,6 +89,8 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 4. **Song buttons** - heart | download | (…) everywhere, the (…) menu,
    playlist add/remove. ✅ (download button placeholder until step 5)
 5. **Downloads and offline** - storage, collection downloads, Downloaded tab,
-   grey songs, offline edit sync, quality setting, backup/re-download.
+   grey songs, offline edit sync, quality setting, backup/re-download. ✅
+   (tested end to end in WebKit against a pretend server; owner to test on the
+   phone over https)
 6. **Extras** - mixes, Stations, Add new albums.
 7. **Smoothness pass** on the phone; desktop layout later.

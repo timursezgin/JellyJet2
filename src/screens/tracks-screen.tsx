@@ -18,7 +18,7 @@ export function TracksScreen() {
     <Page title="Tracks" search={{ value: term, onChange: setTerm, placeholder: 'Search songs' }}>
       {list.isPending ? (
         <LoadingRows />
-      ) : list.isError ? (
+      ) : list.isError && list.items.length === 0 ? (
         <LoadError onRetry={() => list.refetch()} />
       ) : list.items.length === 0 ? (
         <p className={styles.message}>{term ? 'No songs match that.' : 'No songs yet.'}</p>

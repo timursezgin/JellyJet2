@@ -14,7 +14,7 @@ export function GenresScreen() {
 
   return (
     <Page title="Genres" search={{ value: term, onChange: setTerm, placeholder: 'Search genres' }}>
-      {genres.isError ? (
+      {genres.isError && !genres.data ? (
         <LoadError onRetry={() => genres.refetch()} />
       ) : !genres.isPending && list.length === 0 ? (
         <p className={styles.message}>{term ? 'No genres match that.' : 'No genres yet.'}</p>

@@ -18,7 +18,7 @@ export function AlbumsScreen({ title = 'Albums', genreId }: { title?: string; ge
 
   return (
     <Page title={title} search={{ value: term, onChange: setTerm, placeholder: 'Search albums' }}>
-      {list.isError ? (
+      {list.isError && list.items.length === 0 ? (
         <LoadError onRetry={() => list.refetch()} />
       ) : !list.isPending && list.items.length === 0 ? (
         <p className={styles.message}>{term ? 'No albums match that.' : 'No albums yet.'}</p>
@@ -39,7 +39,7 @@ export function RecentAlbumsScreen({ kind }: { kind: 'played' | 'added' }) {
   const query = kind === 'played' ? played : added;
   return (
     <Page title={kind === 'played' ? 'Recently played' : 'Recently added'}>
-      {query.isError ? <LoadError onRetry={() => query.refetch()} /> : <AlbumGrid albums={query.data ?? []} />}
+      {query.isError && !query.data ? <LoadError onRetry={() => query.refetch()} /> : <AlbumGrid albums={query.data ?? []} />}
     </Page>
   );
 }

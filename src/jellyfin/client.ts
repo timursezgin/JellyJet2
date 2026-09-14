@@ -1,3 +1,5 @@
+import { reportReachable, reportUnreachable } from '@/connectivity/connection';
+
 import { authorizationHeader } from './identity';
 
 export class JellyfinError extends Error {
@@ -79,8 +81,17 @@ export class JellyfinClient {
       });
     } catch (error) {
       if (options.signal?.aborted) throw error;
+      reportUnreachable();
       throw new JellyfinError('Can’t reach the server', undefined, true);
     }
+
+    // A gateway answering for a server that's down (Caddy, Cloudflare) counts
+    // as unreachable too.
+    if (response.status === 502 || response.status === 503 || response.status === 504 || (response.status >= 520 && response.status <= 530)) {
+      reportUnreachable();
+      throw new JellyfinError('Can’t reach the server', response.status, true);
+    }
+    reportReachable();
 
     if (!response.ok) {
       throw new JellyfinError(await serverMessage(response), response.status);

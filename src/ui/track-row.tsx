@@ -1,11 +1,14 @@
 import { useEffect, useRef, type RefObject } from 'react';
 
+import { useOnline } from '@/connectivity/connection';
+import { useIsDownloaded } from '@/downloads/downloads';
 import { currentTrack, usePlayer } from '@/player/player';
 import { artistLine, type Track } from '@/player/track';
 import { revealUnlike, setLiked, useIsLeaving, useIsRevealed } from '@/songs/likes';
 import { SongButtons } from '@/songs/song-buttons';
 import type { SongContext } from '@/songs/song-menu';
 import { Artwork } from './artwork';
+import { toast } from './toast';
 import styles from './track-row.module.css';
 
 /** Fixed height, so long lists can be drawn only where they're visible. */
@@ -37,6 +40,9 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
   const revealed = useIsRevealed(track.id) && confirmUnlike && !leaving;
   const line = subtitle ?? [artistLine(track), track.album].filter(Boolean).join(' · ');
   const unlikeButton = useRef<HTMLButtonElement>(null);
+  const online = useOnline();
+  const downloaded = useIsDownloaded(track.id);
+  const unavailable = !online && !downloaded;
 
   useCloseWhenTappedElsewhere(revealed, unlikeButton);
 
@@ -46,6 +52,7 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
       data-current={isCurrent || undefined}
       data-revealed={revealed || undefined}
       data-leaving={leaving || undefined}
+      data-unavailable={unavailable || undefined}
     >
       {confirmUnlike && (
         <button
@@ -63,7 +70,12 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
         </button>
       )}
       <div className={styles.slide}>
-        <button type="button" className={styles.main} onClick={onPlay}>
+        <button
+          type="button"
+          className={styles.main}
+          onClick={unavailable ? () => toast('Not downloaded - it needs a connection') : onPlay}
+          aria-disabled={unavailable || undefined}
+        >
           {leading === 'art' ? (
             <Artwork art={track.art} size={44} radius={10} />
           ) : (

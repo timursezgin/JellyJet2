@@ -4,7 +4,9 @@ import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
 import { artistLine } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
-import { Hero } from '@/ui/hero';
+import { Hero, heroIconClass } from '@/ui/hero';
+import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
+import { useKeepInSync } from '@/downloads/use-keep-in-sync';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
 import { TrackRow } from '@/ui/track-row';
@@ -18,11 +20,14 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
 
   const albumArtist = info?.AlbumArtists?.[0];
   const artistName = info?.AlbumArtist ?? albumArtist?.Name;
+  const downloadLabel = useCollectionDownloadLabel('album', id);
+  useKeepInSync('album', id, tracks.data);
   const totalSeconds = list.reduce((sum, t) => sum + t.duration, 0);
   const meta = [
     info?.ProductionYear,
     list.length ? `${list.length} ${list.length === 1 ? 'song' : 'songs'}` : undefined,
     totalSeconds ? formatLength(totalSeconds) : undefined,
+    downloadLabel,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -45,9 +50,16 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
         meta={meta}
         onPlay={list.length ? () => playTracks(list, 0, { shuffle: false }) : undefined}
         onShuffle={list.length ? () => playTracks(list, 0, { shuffle: true }) : undefined}
+        actions={
+          <CollectionDownloadButton
+            info={{ kind: 'album', id, name: info?.Name ?? title ?? 'this album', art: info ? artworkOf(info) : null }}
+            tracks={tracks.data}
+            className={heroIconClass}
+          />
+        }
       />
       {tracks.isPending && <LoadingRows count={6} />}
-      {tracks.isError && <LoadError onRetry={() => tracks.refetch()} />}
+      {tracks.isError && !tracks.data && <LoadError onRetry={() => tracks.refetch()} />}
       {list.map((track, i) => {
         const showDisc = discs && (i === 0 || (list[i - 1].disc ?? 1) !== (track.disc ?? 1));
         const ownArtist = artistLine(track);

@@ -1,0 +1,55 @@
+.notice {
+  margin: 0 var(--page-gutter) 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+
+.notice p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-60);
+}
+
+.notice .noticeTitle {
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.noticeActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.primary,
+.secondary {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-button);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+}
+
+.secondary {
+  background: var(--control-fill);
+}
+
+.summary {
+  margin: 0 var(--page-gutter) 6px;
+  font-size: 12.5px;
+  color: var(--ink-35);
+}

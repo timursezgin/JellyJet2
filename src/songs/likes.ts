@@ -3,7 +3,12 @@ import { create } from 'zustand';
 import { useSession } from '@/auth/session';
 import { useLikedSongs } from '@/data/queries';
 import { queryClient } from '@/data/query-client';
+import { isOnline } from '@/connectivity/connection';
+import { useDownloads } from '@/downloads/downloads';
+import { syncCollection } from '@/downloads/engine';
 import { setFavorite } from '@/jellyfin/api';
+import { JellyfinError } from '@/jellyfin/client';
+import { enqueue, pendingFavorites } from '@/offline/outbox';
 import type { Track } from '@/player/track';
 import { toast } from '@/ui/toast';
 
@@ -96,9 +101,19 @@ export async function setLiked(track: Track, liked: boolean) {
     );
   }
 
+  if (!isOnline()) {
+    enqueue({ kind: 'favorite', itemId: track.id, value: liked });
+    return;
+  }
   try {
     await setFavorite(client, session.userId, track.id, liked);
-  } catch {
+    if (useDownloads.getState().collections.liked) void syncCollection('liked');
+  } catch (error) {
+    // Lost the connection: keep the change and send it later.
+    if (error instanceof JellyfinError && error.network) {
+      enqueue({ kind: 'favorite', itemId: track.id, value: liked });
+      return;
+    }
     useLikes.setState((s) => {
       const changed = { ...s.changed };
       delete changed[track.id];
@@ -112,6 +127,11 @@ export async function setLiked(track: Track, liked: boolean) {
   } finally {
     refreshLikedSongs();
   }
+}
+
+/** Show likes made offline (and not yet synced) after the app is reopened. */
+export function restorePendingLikes() {
+  useLikes.setState((s) => ({ changed: { ...pendingFavorites(), ...s.changed } }));
 }
 
 export function toggleLiked(track: Track, currentlyLiked: boolean) {

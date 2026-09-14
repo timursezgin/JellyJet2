@@ -2,7 +2,7 @@
   position: absolute;
   left: calc(10px + var(--safe-left));
   right: calc(10px + var(--safe-right));
-  bottom: calc(var(--tab-bar-height) + 8px);
+  bottom: calc(var(--tab-bar-height) + 8px + var(--offline-height, 0px));
   z-index: 11;
   height: var(--mini-player-height);
   display: flex;

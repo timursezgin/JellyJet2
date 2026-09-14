@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { usePlaylists } from '@/data/queries';
+import { useDownloads } from '@/downloads/downloads';
 import { navigate } from '@/nav/navigation';
 import { openNewPlaylist } from '@/songs/song-menu';
 import { Plus } from 'lucide-react';
@@ -14,6 +15,7 @@ import styles from './list-screens.module.css';
 export function PlaylistsScreen() {
   const [term, setTerm] = useState('');
   const playlists = usePlaylists();
+  const downloaded = useDownloads((s) => s.collections);
   const words = term.trim().toLowerCase();
   const matches = (name: string) => !words || name.toLowerCase().includes(words);
   const list = (playlists.data ?? []).filter((p) => matches(p.Name));
@@ -38,13 +40,13 @@ export function PlaylistsScreen() {
             key={playlist.Id}
             art={<PlaylistCover playlistId={playlist.Id} size={52} />}
             title={playlist.Name}
-            subtitle={songCount(playlist.ChildCount)}
+            subtitle={[songCount(playlist.ChildCount), downloaded[`playlist:${playlist.Id}`] && 'Downloaded'].filter(Boolean).join(' · ')}
             onClick={() => navigate({ name: 'playlist', id: playlist.Id, title: playlist.Name })}
           />
         ))}
       </div>
       {playlists.isPending && <LoadingRows count={4} height={70} />}
-      {playlists.isError && <LoadError onRetry={() => playlists.refetch()} />}
+      {playlists.isError && !playlists.data && <LoadError onRetry={() => playlists.refetch()} />}
     </Page>
   );
 }

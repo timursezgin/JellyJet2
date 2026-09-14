@@ -8,6 +8,10 @@ import {
   reportPlaybackStopped,
   streamUrl,
 } from '@/jellyfin/api';
+import { isOnline } from '@/connectivity/connection';
+import { isDownloaded } from '@/downloads/downloads';
+import { offlineAudioPath } from '@/downloads/engine';
+import { enqueue } from '@/offline/outbox';
 import { toast } from '@/ui/toast';
 import type { Track } from './track';
 
@@ -98,10 +102,32 @@ function session() {
 
 // --- Loading and transport ------------------------------------------------
 
+/**
+ * Where a song plays from: its downloaded copy when there is one (served by
+ * the service worker, seekable, no data used), otherwise the server.
+ * Worked out without waiting on anything, for the lock-screen rule above.
+ */
+function sourceFor(track: QueueItem, s: NonNullable<ReturnType<typeof session>>) {
+  if (isDownloaded(track.id) && navigator.serviceWorker?.controller) return offlineAudioPath(track.id);
+  return streamUrl(s.client, s.userId, track.id, playSessionId);
+}
+
 function load(index: number, { autoplay, startAt = 0 }: { autoplay: boolean; startAt?: number }) {
   const track = get().queue[index];
   const s = session();
   if (!track || !s) return;
+
+  // Offline, only downloaded songs can play: move on to the next one that can.
+  if (!isOnline() && !isDownloaded(track.id)) {
+    const nextPlayable = get().queue.findIndex((t, i) => i > index && isDownloaded(t.id));
+    if (nextPlayable >= 0) {
+      load(nextPlayable, { autoplay, startAt: 0 });
+    } else {
+      if (autoplay) toast('Not downloaded - it needs a connection');
+      set({ playing: false, buffering: false });
+    }
+    return;
+  }
 
   reportStopped();
   playSessionId = randomId();
@@ -113,7 +139,7 @@ function load(index: number, { autoplay, startAt = 0 }: { autoplay: boolean; sta
 
   set({ index, duration: track.duration, buffering: autoplay, playing: autoplay });
   switchingTracks = autoplay;
-  audio.src = streamUrl(s.client, s.userId, track.id, playSessionId);
+  audio.src = sourceFor(track, s);
   updateMetadata(track);
   if (autoplay) startPlayback();
   save(true);
@@ -136,6 +162,16 @@ function startPlayback() {
 /** Replace the queue with these songs and start playing at `startIndex`. */
 export function playTracks(tracks: Track[], startIndex = 0, options: { shuffle?: boolean } = {}) {
   if (tracks.length === 0) return;
+  // Offline, the queue is just the songs that can play.
+  if (!isOnline()) {
+    const start = tracks[startIndex];
+    tracks = tracks.filter((t) => isDownloaded(t.id));
+    if (tracks.length === 0) {
+      toast('None of these are downloaded');
+      return;
+    }
+    startIndex = Math.max(0, tracks.indexOf(start));
+  }
   const items = tracks.map(withUid);
   const shuffle = options.shuffle ?? get().shuffle;
   if (shuffle) {
@@ -345,6 +381,9 @@ audio.addEventListener('seeked', syncMediaSession);
 
 audio.addEventListener('ended', () => {
   const { queue, index, repeat } = get();
+  // Offline plays still count: Jellyfin hears about them once reachable.
+  const finished = currentTrack();
+  if (finished && !isOnline()) enqueue({ kind: 'played', itemId: finished.id, date: new Date().toISOString() });
   if (repeat === 'one') {
     load(index, { autoplay: true });
   } else if (index + 1 < queue.length) {

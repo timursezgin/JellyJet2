@@ -1,4 +1,5 @@
 import { useLibraryCounts, useLikedSongs } from '@/data/queries';
+import { useDownloads } from '@/downloads/downloads';
 import { navigate, type Route } from '@/nav/navigation';
 import { DownloadedCover, LikedCover } from '@/ui/covers';
 import { ItemRow } from '@/ui/item-row';
@@ -20,6 +21,7 @@ const CATEGORIES: { label: string; count: CountKey; route: Route }[] = [
 export function LibraryScreen() {
   const counts = useLibraryCounts().data;
   const liked = useLikedSongs().data;
+  const downloadedCount = useDownloads((s) => Object.keys(s.songs).length);
   return (
     <Page title="Library">
       <div className={styles.special}>
@@ -32,7 +34,7 @@ export function LibraryScreen() {
         <ItemRow
           art={<DownloadedCover size={52} />}
           title="Downloaded"
-          subtitle="Ready to play without internet"
+          subtitle={downloadedCount ? songCount(downloadedCount) : 'Ready to play without internet'}
           onClick={() => navigate({ name: 'downloaded' })}
         />
       </div>

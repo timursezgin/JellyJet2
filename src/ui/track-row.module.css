@@ -76,6 +76,15 @@
   text-overflow: ellipsis;
 }
 
+/* Offline and not downloaded: greyed out, can't play. */
+.row[data-unavailable] .main {
+  opacity: 0.32;
+}
+
+.row[data-unavailable] .main:active {
+  opacity: 0.32;
+}
+
 /* --- Liked Songs: slide open to Unlike, then fly out ----------------------- */
 
 /* A red row lying under the song row, reaching to the screen's right edge.

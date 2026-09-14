@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   Check,
+  CircleCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -23,6 +24,7 @@ import { navigate, type Route } from '@/nav/navigation';
 import { addToQueue, closePlayer, removeFromQueue, usePlayer } from '@/player/player';
 import { artistLine, type Track } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
+import { toggleSongDownload, useSongDownloadState } from '@/downloads/download-buttons';
 import { confirm } from '@/ui/confirm';
 import { PlaylistCover } from '@/ui/covers';
 import { Sheet } from '@/ui/sheet';
@@ -111,6 +113,7 @@ function MainMenu({ track, context, open }: { track: Track; context: SongContext
   const membership = usePlaylistMembership(track.id, open);
   const inPlaylists = membership.rows.filter((r) => r.entryIds.length > 0);
   const artist = track.artists.find((a) => a.id);
+  const download = useSongDownloadState(track.id);
 
   const go = (route: Route) => {
     close();
@@ -131,11 +134,18 @@ function MainMenu({ track, context, open }: { track: Track; context: SongContext
       />
       {permissions?.canDownload && (
         <MenuRow
-          icon={ArrowDownToLine}
-          label="Download"
+          icon={download.status === 'done' ? CircleCheck : ArrowDownToLine}
+          accent={download.status === 'done'}
+          label={
+            download.status === 'done'
+              ? 'Remove download'
+              : download.status === 'queued' || download.status === 'downloading'
+                ? 'Stop downloading'
+                : 'Download'
+          }
           onClick={() => {
             close();
-            toast('Downloads arrive in the next update');
+            void toggleSongDownload(track);
           }}
         />
       )}
@@ -353,6 +363,7 @@ function MenuRow({
   filled,
   chevron,
   destructive,
+  accent,
 }: {
   icon: LucideIcon;
   label: string;
@@ -360,10 +371,11 @@ function MenuRow({
   filled?: boolean;
   chevron?: boolean;
   destructive?: boolean;
+  accent?: boolean;
 }) {
   return (
     <button type="button" className={styles.menuRow} data-destructive={destructive || undefined} onClick={onClick}>
-      <Icon size={21} strokeWidth={2} fill={filled ? 'currentColor' : 'none'} className={filled ? styles.filled : undefined} />
+      <Icon size={21} strokeWidth={2} fill={filled ? 'currentColor' : 'none'} className={filled || accent ? styles.filled : undefined} />
       <span className={styles.menuLabel}>{label}</span>
       {chevron && <ChevronRight size={18} strokeWidth={2.2} className={styles.chevron} />}
     </button>

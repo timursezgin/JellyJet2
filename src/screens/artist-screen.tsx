@@ -58,7 +58,7 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
 
       <SectionHeader title={searching ? 'Songs' : 'Top songs'} />
       {tracks.isPending && <LoadingRows count={TOP_SONGS} />}
-      {tracks.isError && <LoadError onRetry={() => tracks.refetch()} />}
+      {tracks.isError && !tracks.data && <LoadError onRetry={() => tracks.refetch()} />}
       {songs.map((track, i) => (
         <TrackRow
           key={track.id}

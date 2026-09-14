@@ -48,6 +48,10 @@
   border-top: 1px solid var(--hairline);
 }
 
+.buttons[data-single] {
+  grid-template-columns: 1fr;
+}
+
 .buttons button {
   height: 46px;
   font-size: 16px;

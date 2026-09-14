@@ -7,6 +7,8 @@ interface ConfirmRequest {
   title: string;
   message: string;
   confirmLabel: string;
+  /** Null for a single-button notice. */
+  cancelLabel?: string | null;
   destructive?: boolean;
   resolve(ok: boolean): void;
 }
@@ -35,10 +37,12 @@ export function ConfirmHost() {
           <h2>{request.title}</h2>
           <p>{request.message}</p>
         </div>
-        <div className={styles.buttons}>
-          <button type="button" onClick={() => answer(false)}>
-            Cancel
-          </button>
+        <div className={styles.buttons} data-single={request.cancelLabel === null || undefined}>
+          {request.cancelLabel !== null && (
+            <button type="button" onClick={() => answer(false)}>
+              {request.cancelLabel ?? 'Cancel'}
+            </button>
+          )}
           <button type="button" data-destructive={request.destructive || undefined} onClick={() => answer(true)}>
             {request.confirmLabel}
           </button>

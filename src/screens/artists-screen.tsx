@@ -19,7 +19,7 @@ export function ArtistsScreen() {
     <Page title="Artists" search={{ value: term, onChange: setTerm, placeholder: 'Search artists' }}>
       {list.isPending ? (
         <LoadingRows height={ITEM_ROW_HEIGHT} />
-      ) : list.isError ? (
+      ) : list.isError && list.items.length === 0 ? (
         <LoadError onRetry={() => list.refetch()} />
       ) : list.items.length === 0 ? (
         <p className={styles.message}>{term ? 'No artists match that.' : 'No artists yet.'}</p>

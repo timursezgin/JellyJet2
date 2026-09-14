@@ -38,6 +38,13 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   (server unreachable) for testing layout and navigation without an account.
   Real sign-in needs the owner; never type their password.
 - `npm run build` - typecheck + production build to `dist/`.
+- `sh tool/serve-local.sh` - the production build on http://localhost:8792 via
+  the real Caddyfile (service worker + downloads work: localhost is secure).
+- `tool/offline-test.mjs` - end-to-end downloads/offline test in Playwright
+  WebKit against a pretend Jellyfin (see its header). Zustand selectors that
+  build objects need `useShallow` or React loops (#185) - this test caught it.
+- The Browser pane can't register service workers; use Playwright WebKit or
+  the Simulator for anything offline.
 - `sh tool/deploy.sh` - build and copy to tim-box `Desktop\JellyJet2\site`
   (SMB mount `/Volumes/Users/Windows 11/Desktop/JellyJet2`). Served by the
   `JellyJet2` Caddy container (`deploy/`), port 8091.
@@ -65,6 +72,17 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   (membership, add without duplicates, remove by entry id, create),
   `song-buttons.tsx` (heart | download | (…)), `song-menu.tsx` (the (…) sheet
   and New playlist). `src/data/query-client.ts` is the shared cache.
+- `src/downloads/` - `downloads.ts` (index: songs with `sources`, collections
+  with `excluded`, jobs, progress; IndexedDB), `engine.ts` (queue, fetching
+  into Cache Storage `jellyjet2-audio` at `/offline/audio/<id>`, covers in
+  `jellyjet2-images`, collection sync), `backup.ts` (list on the Jellyfin
+  account), `lifecycle.ts` (starts it all while signed in), buttons.
+- `src/connectivity/connection.ts` - server reachable or not; every request
+  reports in; pings while offline. TanStack's onlineManager follows it and the
+  query cache is persisted to IndexedDB for offline browsing.
+- `src/offline/outbox.ts` - likes/playlist edits/plays made offline, sent later.
+- `public/sw.js` - app shell offline, `/offline/audio/*` with Range support,
+  stored covers.
 - `src/screens/` - one file per screen.
 
 ## How it's hosted

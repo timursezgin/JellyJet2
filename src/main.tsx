@@ -1,9 +1,9 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app';
-import { queryClient } from './data/query-client';
+import { persistOptions, queryClient } from './data/query-client';
 import { ErrorBoundary } from './ui/error-boundary';
 import './theme/global.css';
 
@@ -16,11 +16,11 @@ window.addEventListener('resize', syncAppHeight);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <ErrorBoundary>
         <App />
       </ErrorBoundary>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>,
 );
 

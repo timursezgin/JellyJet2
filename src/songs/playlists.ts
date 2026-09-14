@@ -5,7 +5,18 @@ import { usePlaylists } from '@/data/queries';
 import { queryClient } from '@/data/query-client';
 import * as api from '@/jellyfin/api';
 import type { BaseItem } from '@/jellyfin/types';
+import { isOnline } from '@/connectivity/connection';
+import { collectionKey, useDownloads } from '@/downloads/downloads';
+import { syncCollection } from '@/downloads/engine';
+import { JellyfinError } from '@/jellyfin/client';
+import { enqueue } from '@/offline/outbox';
 import { toast } from '@/ui/toast';
+
+/** A downloaded playlist picks up the change straight away. */
+async function syncDownloaded(playlistId: string) {
+  const key = collectionKey('playlist', playlistId);
+  if (useDownloads.getState().collections[key]) await syncCollection(key);
+}
 
 function account() {
   const { client, session } = useSession.getState();
@@ -47,13 +58,26 @@ export function usePlaylistMembership(trackId: string, enabled: boolean) {
   return { rows, loading };
 }
 
+const SAVED_OFFLINE = 'Saved - it will sync when you’re back online';
+
 export async function addToPlaylist(playlist: BaseItem, trackIds: string[]) {
   const a = account();
   if (!a) return;
+  if (!isOnline()) {
+    enqueue({ kind: 'playlist-add', playlistId: playlist.Id, ids: trackIds });
+    toast(SAVED_OFFLINE);
+    return;
+  }
   try {
     const added = await api.addToPlaylist(a.client, a.userId, playlist.Id, trackIds);
     toast(added ? `Added to ${playlist.Name}` : `Already in ${playlist.Name}`);
-  } catch {
+    void syncDownloaded(playlist.Id);
+  } catch (error) {
+    if (error instanceof JellyfinError && error.network) {
+      enqueue({ kind: 'playlist-add', playlistId: playlist.Id, ids: trackIds });
+      toast(SAVED_OFFLINE);
+      return;
+    }
     toast(`Couldn’t add to ${playlist.Name}`);
   } finally {
     refreshPlaylist(playlist.Id);
@@ -63,10 +87,21 @@ export async function addToPlaylist(playlist: BaseItem, trackIds: string[]) {
 export async function removeFromPlaylist(playlist: Pick<BaseItem, 'Id' | 'Name'>, entryIds: string[]) {
   const a = account();
   if (!a || entryIds.length === 0) return;
+  if (!isOnline()) {
+    enqueue({ kind: 'playlist-remove', playlistId: playlist.Id, entryIds });
+    toast(SAVED_OFFLINE);
+    return;
+  }
   try {
     await api.removeFromPlaylist(a.client, playlist.Id, entryIds);
     toast(`Removed from ${playlist.Name}`);
-  } catch {
+    void syncDownloaded(playlist.Id);
+  } catch (error) {
+    if (error instanceof JellyfinError && error.network) {
+      enqueue({ kind: 'playlist-remove', playlistId: playlist.Id, entryIds });
+      toast(SAVED_OFFLINE);
+      return;
+    }
     toast(`Couldn’t remove from ${playlist.Name}`);
   } finally {
     refreshPlaylist(playlist.Id);
@@ -76,6 +111,10 @@ export async function removeFromPlaylist(playlist: Pick<BaseItem, 'Id' | 'Name'>
 export async function createPlaylist(name: string, trackIds: string[]) {
   const a = account();
   if (!a) return null;
+  if (!isOnline()) {
+    toast('New playlists need a connection');
+    return null;
+  }
   try {
     const id = await api.createPlaylist(a.client, a.userId, name, trackIds);
     toast(trackIds.length ? `Added to ${name}` : `Created ${name}`);

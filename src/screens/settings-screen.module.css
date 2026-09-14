@@ -43,3 +43,18 @@
   margin: 22px var(--page-gutter) 0;
   text-align: center;
 }
+
+.status[data-offline] {
+  color: var(--ink-50);
+}
+
+.status[data-offline] .dot {
+  background: var(--ink-35);
+}
+
+.note {
+  margin: 8px var(--page-gutter) 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-35);
+}

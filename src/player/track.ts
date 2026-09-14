@@ -17,6 +17,8 @@ export interface Track {
   liked?: boolean;
   /** The entry id when this song came from a playlist (removing needs it). */
   entryId?: string;
+  /** File format on the server, e.g. "flac" or "mp3". */
+  container?: string;
 }
 
 export function trackFromItem(item: BaseItem): Track {
@@ -36,6 +38,7 @@ export function trackFromItem(item: BaseItem): Track {
     disc: item.ParentIndexNumber,
     liked: item.UserData?.IsFavorite,
     entryId: item.PlaylistItemId,
+    container: item.Container,
   };
 }
 

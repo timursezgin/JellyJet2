@@ -1,8 +1,8 @@
-import { ArrowDownToLine, Ellipsis, Heart } from 'lucide-react';
+import { Ellipsis, Heart } from 'lucide-react';
 
 import { useSession } from '@/auth/session';
 import type { Track } from '@/player/track';
-import { toast } from '@/ui/toast';
+import { SongDownloadButton } from '@/downloads/download-buttons';
 import { toggleLiked, useIsLiked } from './likes';
 import { openSongMenu, type SongContext } from './song-menu';
 import styles from './song-buttons.module.css';
@@ -22,7 +22,7 @@ export function SongButtons({ track, large = false, context, onUnlikeRequest }: 
   return (
     <div className={styles.buttons} data-large={large || undefined}>
       <LikeButton track={track} large={large} onUnlikeRequest={onUnlikeRequest} />
-      {canDownload && <DownloadButton large={large} />}
+      {canDownload && <SongDownloadButton track={track} className={styles.button} large={large} />}
       <button
         type="button"
         className={styles.button}
@@ -59,17 +59,3 @@ export function LikeButton({
   );
 }
 
-/** Downloading arrives in step 5; the button already takes its place. */
-function DownloadButton({ large }: { large: boolean }) {
-  return (
-    <button
-      type="button"
-      className={styles.button}
-      data-muted
-      onClick={() => toast('Downloads arrive in the next update')}
-      aria-label="Download"
-    >
-      <ArrowDownToLine size={large ? 24 : 20} strokeWidth={2} />
-    </button>
-  );
-}

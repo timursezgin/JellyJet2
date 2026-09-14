@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 
 import styles from './hero.module.css';
 
+/** For buttons that want the hero's 44×44 square look. */
+export const heroIconClass = styles.icon;
+
 interface HeroProps {
   /** `side`: cover beside the title (albums). `stacked`: cover above (playlists, artists). */
   layout: 'side' | 'stacked';

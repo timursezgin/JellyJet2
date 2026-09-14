@@ -1,0 +1,53 @@
+.done {
+  color: var(--accent);
+}
+
+.ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: var(--ink-28);
+  stroke-width: 2;
+}
+
+.fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 200ms linear;
+}
+
+/* Waiting its turn: the short arc turns slowly. */
+.ring[data-queued] svg {
+  animation: spin 1.4s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(-90deg);
+  }
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+/* A small square in the middle: tap to stop. */
+.stop {
+  width: 25%;
+  height: 25%;
+  border-radius: 1px;
+  background: var(--accent);
+}
