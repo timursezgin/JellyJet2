@@ -27,6 +27,11 @@
   pointer-events: none;
 }
 
+/* While a swipe-back is under the finger, nothing on the pages reacts. */
+.stack[data-dragging] .page {
+  pointer-events: none;
+}
+
 .shade {
   position: absolute;
   inset: 0;

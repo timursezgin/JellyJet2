@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { PageContext, type PageInfo } from './page-context';
 import { routeTitle, useNavigation, type Route, type StackEntry } from './navigation';
@@ -92,19 +92,22 @@ export function StackView({ entries, visible, renderRoute }: Props) {
   }
 
   // --- Swipe back from the left edge -------------------------------------
-  const gesture = useRef<{
-    id: number;
-    startX: number;
-    startY: number;
-    engaged: boolean;
-    samples: { x: number; t: number }[];
-  } | null>(null);
+  //
+  // Built on touch events (not pointer events) because only a touchmove can
+  // stop the page from scrolling: once the finger is clearly moving sideways
+  // the gesture is locked - the page follows the finger, vertical scrolling is
+  // frozen and nothing underneath can be tapped - until the finger lifts.
+
+  // The listeners are attached once, so they read the latest state from refs.
+  const latest = useRef({ entries, exiting, pop });
+  latest.current = { entries, exiting, pop };
 
   function topPages() {
-    const top = entries[entries.length - 1];
-    const under = entries[entries.length - 2];
+    const list = latest.current.entries;
+    const top = list[list.length - 1];
+    const under = list[list.length - 2];
     return {
-      top: pageRefs.current.get(top.key),
+      top: top ? pageRefs.current.get(top.key) : undefined,
       under: under ? pageRefs.current.get(under.key) : undefined,
     };
   }
@@ -129,54 +132,20 @@ export function StackView({ entries, visible, renderRoute }: Props) {
     }
   }
 
-  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (entries.length < 2 || exiting || event.button !== 0) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    if (event.clientX - rect.left > EDGE) return;
-    gesture.current = {
-      id: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      engaged: false,
-      samples: [{ x: event.clientX, t: event.timeStamp }],
-    };
-  }
-
-  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
-    const g = gesture.current;
-    if (!g || g.id !== event.pointerId) return;
-    const dx = event.clientX - g.startX;
-    const dy = event.clientY - g.startY;
-    if (!g.engaged) {
-      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
-        gesture.current = null; // it's a scroll
-        return;
-      }
-      if (dx < 8) return;
-      g.engaged = true;
-      finishRunning();
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }
-    g.samples.push({ x: event.clientX, t: event.timeStamp });
-    if (g.samples.length > 5) g.samples.shift();
-    setDrag(Math.max(0, dx), event.currentTarget.clientWidth);
-  }
-
-  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
-    const g = gesture.current;
-    gesture.current = null;
-    if (!g || g.id !== event.pointerId || !g.engaged) return;
-    const width = event.currentTarget.clientWidth;
-    const dx = Math.max(0, event.clientX - g.startX);
-    const first = g.samples[0];
-    const last = g.samples[g.samples.length - 1];
-    const velocity = last.t > first.t ? (last.x - first.x) / (last.t - first.t) : 0;
-    const complete = event.type === 'pointerup' && (dx > width * 0.4 || velocity > 0.45);
+  /** Finish a swipe: slide the rest of the way back, or settle where it was. */
+  function release(dx: number, velocity: number, cancelled: boolean) {
+    const el = container.current;
+    if (!el) return;
+    const width = el.clientWidth;
+    // Where the page would coast to, so a quick flick counts as much as a drag.
+    const projected = dx + velocity * 200;
+    const complete = !cancelled && velocity > -0.15 && (projected > width * 0.5 || velocity > 0.5);
 
     const { top, under } = topPages();
-    const remaining = complete ? (width - dx) / width : dx / width;
-    const duration = Math.max(160, DURATION * remaining);
-    const options: KeyframeAnimationOptions = { duration, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+    const distance = complete ? width - dx : dx;
+    const speed = Math.max(Math.abs(velocity), 1.2); // px per ms
+    const duration = Math.min(DURATION, Math.max(140, distance / speed));
+    const options: KeyframeAnimationOptions = { duration, easing: 'cubic-bezier(0.25, 0.9, 0.3, 1)' };
 
     const topTo = complete ? width : 0;
     const underFrom = UNDER_SHIFT * (width - dx);
@@ -184,28 +153,128 @@ export function StackView({ entries, visible, renderRoute }: Props) {
     const shadeFrom = SHADE * (1 - dx / width);
 
     clearDrag();
+    const finished: Promise<unknown>[] = [];
     if (top) {
       const move = top.animate(
         [{ transform: `translate3d(${dx}px,0,0)` }, { transform: `translate3d(${topTo}px,0,0)` }],
-        { ...options, fill: complete ? 'forwards' : 'none' },
+        { ...options, fill: 'forwards' },
       );
+      animating.current.push(move);
+      finished.push(move.finished);
       move.onfinish = () => {
         if (complete) {
-          pop({ instant: true });
+          latest.current.pop({ instant: true });
           // The page is gone next render; drop the held frame then.
           requestAnimationFrame(() => move.cancel());
+        } else {
+          move.cancel();
         }
       };
     }
     if (under) {
-      under.animate(
+      const move = under.animate(
         [{ transform: `translate3d(${underFrom}px,0,0)` }, { transform: `translate3d(${underTo}px,0,0)` }],
         options,
       );
+      animating.current.push(move);
       const shade = under.querySelector<HTMLElement>(`.${styles.shade}`);
-      shade?.animate([{ opacity: shadeFrom }, { opacity: complete ? 0 : SHADE }], options);
+      if (shade) animating.current.push(shade.animate([{ opacity: shadeFrom }, { opacity: complete ? 0 : SHADE }], options));
     }
+    // Taps come back once the page has settled.
+    void Promise.allSettled(finished).then(() => delete el.dataset.dragging);
   }
+
+  useEffect(() => {
+    const el = container.current;
+    if (!el) return;
+
+    let gesture: {
+      startX: number;
+      startY: number;
+      dx: number;
+      engaged: boolean;
+      samples: { x: number; t: number }[];
+    } | null = null;
+
+    const onStart = (event: TouchEvent) => {
+      gesture = null;
+      const { entries, exiting } = latest.current;
+      if (event.touches.length !== 1 || entries.length < 2 || exiting) return;
+      const touch = event.touches[0];
+      if (touch.clientX - el.getBoundingClientRect().left > EDGE) return;
+      gesture = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        dx: 0,
+        engaged: false,
+        samples: [{ x: touch.clientX, t: performance.now() }],
+      };
+    };
+
+    const onMove = (event: TouchEvent) => {
+      const g = gesture;
+      if (!g) return;
+      if (event.touches.length !== 1) {
+        if (g.engaged) finish(true);
+        else gesture = null;
+        return;
+      }
+      const touch = event.touches[0];
+      const dx = touch.clientX - g.startX;
+      const dy = touch.clientY - g.startY;
+
+      if (!g.engaged) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        if (dx <= 0 || Math.abs(dy) > dx) {
+          gesture = null; // a scroll (or a swipe the other way) - leave it be
+          return;
+        }
+        g.engaged = true;
+        for (const animation of animating.current) animation.finish();
+        animating.current = [];
+        el.dataset.dragging = 'true';
+      }
+
+      // Locked sideways: the page must not scroll or react to the finger.
+      event.preventDefault();
+      g.dx = Math.max(0, dx);
+      g.samples.push({ x: touch.clientX, t: performance.now() });
+      if (g.samples.length > 6) g.samples.shift();
+      setDrag(g.dx, el.clientWidth);
+    };
+
+    const finish = (cancelled: boolean) => {
+      const g = gesture;
+      gesture = null;
+      if (!g?.engaged) return;
+      // Speed over roughly the last tenth of a second.
+      const now = performance.now();
+      const recent = g.samples.filter((s) => now - s.t < 100);
+      const from = recent.length > 1 ? recent[0] : g.samples[Math.max(0, g.samples.length - 2)];
+      const to = g.samples[g.samples.length - 1];
+      const velocity = to.t > from.t ? (to.x - from.x) / (to.t - from.t) : 0;
+      release(g.dx, velocity, cancelled);
+    };
+
+    const onEnd = (event: TouchEvent) => {
+      if (gesture?.engaged) event.preventDefault();
+      finish(false);
+    };
+    const onCancel = () => finish(true);
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: false });
+    el.addEventListener('touchcancel', onCancel);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onCancel);
+    };
+    // Attached once; everything changing is read through `latest`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const backInfo = useMemo(
     () =>
@@ -222,10 +291,6 @@ export function StackView({ entries, visible, renderRoute }: Props) {
       ref={container}
       className={styles.stack}
       data-visible={visible || undefined}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
     >
       {rendered.map((item, index) => {
         const isExiting = item === exiting;
