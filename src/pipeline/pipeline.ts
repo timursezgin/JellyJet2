@@ -13,6 +13,7 @@ import {
   searchAlbums,
   type AlbumResult,
   type DownloadJob,
+  type SearchFormat,
 } from './client';
 
 /**
@@ -21,10 +22,13 @@ import {
  */
 
 const KEY_STORAGE = 'jj.pipelineKey';
+const FORMAT_STORAGE = 'jj.albumSearchFormat';
 const POLL_MS = 10_000;
 
 interface PipelineState {
   key: string | null;
+  /** The filter chip under the search bar; remembered on this phone. */
+  format: SearchFormat;
   query: string;
   searching: boolean;
   results: AlbumResult[] | null;
@@ -41,8 +45,17 @@ function savedKey() {
   }
 }
 
+function savedFormat(): SearchFormat {
+  try {
+    return localStorage.getItem(FORMAT_STORAGE) === 'any' ? 'any' : 'mp3';
+  } catch {
+    return 'mp3';
+  }
+}
+
 export const usePipeline = create<PipelineState>(() => ({
   key: savedKey(),
+  format: savedFormat(),
   query: '',
   searching: false,
   results: null,
@@ -99,12 +112,28 @@ export async function searchSoulseek(query: string) {
   const run = ++searchRun;
   usePipeline.setState({ query: q, searching: true, results: null, searchError: null });
   try {
-    const results = await searchAlbums(key, q);
+    const results = await searchAlbums(key, q, usePipeline.getState().format);
     if (run === searchRun) usePipeline.setState({ searching: false, results });
   } catch (error) {
     onError(error);
     if (run === searchRun) usePipeline.setState({ searching: false, searchError: message(error, 'Search failed.') });
   }
+}
+
+/**
+ * Picks MP3 only or No filter. MP3 only changes the Soulseek search itself (it
+ * asks for other formats to be left out), so a search already on screen runs again.
+ */
+export function setSearchFormat(format: SearchFormat) {
+  if (usePipeline.getState().format === format) return;
+  try {
+    localStorage.setItem(FORMAT_STORAGE, format);
+  } catch {
+    // Kept for this session only.
+  }
+  usePipeline.setState({ format });
+  const { query, results, searching, searchError } = usePipeline.getState();
+  if (query && (results || searching || searchError)) void searchSoulseek(query);
 }
 
 export function clearSearch() {

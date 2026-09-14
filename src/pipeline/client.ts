@@ -90,9 +90,14 @@ async function call<T>(key: string, method: string, path: string, body?: unknown
 
 export const checkKey = (key: string) => call<{ ok: boolean }>(key, 'GET', '/whoami');
 
+/** `mp3`: only album folders whose songs are all MP3. `any`: every format. */
+export type SearchFormat = 'mp3' | 'any';
+
 /** Blocks while Soulseek gathers answers - up to about a minute. */
-export async function searchAlbums(key: string, query: string) {
-  const data = await call<{ results?: AlbumResult[] }>(key, 'GET', `/search?q=${encodeURIComponent(query)}`, undefined, 100_000);
+export async function searchAlbums(key: string, query: string, format: SearchFormat) {
+  const params = new URLSearchParams({ q: query });
+  if (format !== 'any') params.set('format', format);
+  const data = await call<{ results?: AlbumResult[] }>(key, 'GET', `/search?${params}`, undefined, 100_000);
   return data.results ?? [];
 }
 

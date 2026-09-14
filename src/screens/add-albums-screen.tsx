@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { useOnline } from '@/connectivity/connection';
 import { navigate } from '@/nav/navigation';
-import { albumTitle, isActiveJob, type AlbumResult, type DownloadJob } from '@/pipeline/client';
+import { albumTitle, isActiveJob, type AlbumResult, type DownloadJob, type SearchFormat } from '@/pipeline/client';
 import {
   clearSearch,
   connectPipeline,
@@ -12,6 +12,7 @@ import {
   forgetJob,
   refreshJobs,
   searchSoulseek,
+  setSearchFormat,
   usePipeline,
 } from '@/pipeline/pipeline';
 import { confirm } from '@/ui/confirm';
@@ -42,12 +43,18 @@ export function AddAlbumsScreen() {
   );
 }
 
+const FORMAT_CHIPS: { id: SearchFormat; label: string }[] = [
+  { id: 'mp3', label: 'MP3 only' },
+  { id: 'any', label: 'No filter' },
+];
+
 function Connected() {
   const query = usePipeline((s) => s.query);
   const searching = usePipeline((s) => s.searching);
   const results = usePipeline((s) => s.results);
   const searchError = usePipeline((s) => s.searchError);
   const jobs = usePipeline((s) => s.jobs);
+  const format = usePipeline((s) => s.format);
   const [text, setText] = useState(query);
   const [openJob, setOpenJob] = useState<string | null>(null);
 
@@ -95,6 +102,21 @@ function Connected() {
             </button>
           )}
         </label>
+        <div className={styles.chips} role="radiogroup" aria-label="File format">
+          {FORMAT_CHIPS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={format === id}
+              className={styles.chip}
+              data-active={format === id || undefined}
+              onClick={() => setSearchFormat(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </form>
 
       {jobs.length > 0 && (
@@ -122,7 +144,11 @@ function Connected() {
         <>
           <SectionHeader title="Results" />
           {results.length === 0 ? (
-            <p className={styles.message}>Nothing matched that on Soulseek right now.</p>
+            <p className={styles.message}>
+              {format === 'mp3'
+                ? 'No MP3 albums matched that on Soulseek right now. Try No filter.'
+                : 'Nothing matched that on Soulseek right now.'}
+            </p>
           ) : (
             results.map((album) => <ResultRow key={album.id} album={album} />)
           )}

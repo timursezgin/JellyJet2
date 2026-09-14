@@ -121,7 +121,7 @@ const results = [
     files: [{ filename: 'Shares\\Other Album\\01.flac', size: 40_000_000 }],
   },
 ];
-const orchestrator = { auth: [], jobs: new Map(), deleted: [], searches: [], made: 0 };
+const orchestrator = { auth: [], jobs: new Map(), deleted: [], searches: [], formats: [], made: 0 };
 function pipeline(req, body) {
   const url = new URL(`http://mock${req.url}`);
   orchestrator.auth.push(req.headers.authorization);
@@ -129,7 +129,9 @@ function pipeline(req, body) {
   if (url.pathname === '/whoami') return [200, { ok: true }];
   if (url.pathname === '/search') {
     orchestrator.searches.push(url.searchParams.get('q'));
-    return [200, { results }, 1200];
+    const format = url.searchParams.get('format');
+    orchestrator.formats.push(format);
+    return [200, { results: format === 'mp3' ? results.filter((r) => r.format === 'mp3') : results }, 1200];
   }
   if (url.pathname === '/download' && req.method === 'POST') {
     const b = JSON.parse(body);
@@ -294,7 +296,20 @@ await search.press('Enter');
 await top().getByText(/Searching Soulseek/).waitFor();
 await top().getByText('Great Album', { exact: true }).waitFor({ timeout: 10000 });
 check(orchestrator.searches.at(-1) === 'great album', 'search results arrive');
+check(
+  (await top().getByRole('radio', { name: 'MP3 only' }).getAttribute('aria-checked')) === 'true' &&
+    orchestrator.formats.at(-1) === 'mp3' &&
+    !(await top().getByText('Other Album (FLAC)').count()),
+  'MP3 only is the default: the search asks for MP3 and the FLAC folder isn’t listed',
+);
+await shot('add-albums-mp3-only');
+
+// No filter searches again, for every format.
+await top().getByRole('radio', { name: 'No filter' }).click();
+await top().getByText('Other Album (FLAC)').waitFor({ timeout: 10000 });
+check(orchestrator.formats.at(-1) === null && orchestrator.searches.length === 2, 'No filter runs the search again for every format');
 check(await top().getByText('Other Album (FLAC)').isVisible(), 'a result with no album name shows its folder name');
+check(await page.evaluate(() => localStorage.getItem('jj.albumSearchFormat') === 'any'), 'the chosen filter is remembered');
 await shot('add-albums-results');
 
 await top().getByText('Great Album', { exact: true }).click();
