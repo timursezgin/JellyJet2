@@ -53,11 +53,11 @@
     font-size 240ms var(--ease-ios);
 }
 
-/* The sung line is also 20% larger. A real size change (not a zoom) so a long
+/* The sung line is also 10% larger. A real size change (not a zoom) so a long
    line re-wraps within the margins instead of spilling past the screen. */
 .panel[data-timed] .line[data-active] {
   opacity: 1;
-  font-size: 26.4px;
+  font-size: 24.2px;
 }
 
 .panel[data-timed] .line:active {

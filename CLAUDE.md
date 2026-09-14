@@ -190,7 +190,7 @@ Testing on this PC:
   inside the cover's square), with the whole cover - edges included -
   darkened and softly blurred behind; stays on from song to song. The lyrics
   area keeps clear of the handle (28px) and the title (36px). Archivo Medium,
-  centred; the sung line is 20% larger (a real font-size change, so long
+  centred; the sung line is 10% larger (20% was too jumpy) (a real font-size change, so long
   lines re-wrap within the margins). The sung line sits in the exact vertical
   middle of the area (half-height room above the first line and below the
   last; re-aimed once the size change ends). Timed lyrics light up the sung line, follow the song
