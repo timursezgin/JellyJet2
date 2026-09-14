@@ -41,8 +41,7 @@ download service behind Add albums, now lives here in `pipeline/`.
   commit or share it.
 - Don't use the owner's real Jellyfin token to explore the API (public
   endpoints like images and `/System/Info/Public` are fine).
-- Never perform destructive library actions yourself. Never touch
-  `Desktop\Music_Test` (deprecated).
+- Never perform destructive library actions yourself.
 - Outward-facing changes (Cloudflare, tim-box containers and compose files)
   need the owner's go-ahead.
 - Never play audio out loud while testing - it comes out of the owner's
