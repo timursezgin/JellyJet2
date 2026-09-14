@@ -18,14 +18,16 @@ import { toast } from '@/ui/toast';
 interface LikesState {
   /** Song id → liked, for changes made in this session. */
   changed: Record<string, boolean>;
-  /** Songs just unliked, fading out of the Liked Songs list before they go. */
+  /** Songs just unliked, flying out of the Liked Songs list before they go. */
   leaving: Record<string, true>;
+  /** The Liked Songs row slid open to show its Unlike button, if any. */
+  revealed: string | null;
 }
 
-const useLikes = create<LikesState>(() => ({ changed: {}, leaving: {} }));
+const useLikes = create<LikesState>(() => ({ changed: {}, leaving: {}, revealed: null }));
 
-/** How long an unliked song stays visible (fading) in Liked Songs. */
-const FADE_MS = 2000;
+/** How long an unliked row takes to fly out before it's removed (matches the CSS). */
+const EXIT_MS = 320;
 const removals = new Map<string, ReturnType<typeof setTimeout>>();
 
 export function useIsLiked(track: Pick<Track, 'id' | 'liked'>): boolean {
@@ -36,8 +38,12 @@ export function useIsLiked(track: Pick<Track, 'id' | 'liked'>): boolean {
   return track.liked === true;
 }
 
-/** True while an unliked song is fading out of Liked Songs. */
+/** True while an unliked song is flying out of Liked Songs. */
 export const useIsLeaving = (id: string) => useLikes((s) => s.leaving[id] === true);
+
+/** Liked Songs: slide a row open to show its Unlike button (or close it with null). */
+export const revealUnlike = (id: string | null) => useLikes.setState({ revealed: id });
+export const useIsRevealed = (id: string) => useLikes((s) => s.revealed === id);
 
 function likedSongsKey() {
   return ['liked-songs', useSession.getState().session?.userId ?? ''];
@@ -58,7 +64,7 @@ function cancelRemoval(id: string) {
   setLeaving(id, false);
 }
 
-/** Refresh Liked Songs from the server, but not while a row is still fading. */
+/** Refresh Liked Songs from the server, but not while a row is still leaving. */
 function refreshLikedSongs() {
   if (removals.size === 0) void queryClient.invalidateQueries({ queryKey: likedSongsKey() });
 }
@@ -77,7 +83,7 @@ export async function setLiked(track: Track, liked: boolean) {
       queryClient.setQueryData<Track[]>(key, (list) => (list ? [...list, { ...track, liked: true }] : list));
     }
   } else if (wasListed) {
-    // Let the row fade in place so it's clear what was unliked, then remove it.
+    // Let the row fly out first, then take it out of the list.
     setLeaving(track.id, true);
     removals.set(
       track.id,
@@ -86,7 +92,7 @@ export async function setLiked(track: Track, liked: boolean) {
         setLeaving(track.id, false);
         queryClient.setQueryData<Track[]>(key, (list) => list?.filter((t) => t.id !== track.id));
         refreshLikedSongs();
-      }, FADE_MS),
+      }, EXIT_MS),
     );
   }
 

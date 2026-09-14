@@ -1,10 +1,20 @@
 .row {
+  --unlike-width: 92px;
+  position: relative;
   height: 64px;
-  transition: opacity 200ms ease;
-  display: flex;
-  align-items: center;
   margin: 0 var(--page-gutter);
   border-top: 1px solid var(--hairline);
+}
+
+/* The row's content; it slides over the Unlike button behind it. */
+.slide {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  transition: transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .main {
@@ -63,10 +73,58 @@
   text-overflow: ellipsis;
 }
 
+/* --- Liked Songs: slide open to Unlike, then fly out ----------------------- */
 
-/* Unliked in Liked Songs: fade away over two seconds, then the row is removed.
-   The heart stays tappable, so it can be liked again before it goes. */
-.row[data-leaving] {
+.unlike {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: calc(-1 * var(--page-gutter) + 8px);
+  width: calc(var(--unlike-width) - 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-button);
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
   opacity: 0;
-  transition: opacity 2000ms linear;
+  transform: scale(0.9);
+  transition:
+    opacity 240ms ease,
+    transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.unlike:active {
+  filter: brightness(0.88);
+}
+
+.row[data-revealed] .slide {
+  transform: translateX(calc(-1 * var(--unlike-width) + var(--page-gutter) - 8px));
+}
+
+.row[data-revealed] .unlike {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Unliked: the whole row eases away to the left, then it's removed and the
+   rows below ease up into its place. */
+.row[data-leaving] {
+  pointer-events: none;
+  transform: translateX(-110%);
+  opacity: 0;
+  transition:
+    transform 320ms cubic-bezier(0.55, 0, 0.75, 0.3),
+    opacity 320ms cubic-bezier(0.55, 0, 0.75, 0.3);
+}
+
+.row[data-leaving] .unlike {
+  opacity: 1;
+  transform: none;
+}
+
+.row[data-leaving] .slide {
+  transform: translateX(calc(-1 * var(--unlike-width) + var(--page-gutter) - 8px));
 }
