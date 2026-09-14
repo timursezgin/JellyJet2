@@ -4,3 +4,7 @@ dist/
 .DS_Store
 .env.local
 .claude/launch.json
+# On tim-box this folder is also the live one: deploy copies these here.
+/site/
+/Caddyfile
+/docker-compose.yml

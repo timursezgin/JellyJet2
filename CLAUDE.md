@@ -71,6 +71,15 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   pop a second page and freeze pages half-shifted.
 - The Browser pane can't register service workers; use Playwright WebKit for
   anything offline. (The iOS Simulator used before is Mac-only.)
+- Playwright's WebKit on Windows can't play audio at all (`play()` throws
+  NotSupportedError, no `navigator.mediaSession`), so on this PC the checks
+  that need playback fail for that reason alone: "offline playback" in
+  `offline-test.mjs` and the Library/Decade radio checks in `extras-test.mjs`.
+  Everything else in those tests passes. Check playback on the iPhone.
+- **This PC is tim-box**, and this project folder is also the live folder the
+  `JellyJet2` container serves: `site/`, `Caddyfile` and `docker-compose.yml`
+  at the top level are the running copies (git-ignored). `npm run deploy`
+  publishes straight into it - a deploy here is live on jj at once.
 - `npm run deploy` (`tool/deploy.mjs`) - build and copy to tim-box
   `Desktop\JellyJet2\site`. Finds the folder itself: on tim-box
   `C:\Users\Windows 11\Desktop\JellyJet2`, from another PC

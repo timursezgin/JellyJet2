@@ -19,7 +19,9 @@ const child = spawn(caddy, ['run', '--config', 'deploy/Caddyfile', '--adapter', 
   env: {
     ...process.env,
     LISTEN: 'http://:8792',
-    SITE_ROOT: path.join(root, 'dist'),
+    // Relative to cwd: the Caddyfile inserts it unquoted, so an absolute path
+    // with a space (C:\Users\Windows 11\...) would split in two.
+    SITE_ROOT: 'dist',
     JELLYFIN_UPSTREAM: process.env.JELLYFIN_UPSTREAM || '100.115.48.57:8096',
     PIPELINE_UPSTREAM: process.env.PIPELINE_UPSTREAM || '100.115.48.57:8420',
   },
