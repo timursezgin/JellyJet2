@@ -128,6 +128,13 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   `jj.pipelineKey`, cleared on sign-out; search; jobs polled every 10s while
   active; on landing asks Jellyfin to refresh). The key is typed by the owner -
   never read `api_key.txt` or put the key anywhere.
+- `pipeline/` - the Add albums orchestrator itself (Python `watcher.py`: slskd
+  search/download API + album watcher + beets), moved from JellyJet v1. A push
+  touching `watcher.py`/`Dockerfile` builds
+  `ghcr.io/timursezgin/jellyjet2-orchestrator` (`.github/workflows/`);
+  Watchtower on tim-box pulls it. Its compose file is tim-box's
+  `Desktop\Music\_pipeline\slskd\docker-compose.yml` - ask before changing it,
+  and never read the `orchestrator.json` / `api_key.txt` next to it.
 - `src/offline/outbox.ts` - likes/playlist edits/plays made offline, sent later.
 - `public/sw.js` - app shell offline, `/offline/audio/*` with Range support,
   stored covers. The app opens from the saved page at once; a newer page is

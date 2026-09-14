@@ -1,0 +1,48 @@
+# beets config for the orchestrator CONTAINER. Same rules as the host
+# config.yaml (Picard-style naming, loosened match thresholds), just with
+# container paths. Mounted read-only at /beets/config.yaml.
+
+directory: /music/2-MainLib
+library: /config/beets-library.db
+
+import:
+  move: yes          # move files out of 1-Downloading/complete
+  write: yes
+  autotag: yes
+  quiet: no          # the watcher passes -q / -A itself
+  incremental: no    # the watcher dedups via its own state.json (--noincremental)
+  resume: no
+
+# Below these thresholds files still import (using their own tags) rather than
+# being skipped — the naming scheme is trusted, so this goes straight to the lib.
+match:
+  strong_rec_thresh: 0.10
+  medium_rec_thresh: 0.25
+  rec_gap_thresh: 0.25
+
+plugins: musicbrainz inline scrub fetchart embedart
+
+item_fields:
+    disc_prefix: |
+        '%02d-' % disc if disctotal and disctotal > 1 else ''
+    track_prefix: |
+        ('%02d ' % track) if (albumartist and track) else ''
+    artist_prefix: |
+        (artist + ' - ') if comp else ''
+
+album_fields:
+    year_folder: |
+        '(%s)' % (str(original_year) if original_year else str(year))
+
+paths:
+    default: $albumartist/$year_folder $album%aunique{}/$disc_prefix$track_prefix$artist_prefix$title
+    singleton: $artist/$title
+    comp: $albumartist/$year_folder $album%aunique{}/$disc_prefix$track_prefix$artist_prefix$title
+
+from_scratch: no
+
+fetchart:
+    auto: yes
+
+scrub:
+    auto: yes

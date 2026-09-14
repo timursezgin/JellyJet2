@@ -1,0 +1,48 @@
+name: orchestrator image
+
+# Build + push the Add albums orchestrator container whenever its source changes,
+# as ghcr.io/timursezgin/jellyjet2-orchestrator (named after this repo).
+# tim-box's Watchtower then pulls the new :latest within ~5 min. No manual steps.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pipeline/watcher.py"
+      - "pipeline/Dockerfile"
+      - ".github/workflows/orchestrator-image.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: orchestrator-image
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./pipeline
+          file: ./pipeline/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.repo }}-orchestrator:latest
+            ghcr.io/${{ steps.meta.outputs.repo }}-orchestrator:${{ github.sha }}

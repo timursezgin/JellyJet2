@@ -1,0 +1,52 @@
+# FULL example: slskd + the JellyJet 2 orchestrator + Watchtower auto-updater.
+# tim-box runs this as Desktop\Music\_pipeline\slskd\docker-compose.yml.
+#
+# With this setup you never rebuild anything: a push to the JellyJet2 repo makes
+# GitHub build a new orchestrator image, and Watchtower pulls it here within ~5 min.
+
+services:
+  slskd:
+    image: slskd/slskd
+    container_name: slskd
+    restart: unless-stopped
+    ports:
+      - "5030:5030"
+      - "5031:5031"
+      - "50300:50300"
+    environment:
+      - SLSKD_REMOTE_CONFIGURATION=true
+    volumes:
+      - ./slskd_data:/app
+      - "C:/Users/Windows 11/Desktop/Music/1-Downloading:/downloads"
+
+  orchestrator:
+    image: ghcr.io/timursezgin/jellyjet2-orchestrator:latest
+    container_name: jellyjet-orchestrator
+    restart: unless-stopped
+    depends_on:
+      - slskd
+    ports:
+      - "8420:8420"
+    environment:
+      - SLSKD_URL=http://slskd:5030
+    volumes:
+      - "C:/Users/Windows 11/Desktop/Music:/music"
+      - "C:/Users/Windows 11/Desktop/Music/_pipeline/orchestrator:/config"
+      - "C:/Users/Windows 11/Desktop/Music/_pipeline/beets/config-docker.yaml:/beets/config.yaml:ro"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"   # Watchtower updates this one
+
+  # Auto-updates only the containers labelled above (i.e. just the orchestrator,
+  # never slskd). Checks GHCR every 5 min.
+  #
+  # Using the maintained fork (nicholas-fedor/watchtower) — the original
+  # containrrr/watchtower is abandoned and its Docker API client is too old for
+  # current Docker Desktop ("client version 1.25 is too old"). The fork is a
+  # drop-in replacement and still honours the com.centurylinklabs.* label.
+  watchtower:
+    image: ghcr.io/nicholas-fedor/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup --label-enable
