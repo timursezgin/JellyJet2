@@ -58,6 +58,12 @@ export interface BaseItem {
   PlaylistItemId?: string;
 }
 
+/** A song's lyrics (`/Audio/{id}/Lyrics`). Timed lyrics give each line a start. */
+export interface LyricsResult {
+  Metadata?: { IsSynced?: boolean };
+  Lyrics: { Text: string; Start?: number | null }[];
+}
+
 export interface ItemsResult {
   Items: BaseItem[];
   TotalRecordCount: number;

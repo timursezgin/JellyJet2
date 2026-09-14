@@ -184,6 +184,12 @@ Testing on this PC:
 - Player: mini + full player, queue, lock-screen controls, instant next song.
   Playback reported to Jellyfin (`/Sessions/Playing*`) so play counts and
   mixes stay accurate.
+- **Lyrics** (from Jellyfin's lyrics plugin, `/Audio/{id}/Lyrics`): a quote
+  icon at the full player's bottom left (AirPlay and queue sit bottom right)
+  shows them over the cover, which darkens and blurs; stays on from song to
+  song. Archivo Medium. Timed lyrics light up the sung line, follow the song
+  (pausing 3.5s after a hand scroll) and seek on tap; plain lyrics just
+  scroll; otherwise "No lyrics for this song yet". Fetched only while shown.
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
   Regenerate, savable as "JellyJet · <name>" playlists). **Stations**: Artist
   mix, Library radio (offline it shuffles downloads), Decade radio.
@@ -247,6 +253,9 @@ Check the phone layout is untouched (tests use 390-402px viewports).
   sheet and New playlist).
 - `src/player/player.ts` - one audio element, queue (localStorage
   `jj.player.<userId>`, saved only after restore), lock-screen handlers.
+  `full-player.tsx` - the full-screen player; `lyrics.tsx` - its lyrics view
+  (the panel scrolls inside the player's drag-to-close area: `data-no-drag`
+  plus its own `touch-action: pan-y`).
 - `src/downloads/` - `downloads.ts` (index: songs with `sources`, collections
   with `excluded`, jobs, progress; IndexedDB), `engine.ts` (queue, fetching
   into Cache Storage `jellyjet2-audio` at `/offline/audio/<id>`, covers in

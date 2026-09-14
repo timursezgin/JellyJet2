@@ -1,6 +1,6 @@
-import type { JellyfinClient } from './client';
+import { JellyfinError, type JellyfinClient } from './client';
 import { deviceId } from './identity';
-import type { BaseItem, ItemsResult } from './types';
+import type { BaseItem, ItemsResult, LyricsResult } from './types';
 
 /** Fields for queries whose results become playable song rows. */
 export const TRACK_FIELDS = 'PrimaryImageAspectRatio,AlbumPrimaryImageTag,Container,ArtistItems';
@@ -198,6 +198,17 @@ export function albumTracks(client: JellyfinClient, userId: string, albumId: str
       ...IMAGES,
     },
   });
+}
+
+/** A song's lyrics, or null when the server has none for it (yet). */
+export async function lyrics(client: JellyfinClient, itemId: string): Promise<LyricsResult | null> {
+  try {
+    const result = await client.get<LyricsResult>(`/Audio/${itemId}/Lyrics`);
+    return result?.Lyrics?.length ? result : null;
+  } catch (error) {
+    if (error instanceof JellyfinError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 export function artistAlbums(client: JellyfinClient, userId: string, artistId: string) {

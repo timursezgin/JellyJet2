@@ -27,6 +27,21 @@ export function useMusicLibraryId() {
   });
 }
 
+/**
+ * A song's lyrics, fetched only while they're on screen. "None yet" is cached
+ * briefly like anything else, so lyrics the server adds later still show up.
+ */
+export function useLyrics(itemId: string | undefined, enabled: boolean) {
+  const { client } = useAccount();
+  return useQuery({
+    queryKey: ['lyrics', itemId],
+    queryFn: () => api.lyrics(client, itemId!),
+    enabled: enabled && !!itemId,
+    // Only songs looked at recently stay in the saved cache.
+    gcTime: 2 * 24 * 60 * 60_000,
+  });
+}
+
 /** A query that waits for the music library id, then runs with it. */
 function useScopedQuery<T>(key: unknown[], fn: (parentId: string | null) => Promise<T>) {
   const { userId } = useAccount();

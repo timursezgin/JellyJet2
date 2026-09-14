@@ -1,0 +1,74 @@
+/* Fills the cover's frame, over the darkened, blurred cover. */
+.panel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 30% 22px 55%;
+  border-radius: var(--radius-full-player-art);
+  /* Lines fade out at the top and bottom edges instead of being cut off. */
+  mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  animation: appear 260ms var(--ease-ios);
+}
+
+/* Plain lyrics have no current line to centre, so they start at the top. */
+.panel:not([data-timed]) {
+  padding-top: 17%;
+  padding-bottom: 17%;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+.line {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  text-align: left;
+  font-family: var(--font);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Timed lyrics: the line being sung is bright, the rest recede. Opacity on the
+   whole line (not a see-through colour) keeps overlapping glyphs seamless. */
+.panel[data-timed] .line {
+  opacity: 0.45;
+  transition: opacity 240ms ease;
+}
+
+.panel[data-timed] .line[data-active] {
+  opacity: 1;
+}
+
+.panel[data-timed] .line:active {
+  opacity: 0.7;
+}
+
+.gap {
+  height: 18px;
+}
+
+.message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink-70);
+}

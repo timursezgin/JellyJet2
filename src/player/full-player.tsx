@@ -1,4 +1,15 @@
-import { Airplay, ListMusic, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward } from 'lucide-react';
+import {
+  Airplay,
+  ListMusic,
+  MessageSquareQuote,
+  Pause,
+  Play,
+  Repeat,
+  Repeat1,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -16,6 +27,7 @@ import {
   togglePlay,
   usePlayer,
 } from './player';
+import { LyricsPanel, toggleLyrics, useLyricsView } from './lyrics';
 import { QueueSheet } from './queue-sheet';
 import { Scrubber } from './scrubber';
 import { SongButtons } from '@/songs/song-buttons';
@@ -110,6 +122,7 @@ function PlayerContent() {
   const shuffle = usePlayer((s) => s.shuffle);
   const repeat = usePlayer((s) => s.repeat);
   const airPlay = useAirPlayAvailable();
+  const lyricsOpen = useLyricsView((s) => s.open);
   const stage = useRef<HTMLDivElement>(null);
   const artSize = useArtSize(stage);
 
@@ -122,8 +135,13 @@ function PlayerContent() {
       </button>
 
       <div ref={stage} className={styles.stage}>
-        <div className={styles.artFrame} style={{ width: artSize, height: artSize }}>
-          <Artwork art={track.art} size={artSize} radius={14} eager />
+        <div
+          className={styles.artFrame}
+          data-lyrics={lyricsOpen || undefined}
+          style={{ width: artSize, height: artSize }}
+        >
+          <Artwork art={track.art} size={artSize} radius={14} className={styles.cover} eager />
+          {lyricsOpen && <LyricsPanel trackId={track.id} />}
         </div>
       </div>
 
@@ -194,21 +212,31 @@ function PlayerContent() {
         </div>
 
         <div className={styles.secondary}>
-          {airPlay ? (
-            <button
-              type="button"
-              className={styles.side}
-              onClick={() => (audio as HTMLAudioElement & { webkitShowPlaybackTargetPicker(): void }).webkitShowPlaybackTargetPicker()}
-              aria-label="AirPlay"
-            >
-              <Airplay size={22} strokeWidth={2} />
-            </button>
-          ) : (
-            <span className={styles.side} />
-          )}
-          <button type="button" className={styles.side} onClick={() => setQueueOpen(true)} aria-label="Queue">
-            <ListMusic size={23} strokeWidth={2} />
+          <button
+            type="button"
+            className={styles.side}
+            data-active={lyricsOpen || undefined}
+            onClick={toggleLyrics}
+            aria-label="Lyrics"
+            aria-pressed={lyricsOpen}
+          >
+            <MessageSquareQuote size={22} strokeWidth={2} />
           </button>
+          <div className={styles.secondaryEnd}>
+            {airPlay && (
+              <button
+                type="button"
+                className={styles.side}
+                onClick={() => (audio as HTMLAudioElement & { webkitShowPlaybackTargetPicker(): void }).webkitShowPlaybackTargetPicker()}
+                aria-label="AirPlay"
+              >
+                <Airplay size={22} strokeWidth={2} />
+              </button>
+            )}
+            <button type="button" className={styles.side} onClick={() => setQueueOpen(true)} aria-label="Queue">
+              <ListMusic size={23} strokeWidth={2} />
+            </button>
+          </div>
         </div>
       </div>
     </>
