@@ -1,16 +1,15 @@
-# JellyJet 2 on tim-box (Desktop\JellyJet2), side by side with the original
-# JellyJet container on port 8090. Start or restart it from that folder with:
+# JellyJet 2 on tim-box (Desktop\JellyJet2). Start or restart it from that
+# folder with:
 #   docker compose up -d
-# The app itself is the ./site folder, which tool/deploy.sh refreshes from the
-# Mac - new versions show up without restarting anything.
+# The app itself is the ./site folder, which `npm run deploy` refreshes - new
+# versions show up without restarting anything.
 services:
   jellyjet2:
     image: caddy:2-alpine
     container_name: JellyJet2
     restart: unless-stopped
     ports:
-      # Point the Cloudflare tunnel's jj.timursezgin.work route at this port to
-      # use JellyJet 2, or back at 8090 for the original.
+      # The Cloudflare tunnel's jj.timursezgin.work route points at this port.
       - "8091:8080"
     environment:
       # Jellyfin and the download orchestrator, as reached from this container.

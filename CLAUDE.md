@@ -8,14 +8,13 @@ phone's home screen - there is no native app. **Read `PLAN.md` first**: it
 holds every product decision and the build steps.
 
 **Read `HANDOFF.md` too**: it carries the decision history from the Mac
-sessions, the next job (the desktop layout) and the remaining ties to
-JellyJet v1. **JellyJet v1 (the Flutter app, github.com/timursezgin/JellyJet)
-is abandoned and will be archived and unreachable** - anything still needed
-from it must be moved here, linked, or made to work with this version (the
-Soulseek download service under `pipeline/` is the main one; see
-`HANDOFF.md`). The design spec to follow is in
-`docs/design/original-design-spec.md` (+ `screenshots/`), tokens are in
-`src/theme/tokens.css`, and the owner's later decisions override it.
+sessions and the next job (the desktop layout). **JellyJet v1 (the Flutter
+app) is gone** from tim-box and its repo is archived; everything still needed
+from it (the Soulseek download service, `pipeline/`) lives here now. Design
+tokens are in `src/theme/tokens.css`; the owner's decisions in `PLAN.md` and
+`HANDOFF.md` define the look. (The original Flutter design spec and its
+screenshots were removed from the folder on 2026-09-15; they're in git history
+at commit `e17a2cd`, under `docs/design/`.)
 
 ## Who you're working with
 

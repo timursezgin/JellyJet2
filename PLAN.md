@@ -1,9 +1,8 @@
 # JellyJet 2 - plan
 
 A React web app for the owner's Jellyfin server. Anyone with the link adds it to
-their phone's home screen and uses it like an app. It replaces the Flutter web
-version of JellyJet; the Flutter iPhone app (`~/Desktop/JellyJet`) is separate
-and untouched. Feishin is a source of ideas only - no code or logic is copied.
+their phone's home screen and uses it like an app. It replaces JellyJet v1
+(Flutter), which is retired and archived. Feishin is a source of ideas only - no code or logic is copied.
 
 ## Decisions (settled with the owner, 2026-09-13)
 
@@ -75,11 +74,11 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
   the owner remains a possible later addition.
 
 ### Hosting
-- Own container **JellyJet2** in tim-box `Desktop\JellyJet2`, port **8091**,
-  next to the original **JellyJet** container on 8090. jj.timursezgin.work is
-  switched between versions by changing the port on its Cloudflare route; the
-  address stays the same so phone downloads stay tied to jj.
-- Publish: `sh tool/deploy.sh`. Work is pushed to GitHub after each tested step.
+- Own container **JellyJet2** in tim-box `Desktop\JellyJet2`, port **8091**;
+  jj.timursezgin.work's Cloudflare route points at it (the original JellyJet
+  container on 8090 was removed on 2026-09-15). The address stays the same so
+  phone downloads stay tied to jj.
+- Publish: `npm run deploy`. Work is pushed to GitHub after each tested step.
 
 ## Steps
 

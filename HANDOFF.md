@@ -25,20 +25,19 @@ dependencies:
      `/ping` directly and via `/pipeline` on 8091, `/whoami` refuses no key,
      watcher running. A copy of the old compose file is next to it
      (`docker-compose.yml.bak-2026-09-14`).
-   - Left for the owner: try Add albums once on the phone, then the v1 repo
-     can be archived. The old `jellyjet-orchestrator` package on GitHub and
-     its image on tim-box are no longer used.
-2. **The design spec** - done: copied to `docs/design/original-design-spec.md`
-   and `docs/design/screenshots/`. (It was written for a Flutter iOS app;
-   JellyJet 2 follows its look, tokens are in `src/theme/tokens.css`, and the
-   owner's later changes below override it.)
-3. **Hosting** - already independent: the `JellyJet2` container
-   (`Desktop\JellyJet2`, port 8091) serves this app, and the Cloudflare route
-   for jj.timursezgin.work points at 8091. The old `JellyJet` container
-   (`Desktop\JellyJet`, port 8090) is no longer used; stopping or removing it
-   is the owner's call.
-4. **Anything else found later** that points at `~/Desktop/JellyJet`, the v1
-   repo or port 8090: move it here or replace it.
+   - The owner downloaded an album with it on 2026-09-15: works.
+2. **The design spec** - was copied to `docs/design/`, then removed from the
+   folder on 2026-09-15 at the owner's request (in git history at `e17a2cd`).
+   It was written for the Flutter app; tokens are in `src/theme/tokens.css`
+   and the owner's decisions here and in `PLAN.md` override it.
+3. **Hosting** - the `JellyJet2` container (`Desktop\JellyJet2`, port 8091)
+   serves this app; jj.timursezgin.work points at 8091 (checked: it serves
+   this build). On 2026-09-15, at the owner's request, the v1 `JellyJet`
+   container (port 8090) was removed, `Desktop\JellyJet` sent to the Recycle
+   Bin, and the old `jellyjet-orchestrator` and `slskd-orchestrator` images
+   deleted. The owner archives the v1 repo on GitHub.
+
+**Done: nothing depends on JellyJet v1 any more.**
 
 ## 1. Who you're working with
 
