@@ -1,7 +1,9 @@
 // JellyJet service worker: lets the app open, and downloaded music play,
 // with no internet.
 //
-//   the page (/)              network first (4s timeout), then the last copy
+//   the page (/)              the saved copy at once (instant start), with a newer
+//                             version fetched in the background: stored only once
+//                             all its build files are saved too, then the app is told
 //   /assets/*                 build files with a content hash in the name: cache first
 //   icons, fonts, etc.        served from cache, refreshed in the background
 //   /offline/audio/<id>       downloaded songs, from storage (with seeking)
@@ -16,9 +18,7 @@ const APP_FILES = /^\/(assets|fonts|icons)\/|^\/(favicon\.png|manifest\.webmanif
 const COVER = /^\/Items\/[^/]+\/Images\/Primary/;
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(SHELL).then((cache) => cache.add('/')).then(() => self.skipWaiting()),
-  );
+  event.waitUntil(refreshShell().catch(() => {}).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(page(request));
+    event.respondWith(page(event));
   } else if (url.pathname.startsWith('/offline/audio/')) {
     event.respondWith(storedAudio(request, url.pathname));
   } else if (COVER.test(url.pathname)) {
@@ -51,15 +51,57 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-async function page(request) {
+/** Opening the app: the saved page straight away, a newer one checked for meanwhile. */
+async function page(event) {
   const cache = await caches.open(SHELL);
+  const saved = await cache.match('/');
+  if (saved) {
+    event.waitUntil(
+      refreshShell()
+        .then((updated) => updated && tellClients({ type: 'update-ready' }))
+        .catch(() => {}),
+    );
+    return saved;
+  }
+  // First time (or storage cleared): from the network.
   try {
-    const response = await withTimeout(fetch(request), 4000);
-    if (response.ok) await cache.put('/', response.clone());
+    const response = await fetch(event.request);
+    if (response.ok) event.waitUntil(refreshShell().catch(() => {}));
     return response;
   } catch {
-    return (await cache.match('/')) ?? Response.error();
+    return Response.error();
   }
+}
+
+/**
+ * Fetches the page and, if it changed, saves every build file it uses first
+ * and the page last, so a saved page is never missing its files (a publish
+ * deletes the old ones from the server). Returns whether a newer page replaced
+ * an older one.
+ */
+async function refreshShell() {
+  const response = await fetch('/', { cache: 'no-store' });
+  if (!response.ok) return false;
+  const html = await response.text();
+  const cache = await caches.open(SHELL);
+  const saved = await cache.match('/');
+  const savedHtml = saved ? await saved.text() : null;
+  if (savedHtml === html) return false;
+
+  const files = [...new Set([...html.matchAll(/(?:src|href)="(\/(?:assets|fonts)\/[^"]+)"/g)].map((m) => m[1]))];
+  await cache.addAll(files); // all or nothing
+  await cache.put('/', new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }));
+
+  // Build files the new page doesn't use are old versions.
+  for (const request of await cache.keys()) {
+    const path = new URL(request.url).pathname;
+    if (path.startsWith('/assets/') && !files.includes(path)) await cache.delete(request);
+  }
+  return savedHtml !== null;
+}
+
+async function tellClients(message) {
+  for (const client of await self.clients.matchAll({ type: 'window' })) client.postMessage(message);
 }
 
 /** A downloaded song, whole or the byte range the audio player asks for. */
@@ -130,20 +172,4 @@ async function staleWhileRevalidate(request) {
     })
     .catch(() => undefined);
   return hit ?? (await refresh) ?? Response.error();
-}
-
-function withTimeout(promise, ms) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timeout')), ms);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
 }

@@ -29,6 +29,11 @@
   opacity: 1;
 }
 
+/* Seen before: no fade, so rows coming back into view don't flicker. */
+.art img[data-instant] {
+  transition: none;
+}
+
 .glyph {
   color: var(--ink-28);
 }

@@ -47,6 +47,14 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   artist mix, Add albums with a pretend key) in Playwright WebKit against a
   pretend Jellyfin (:8793) and pretend orchestrator (:8795):
   `JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 sh tool/serve-local.sh`.
+- `tool/perf-test.mjs` - smoothness numbers against a library-sized pretend
+  Jellyfin (12k songs): start-up, React commits, dropped frames scrolling and
+  opening pages, cover pop-in/flicker, saved-cache size. With
+  `ORIGIN=http://localhost:5199` and `JJ_JELLYFIN=http://localhost:8793 npx vite
+  --port 5199` it also reports React render time (development build).
+- `tool/start-test.mjs` - app start on a slow connection (a proxy on :8794
+  holds the page back 1.5s) and a published update reaching an open app.
+  Set `DIST_INDEX` to the absolute `dist/index.html` when run from elsewhere.
 - `tool/swipe-test.mjs` - swipe-back stress test (fast repeat swipes, swipe
   then open a page, second finger, random abuse) in Playwright WebKit against
   the pretend-session dev server on :5199. Run it after touching `StackView`.
@@ -100,7 +108,14 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   never read `api_key.txt` or put the key anywhere.
 - `src/offline/outbox.ts` - likes/playlist edits/plays made offline, sent later.
 - `public/sw.js` - app shell offline, `/offline/audio/*` with Range support,
-  stored covers.
+  stored covers. The app opens from the saved page at once; a newer page is
+  fetched in the background and saved only after all its `/assets` and
+  `/fonts` files are (old assets pruned), then the app reloads into it if
+  that's within 6s of opening and untouched (`main.tsx`). Don't rename the
+  `jellyjet2-shell-v2` cache: activate deletes other shell caches, which
+  would break an offline start.
+- Saved query cache: long paged lists keep only their first 3 pages
+  (`data/query-client.ts`). Fonts are WOFF2.
 - `src/screens/` - one file per screen.
 
 ## How it's hosted

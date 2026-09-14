@@ -5,25 +5,25 @@
 
 @font-face {
   font-family: 'Archivo';
-  src: url('/fonts/Archivo-Regular.ttf') format('truetype');
+  src: url('/fonts/Archivo-Regular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: 'Archivo';
-  src: url('/fonts/Archivo-Medium.ttf') format('truetype');
+  src: url('/fonts/Archivo-Medium.woff2') format('woff2');
   font-weight: 500;
   font-display: swap;
 }
 @font-face {
   font-family: 'Archivo';
-  src: url('/fonts/Archivo-SemiBold.ttf') format('truetype');
+  src: url('/fonts/Archivo-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-display: swap;
 }
 @font-face {
   font-family: 'Archivo';
-  src: url('/fonts/Archivo-Bold.ttf') format('truetype');
+  src: url('/fonts/Archivo-Bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }

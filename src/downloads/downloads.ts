@@ -136,12 +136,23 @@ export type SongDownloadState =
   | { status: 'done' }
   | { status: 'missing' };
 
+/** Ids of the songs waiting to download, built once per queue (progress updates are frequent). */
+const queuedIds = new WeakMap<DownloadsState['jobs'], Set<string>>();
+function isQueued(jobs: DownloadsState['jobs'], id: string) {
+  let ids = queuedIds.get(jobs);
+  if (!ids) {
+    ids = new Set(jobs.map((j) => j.track.id));
+    queuedIds.set(jobs, ids);
+  }
+  return ids.has(id);
+}
+
 export function songDownloadState(state: DownloadsState, id: string): SongDownloadState {
   if (state.missing[id]) return { status: 'missing' };
   if (state.songs[id]) return { status: 'done' };
   const progress = state.progress[id];
   if (progress !== undefined) return { status: 'downloading', progress };
-  if (state.jobs.some((j) => j.track.id === id)) return { status: 'queued' };
+  if (isQueued(state.jobs, id)) return { status: 'queued' };
   return { status: 'none' };
 }
 

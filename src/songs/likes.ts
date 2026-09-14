@@ -35,11 +35,22 @@ const useLikes = create<LikesState>(() => ({ changed: {}, leaving: {}, revealed:
 const EXIT_MS = 320;
 const removals = new Map<string, ReturnType<typeof setTimeout>>();
 
+/** The Liked Songs list as a set of ids, built once per list (rows look up, not search). */
+const likedIds = new WeakMap<Track[], Set<string>>();
+function idsOf(list: Track[]) {
+  let ids = likedIds.get(list);
+  if (!ids) {
+    ids = new Set(list.map((t) => t.id));
+    likedIds.set(list, ids);
+  }
+  return ids;
+}
+
 export function useIsLiked(track: Pick<Track, 'id' | 'liked'>): boolean {
   const changed = useLikes((s) => s.changed[track.id]);
   const liked = useLikedSongs();
   if (changed !== undefined) return changed;
-  if (liked.data) return liked.data.some((t) => t.id === track.id);
+  if (liked.data) return idsOf(liked.data).has(track.id);
   return track.liked === true;
 }
 

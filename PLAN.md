@@ -103,4 +103,9 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
    search, file list, download progress, cancel). ✅ (tested end to end in
    WebKit against pretend servers; mixes and stations checked with real data
    on the Simulator; owner to try Add albums with the real key)
-7. **Smoothness pass** on the phone; desktop layout later.
+7. **Smoothness pass** on the phone; desktop layout later. In progress
+   (2026-09-14): measured with `tool/perf-test.mjs` / `tool/start-test.mjs`;
+   instant app start from the saved page with safe background updates, WOFF2
+   fonts (-75%), capped saved cache, covers never fade in twice, O(1) per-row
+   liked/queued lookups. Owner's UI requests done: page headers, back button,
+   frosted bars, offline notice, Downloaded tab removed, no scroll bars.

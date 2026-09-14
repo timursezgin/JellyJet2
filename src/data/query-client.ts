@@ -1,5 +1,6 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { onlineManager, QueryClient } from '@tanstack/react-query';
+import type { PersistedClient } from '@tanstack/react-query-persist-client';
 import { createStore, del, get, set } from 'idb-keyval';
 
 import { useConnection } from '@/connectivity/connection';
@@ -37,7 +38,31 @@ export const queryPersister = createAsyncStoragePersister({
   },
   key: 'library',
   throttleTime: 2000,
+  serialize: (client) => JSON.stringify(trimLongLists(client)),
 });
+
+/** How much of a list read a page at a time (Tracks, Albums, Artists) is saved. */
+const SAVED_PAGES = 3;
+
+/**
+ * Long paged lists keep only their first pages in the saved copy: the lists
+ * still open offline, and the save stays small (scrolling through all 12,000
+ * tracks would otherwise add megabytes to every save and to every start-up).
+ */
+function trimLongLists(client: PersistedClient): PersistedClient {
+  const queries = client.clientState.queries.map((query) => {
+    const data = query.state.data as { pages?: unknown[]; pageParams?: unknown[] } | undefined;
+    if (!data?.pages || data.pages.length <= SAVED_PAGES) return query;
+    return {
+      ...query,
+      state: {
+        ...query.state,
+        data: { pages: data.pages.slice(0, SAVED_PAGES), pageParams: data.pageParams?.slice(0, SAVED_PAGES) ?? [] },
+      },
+    };
+  });
+  return { ...client, clientState: { ...client.clientState, queries } };
+}
 
 export const persistOptions = {
   persister: queryPersister,

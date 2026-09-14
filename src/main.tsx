@@ -30,4 +30,15 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
+
+  // The app opens from its saved copy while a newer version is fetched in the
+  // background. If one arrives in the first seconds after opening, before
+  // anything has been touched, switch to it straight away; otherwise it's used
+  // the next time the app opens.
+  let touched = false;
+  window.addEventListener('pointerdown', () => (touched = true), { once: true, capture: true });
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type !== 'update-ready') return;
+    if (!touched && performance.now() < 6000) window.location.reload();
+  });
 }

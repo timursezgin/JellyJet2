@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 
+import { EagerArtwork } from './artwork';
 import { usePageScroller } from './page';
 
 interface Range {
@@ -118,7 +119,7 @@ export function VirtualList({ count, rowHeight, renderRow, rowKey, animateMoves 
   }
   return (
     <div ref={ref} style={{ position: 'relative', height: count * rowHeight }}>
-      {rows}
+      <EagerArtwork.Provider value={true}>{rows}</EagerArtwork.Provider>
     </div>
   );
 }
@@ -176,7 +177,7 @@ export function VirtualGrid({ count, columns, gap, cellHeight, renderCell, onNea
 
   return (
     <div ref={ref} style={{ position: 'relative', height: rowCount * rowHeight }}>
-      {cells}
+      <EagerArtwork.Provider value={true}>{cells}</EagerArtwork.Provider>
     </div>
   );
 }
