@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { usePlaylists } from '@/data/queries';
-import { navigate, useNavigation } from '@/nav/navigation';
+import { navigate } from '@/nav/navigation';
 import { openNewPlaylist } from '@/songs/song-menu';
 import { Plus } from 'lucide-react';
 import { DownloadedCover, LikedCover, PlaylistCover } from '@/ui/covers';
@@ -41,7 +41,7 @@ export function PlaylistsScreen() {
             art={<DownloadedCover size={52} />}
             title="Downloaded"
             subtitle="Ready to play without internet"
-            onClick={() => useNavigation.getState().selectTab('downloaded')}
+            onClick={() => navigate({ name: 'downloaded' })}
           />
         )}
         {list.map((playlist) => (

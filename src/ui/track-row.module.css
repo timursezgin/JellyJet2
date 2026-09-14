@@ -115,17 +115,14 @@
   transition-delay: 0s;
 }
 
-/* The song row slides left to uncover it, casting a soft shadow onto the red. */
+/* The song row slides left to uncover it. */
 .row[data-revealed] .slide,
 .row[data-leaving] .slide {
   transform: translateX(calc(-1 * var(--reveal)));
-  box-shadow: 10px 0 18px -8px rgba(0, 0, 0, 0.7);
 }
 
 .slide {
-  transition:
-    transform 340ms cubic-bezier(0.32, 0.72, 0, 1),
-    box-shadow 340ms ease;
+  transition: transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Unliked: the whole row eases away to the left, then it's removed and the
