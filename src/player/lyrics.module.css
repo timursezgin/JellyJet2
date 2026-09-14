@@ -24,9 +24,10 @@
   }
 }
 
-/* Room under the last line so it can still scroll up to the reading spot. */
-.end {
-  height: 60%;
+/* Half the area above the first line and below the last, so the sung line can
+   always sit in the middle. */
+.edge {
+  height: 50%;
 }
 
 .line {

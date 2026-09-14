@@ -50,17 +50,19 @@ function LyricLines({ lines }: { lines: Line[] }) {
   const handScrollUntil = useRef(0);
   const placed = useRef(false);
 
-  // Keep the current line a third of the way down, unless the reader is scrolling.
-  useLayoutEffect(() => {
+  /** Scrolls the current line to the middle of the area, unless the reader is scrolling. */
+  const centreActive = () => {
     const el = scroller.current;
     if (!el || !timed || Date.now() < handScrollUntil.current) return;
-    const line = el.children[Math.max(0, active)] as HTMLElement | undefined;
+    const line = el.querySelector<HTMLElement>(`[data-line="${Math.max(0, active)}"]`);
     if (!line) return;
-    const top = Math.max(0, line.offsetTop - el.clientHeight * 0.33 + line.offsetHeight / 2);
+    const top = line.offsetTop + line.offsetHeight / 2 - el.clientHeight / 2;
     // The first placement jumps; later lines glide.
-    el.scrollTo({ top, behavior: placed.current ? 'smooth' : 'auto' });
+    el.scrollTo({ top: Math.max(0, top), behavior: placed.current ? 'smooth' : 'auto' });
     placed.current = true;
-  }, [active, timed]);
+  };
+
+  useLayoutEffect(centreActive, [active, timed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onHandScroll = () => {
     handScrollUntil.current = Date.now() + HAND_SCROLL_PAUSE_MS;
@@ -74,10 +76,18 @@ function LyricLines({ lines }: { lines: Line[] }) {
       data-no-drag
       onTouchMove={onHandScroll}
       onWheel={onHandScroll}
+      // The sung line grows and the previous one shrinks after the scroll
+      // starts; once they've settled, re-aim at the exact middle.
+      onTransitionEnd={(e) => {
+        if (e.propertyName === 'font-size' && (e.target as HTMLElement).dataset.active !== undefined) centreActive();
+      }}
     >
+      {/* Room above the first line and below the last, so every line can reach the middle. */}
+      {timed && <div className={styles.edge} />}
       {lines.map((line, i) => (
         <LyricLine
           key={i}
+          index={i}
           line={line}
           state={!timed ? 'plain' : i === active ? 'active' : 'idle'}
           onSeek={() => {
@@ -86,29 +96,37 @@ function LyricLines({ lines }: { lines: Line[] }) {
           }}
         />
       ))}
-      {timed && <div className={styles.end} />}
+      {timed && <div className={styles.edge} />}
     </div>
   );
 }
 
 const LyricLine = memo(function LyricLine({
+  index,
   line,
   state,
   onSeek,
 }: {
+  index: number;
   line: Line;
   state: 'plain' | 'active' | 'idle';
   onSeek: () => void;
 }) {
   // An empty line is a pause in the singing: a gap, nothing to tap.
-  if (!line.text) return <div className={styles.gap} />;
+  if (!line.text) return <div className={styles.gap} data-line={index} />;
   if (state === 'plain') return <p className={styles.line}>{line.text}</p>;
   return (
-    <button type="button" className={styles.line} data-active={state === 'active' || undefined} onClick={onSeek}>
+    <button
+      type="button"
+      className={styles.line}
+      data-line={index}
+      data-active={state === 'active' || undefined}
+      onClick={onSeek}
+    >
       {line.text}
     </button>
   );
-}, (a, b) => a.line === b.line && a.state === b.state);
+}, (a, b) => a.index === b.index && a.line === b.line && a.state === b.state);
 
 /**
  * Index of the line being sung (-1 before the first). Follows every frame while

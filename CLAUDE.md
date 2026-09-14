@@ -191,7 +191,9 @@ Testing on this PC:
   darkened and softly blurred behind; stays on from song to song. The lyrics
   area keeps clear of the handle (28px) and the title (36px). Archivo Medium,
   centred; the sung line is 20% larger (a real font-size change, so long
-  lines re-wrap within the margins). Timed lyrics light up the sung line, follow the song
+  lines re-wrap within the margins). The sung line sits in the exact vertical
+  middle of the area (half-height room above the first line and below the
+  last; re-aimed once the size change ends). Timed lyrics light up the sung line, follow the song
   (pausing 3.5s after a hand scroll) and seek on tap; plain lyrics just
   scroll; otherwise "No lyrics for this song yet". Fetched only while shown.
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
