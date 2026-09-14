@@ -43,8 +43,8 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 ### Layout
 - Phone first; desktop layout later.
 - Tabs: **Home · Search · Library · Downloaded · Settings**.
-- **Liked Songs** and **Downloaded** are special playlists, pinned at the top
-  of Playlists.
+- **Liked Songs** and **Downloaded** are special playlists, shown at the top
+  of Library (not inside Playlists).
 - **Hidden search**: swipe down to reveal it in playlists (including Liked and
   Downloaded), artist pages and library lists.
 - No pull-to-refresh; lists refresh automatically.

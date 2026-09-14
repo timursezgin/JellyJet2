@@ -4,13 +4,13 @@ import { usePlaylists } from '@/data/queries';
 import { navigate } from '@/nav/navigation';
 import { openNewPlaylist } from '@/songs/song-menu';
 import { Plus } from 'lucide-react';
-import { DownloadedCover, LikedCover, PlaylistCover } from '@/ui/covers';
+import { PlaylistCover } from '@/ui/covers';
 import { ItemRow } from '@/ui/item-row';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
 import styles from './list-screens.module.css';
 
-/** Liked Songs and Downloaded first, then the account's playlists. */
+/** The account's playlists, with New playlist on top. */
 export function PlaylistsScreen() {
   const [term, setTerm] = useState('');
   const playlists = usePlaylists();
@@ -31,17 +31,6 @@ export function PlaylistsScreen() {
             title="New playlist"
             accent
             onClick={openNewPlaylist}
-          />
-        )}
-        {matches('Liked Songs') && (
-          <ItemRow art={<LikedCover size={52} />} title="Liked Songs" onClick={() => navigate({ name: 'liked' })} />
-        )}
-        {matches('Downloaded') && (
-          <ItemRow
-            art={<DownloadedCover size={52} />}
-            title="Downloaded"
-            subtitle="Ready to play without internet"
-            onClick={() => navigate({ name: 'downloaded' })}
           />
         )}
         {list.map((playlist) => (
