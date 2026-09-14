@@ -13,27 +13,21 @@ and unreachable.** Everything JellyJet 2 still needs from it must be moved into
 this repo, linked from here, or made to work with this version. Known
 dependencies:
 
-1. **The Soulseek download service behind "Add albums" - still lives in v1.**
-   - Source: `pipeline/` in the v1 repo (`watcher.py`, `Dockerfile`,
-     `beets-docker.yaml`, `docker-compose.full-example.yml`, `README.md`,
-     `write_expected_count.py`).
-   - Built by `.github/workflows/orchestrator-image.yml` in the v1 repo into
-     `ghcr.io/timursezgin/jellyjet-orchestrator:latest` on every push to
-     `main` that touches `pipeline/`.
-   - tim-box runs that image from
-     `Desktop\Music\_pipeline\slskd\docker-compose.yml` (service
-     `orchestrator`, container `jellyjet-orchestrator`, port 8420), and
-     Watchtower pulls new versions within ~5 minutes.
-   - To do: copy `pipeline/` and the workflow into this repo (e.g.
-     `pipeline/` + `.github/workflows/orchestrator-image.yml`), build it here
-     (the image name would become `ghcr.io/timursezgin/jellyjet2-orchestrator`
-     unless the workflow pins the old name), check the image is pullable by
-     tim-box, then change the `image:` line in tim-box's slskd compose file and
-     recreate the container. **Ask the owner before touching tim-box's
-     compose file** and never read or print the slskd password or
-     `api_key.txt` in it or next to it. Until this is done, do not archive the
-     v1 repo.
-   - Needs no app change: JellyJet 2 talks to it through `/pipeline`.
+1. **The Soulseek download service behind "Add albums" - moved (2026-09-14).**
+   - `pipeline/` (from v1 commit `4961510`; `watcher.py` and `Dockerfile`
+     identical) and `.github/workflows/orchestrator-image.yml` now live in this
+     repo and build the public image
+     `ghcr.io/timursezgin/jellyjet2-orchestrator:latest`.
+   - With the owner's go-ahead, the `image:` line in tim-box's
+     `Desktop\Music\_pipeline\slskd\docker-compose.yml` was switched to it and
+     only the `orchestrator` service recreated (container still called
+     `jellyjet-orchestrator`, port 8420, Watchtower label kept). Checked:
+     `/ping` directly and via `/pipeline` on 8091, `/whoami` refuses no key,
+     watcher running. A copy of the old compose file is next to it
+     (`docker-compose.yml.bak-2026-09-14`).
+   - Left for the owner: try Add albums once on the phone, then the v1 repo
+     can be archived. The old `jellyjet-orchestrator` package on GitHub and
+     its image on tim-box are no longer used.
 2. **The design spec** - done: copied to `docs/design/original-design-spec.md`
    and `docs/design/screenshots/`. (It was written for a Flutter iOS app;
    JellyJet 2 follows its look, tokens are in `src/theme/tokens.css`, and the
