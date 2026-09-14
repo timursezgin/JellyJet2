@@ -136,3 +136,7 @@ button.link:active {
   color: var(--ink-45);
   text-wrap: pretty;
 }
+
+.noteBelow {
+  margin-top: 14px;
+}

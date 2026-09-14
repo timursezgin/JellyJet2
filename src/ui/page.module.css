@@ -1,12 +1,13 @@
 .page {
-  --back-row: 0px;
-  --bar-height: calc(var(--safe-top) + var(--back-row) + 48px);
+  --bar-height: calc(var(--safe-top) + 52px);
+  /* Breathing room between a page's header and what's under it. */
+  --content-gap: 0px;
   position: absolute;
   inset: 0;
 }
 
-.page[data-has-back] {
-  --back-row: 34px;
+.page[data-variant='large'][data-has-back] {
+  --content-gap: 8px;
 }
 
 .page[data-variant='detail'] {
@@ -62,33 +63,33 @@
   border-bottom-color: var(--hairline);
 }
 
-/* The whole label is the button, with room for a thumb. */
+/* A red chevron with room for a thumb around it. */
 .back {
-  height: var(--back-row);
-  align-self: flex-start;
+  flex-shrink: 0;
+  height: 44px;
   display: flex;
   align-items: center;
-  padding: 0 16px 0 calc(6px + var(--safe-left));
+  padding: 0 4px 0 calc(6px + var(--safe-left));
   color: var(--accent);
-  font-size: 17px;
-  font-weight: 500;
-  white-space: nowrap;
-  max-width: 100%;
 }
 
-.back span {
-  margin-left: -2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.back:active {
+  opacity: 0.6;
 }
 
 .titleRow {
   flex: 1;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
-  padding: 0 calc(var(--page-gutter) + var(--safe-right)) 7px calc(var(--page-gutter) + var(--safe-left));
+  padding: 0 calc(var(--page-gutter) + var(--safe-right)) 0 calc(var(--page-gutter) + var(--safe-left));
   min-width: 0;
+}
+
+/* With a back button the chevron takes the left margin, the title follows it. */
+.page[data-has-back] .titleRow {
+  gap: 2px;
+  padding-left: 0;
 }
 
 .title {
@@ -103,7 +104,6 @@
 }
 
 .trailing {
-  padding-bottom: 4px;
   flex-shrink: 0;
 }
 
@@ -175,7 +175,7 @@
 
 .content {
   min-height: 100%;
-  padding-top: var(--bar-height);
+  padding-top: calc(var(--bar-height) + var(--content-gap));
   padding-bottom: var(--chrome-bottom);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);

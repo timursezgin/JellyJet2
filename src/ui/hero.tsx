@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 
 import styles from './hero.module.css';
 
+/** Cover size at the top of album, playlist, artist and mix pages. */
+export const HERO_ART = 132;
+
 /** For buttons that want the hero's 44×44 square look. */
 export const heroIconClass = styles.icon;
 
@@ -42,9 +45,10 @@ export function Hero({ layout, art, title, kicker, note, link, meta, onPlay, onS
               <span className={styles.link}>{link.label}</span>
             ))}
           {meta && <p className={styles.meta}>{meta}</p>}
-          {note && <p className={styles.note}>{note}</p>}
+          {note && layout === 'stacked' && <p className={styles.note}>{note}</p>}
         </div>
       </div>
+      {note && layout === 'side' && <p className={`${styles.note} ${styles.noteBelow}`}>{note}</p>}
       <div className={styles.actions}>
         <button type="button" className={styles.play} onClick={onPlay} disabled={!onPlay}>
           <Play size={17} fill="currentColor" strokeWidth={0} />

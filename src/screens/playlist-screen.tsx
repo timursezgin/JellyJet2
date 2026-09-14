@@ -7,7 +7,7 @@ import type { SongContext } from '@/songs/song-menu';
 import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
 import { artworkOf } from '@/jellyfin/api';
 import { LikedCover, PlaylistCover } from '@/ui/covers';
-import { Hero, heroIconClass } from '@/ui/hero';
+import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
 import { TRACK_ROW_HEIGHT, TrackRow } from '@/ui/track-row';
@@ -25,7 +25,7 @@ export function PlaylistScreen({ id, title }: { id: string; title?: string }) {
   return (
     <TrackCollection
       title={name}
-      art={<PlaylistCover playlistId={id} size={200} />}
+      art={<PlaylistCover playlistId={id} size={HERO_ART} />}
       query={tracks}
       empty="This playlist is empty."
       context={{ playlist: { id, name } }}
@@ -41,7 +41,7 @@ export function LikedSongsScreen() {
   return (
     <TrackCollection
       title="Liked Songs"
-      art={<LikedCover size={200} />}
+      art={<LikedCover size={HERO_ART} />}
       query={liked}
       empty="Tap the heart on any song to add it here."
       confirmUnlike
@@ -111,7 +111,7 @@ export function TrackCollection({
     <Page title={title} variant="detail" search={{ value: term, onChange: setTerm, placeholder: `Search ${title}` }}>
       {!searching && (
         <Hero
-          layout="stacked"
+          layout="side"
           art={art}
           title={title}
           kicker={kicker}

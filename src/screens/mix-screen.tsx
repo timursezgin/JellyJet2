@@ -7,7 +7,7 @@ import { findStation } from '@/mixes/stations';
 import type { Track } from '@/player/track';
 import { createPlaylist } from '@/songs/playlists';
 import { SongsCover, StationCover } from '@/ui/covers';
-import { HeroIconButton } from '@/ui/hero';
+import { HERO_ART, HeroIconButton } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { TrackCollection } from './playlist-screen';
 import styles from './detail-screens.module.css';
@@ -23,7 +23,7 @@ export function MixScreen({ id, title }: { id: string; title?: string }) {
       title={mix.name}
       kicker={MIX_KICKER[mix.kind]}
       note={mix.why}
-      art={<SongsCover tracks={mix.tracks} size={200} />}
+      art={<SongsCover tracks={mix.tracks} size={HERO_ART} />}
       query={listOf(mix.tracks)}
       empty="This mix is empty."
       actions={<SaveAsPlaylist name={mix.name} tracks={mix.tracks} />}
@@ -40,7 +40,7 @@ export function StationScreen({ id, title }: { id: string; title?: string }) {
       title={station.name}
       kicker="Station"
       note="A temporary mix. Save it to keep it."
-      art={<StationCover size={200} />}
+      art={<StationCover size={HERO_ART} />}
       query={listOf(station.tracks)}
       empty="No songs."
       actions={<SaveAsPlaylist name={station.name} tracks={station.tracks} />}

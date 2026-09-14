@@ -38,7 +38,8 @@ interface PageProps {
 }
 
 const SEARCH_HEIGHT = 52;
-const DETAIL_TITLE_AFTER = 220;
+/** How far a detail page scrolls before its title shows in the bar (the hero's title is under it by then). */
+const DETAIL_TITLE_AFTER = 100;
 
 export function Page({ title, variant = 'large', trailing, search, children }: PageProps) {
   const { backLabel, goBack } = usePage();
@@ -59,21 +60,15 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
     const nextScrolled = top > (search ? SEARCH_HEIGHT : 0) + 1;
     if (nextScrolled !== scrolled) setScrolled(nextScrolled);
     if (variant === 'detail') {
-      const nextTitle = top > DETAIL_TITLE_AFTER;
+      const nextTitle = top - (search ? SEARCH_HEIGHT : 0) > DETAIL_TITLE_AFTER;
       if (nextTitle !== showTitle) setShowTitle(nextTitle);
     }
   };
 
-  // Detail pages show just the chevron, so their title can sit in the middle.
+  // Just the chevron: the page's own title says where you are.
   const back = backLabel && (
-    <button
-      type="button"
-      className={styles.back}
-      onClick={goBack}
-      aria-label={variant === 'detail' ? `Back to ${backLabel}` : undefined}
-    >
+    <button type="button" className={styles.back} onClick={goBack} aria-label={`Back to ${backLabel}`}>
       <ChevronLeft size={26} strokeWidth={2.2} />
-      {variant === 'large' && <span>{backLabel}</span>}
     </button>
   );
 
@@ -86,8 +81,8 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
     >
       {variant === 'large' ? (
         <header className={styles.bar} data-scrolled={scrolled || undefined}>
-          {back}
           <div className={styles.titleRow}>
+            {back}
             <h1 className={styles.title}>{title}</h1>
             {trailing && <div className={styles.trailing}>{trailing}</div>}
           </div>

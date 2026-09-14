@@ -5,7 +5,7 @@ import { artworkOf } from '@/jellyfin/api';
 import { playTracks } from '@/player/player';
 import { AlbumCard } from '@/ui/album-card';
 import { Artwork } from '@/ui/artwork';
-import { Hero } from '@/ui/hero';
+import { HERO_ART, Hero } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { SectionHeader } from '@/ui/section';
 import { LoadError, LoadingRows } from '@/ui/states';
@@ -47,8 +47,8 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
     >
       {!searching && (
         <Hero
-          layout="stacked"
-          art={<Artwork art={artist.data ? artworkOf(artist.data) : null} size={104} round eager />}
+          layout="side"
+          art={<Artwork art={artist.data ? artworkOf(artist.data) : null} size={HERO_ART} round eager />}
           title={name}
           meta={meta}
           onPlay={allTracks.length ? () => playTracks(allTracks, 0, { shuffle: false }) : undefined}

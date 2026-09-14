@@ -4,7 +4,7 @@ import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
 import { artistLine } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
-import { Hero, heroIconClass } from '@/ui/hero';
+import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
 import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
 import { useKeepInSync } from '@/downloads/use-keep-in-sync';
 import { Page } from '@/ui/page';
@@ -37,7 +37,7 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
     <Page title={info?.Name ?? title ?? ''} variant="detail">
       <Hero
         layout="side"
-        art={<Artwork art={info ? artworkOf(info) : null} size={132} radius={10} eager />}
+        art={<Artwork art={info ? artworkOf(info) : null} size={HERO_ART} radius={10} eager />}
         title={info?.Name ?? title ?? ''}
         link={
           artistName

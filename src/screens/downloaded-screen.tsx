@@ -6,6 +6,7 @@ import { redownloadMissing } from '@/downloads/engine';
 import { downloadSupport } from '@/downloads/support';
 import { navigate } from '@/nav/navigation';
 import { Artwork } from '@/ui/artwork';
+import { HERO_ART } from '@/ui/hero';
 import { DownloadedCover, LikedCover, PlaylistCover } from '@/ui/covers';
 import { ItemRow } from '@/ui/item-row';
 import { SectionHeader } from '@/ui/section';
@@ -126,7 +127,7 @@ export function DownloadedScreen() {
   return (
     <TrackCollection
       title="Downloaded"
-      art={<DownloadedCover size={200} />}
+      art={<DownloadedCover size={HERO_ART} />}
       query={{ data: tracks, isPending: false, isError: false, refetch: () => {} }}
       empty="Songs, albums and playlists you download will be here, ready to play without internet."
       extra={extra}
