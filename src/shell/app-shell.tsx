@@ -12,7 +12,11 @@ import { ConfirmHost } from '@/ui/confirm';
 import { ToastHost } from '@/ui/toast';
 import { StackView } from '@/nav/stack-view';
 import { TAB_IDS, useNavigation, type Route, type TabId } from '@/nav/navigation';
+import { AddAlbumsScreen } from '@/screens/add-albums-screen';
+import { AlbumResultScreen } from '@/screens/album-result-screen';
 import { AlbumScreen } from '@/screens/album-screen';
+import { ArtistMixScreen } from '@/screens/artist-mix-screen';
+import { MixScreen, StationScreen } from '@/screens/mix-screen';
 import { AlbumsScreen, RecentAlbumsScreen } from '@/screens/albums-screen';
 import { ArtistScreen } from '@/screens/artist-screen';
 import { ArtistsScreen } from '@/screens/artists-screen';
@@ -67,6 +71,16 @@ function renderRoute(route: Route) {
       return <ArtistScreen id={route.id} title={route.title} />;
     case 'playlist':
       return <PlaylistScreen id={route.id} title={route.title} />;
+    case 'mix':
+      return <MixScreen id={route.id} title={route.title} />;
+    case 'station':
+      return <StationScreen id={route.id} title={route.title} />;
+    case 'artist-mix':
+      return <ArtistMixScreen />;
+    case 'add-albums':
+      return <AddAlbumsScreen />;
+    case 'album-result':
+      return <AlbumResultScreen id={route.id} title={route.title} />;
   }
 }
 

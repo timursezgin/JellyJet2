@@ -8,6 +8,7 @@ import { AlbumCard } from '@/ui/album-card';
 import { Artwork } from '@/ui/artwork';
 import { Page } from '@/ui/page';
 import { SectionHeader, Shelf } from '@/ui/section';
+import { MadeForYou, Stations } from './home-mixes';
 import styles from './home-screen.module.css';
 
 export function HomeScreen() {
@@ -51,8 +52,12 @@ export function HomeScreen() {
         <ShelfMessage loading={liked.isPending} text="Songs you like will show up here." />
       )}
 
+      <MadeForYou />
+
       <SectionHeader title="Recently added" onOpen={() => navigate({ name: 'recent-albums', kind: 'added' })} />
       <AlbumShelf query={added} empty="Nothing added yet." />
+
+      <Stations />
     </Page>
   );
 }

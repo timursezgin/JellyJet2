@@ -46,6 +46,7 @@ export interface BaseItem {
   ImageTags?: { Primary?: string };
   RunTimeTicks?: number;
   ProductionYear?: number;
+  Genres?: string[];
   IndexNumber?: number;
   ParentIndexNumber?: number;
   ChildCount?: number;

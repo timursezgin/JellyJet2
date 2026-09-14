@@ -92,5 +92,12 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
    grey songs, offline edit sync, quality setting, backup/re-download. ✅
    (tested end to end in WebKit against a pretend server; owner to test on the
    phone over https)
-6. **Extras** - mixes, Stations, Add new albums.
+6. **Extras** - Made for you mixes (the original JellyJet's recipes, built on
+   the phone, kept until Regenerate, savable as "JellyJet · <name>"
+   playlists), Stations (Artist mix, Library radio - offline it shuffles the
+   downloads - and Decade radio), Add albums on Library for admins with
+   deletion rights (key from `api_key.txt` entered once per phone, Soulseek
+   search, file list, download progress, cancel). ✅ (tested end to end in
+   WebKit against pretend servers; mixes and stations checked with real data
+   on the Simulator; owner to try Add albums with the real key)
 7. **Smoothness pass** on the phone; desktop layout later.

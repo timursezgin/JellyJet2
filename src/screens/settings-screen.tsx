@@ -8,6 +8,8 @@ import { clearAccountCache } from '@/downloads/lifecycle';
 import { requestPersistentStorage } from '@/downloads/support';
 import { CLIENT_VERSION } from '@/jellyfin/identity';
 import { useNavigation } from '@/nav/navigation';
+import { unloadMixes } from '@/mixes/mixes';
+import { forgetPipeline } from '@/pipeline/pipeline';
 import { clearQueue } from '@/player/player';
 import { updateSettings, useSettings } from '@/settings/settings';
 import { confirm } from '@/ui/confirm';
@@ -50,6 +52,8 @@ export function SettingsScreen() {
           tone="accent"
           onClick={() => {
             clearQueue();
+            unloadMixes();
+            forgetPipeline();
             void clearAccountCache();
             void signOut();
             resetNavigation();

@@ -65,6 +65,9 @@ interface TrackCollectionProps {
   context?: SongContext;
   /** Liked Songs: the heart opens an Unlike button; unliked rows fly out. */
   confirmUnlike?: boolean;
+  /** A small accent label above the title and a sentence under the details (mixes). */
+  kicker?: string;
+  note?: string;
   /** Added to the "12 songs · 40 min" line, e.g. "Downloaded". */
   metaExtra?: string;
   /** Extra square buttons after Play and Shuffle. */
@@ -83,6 +86,8 @@ export function TrackCollection({
   empty,
   context,
   confirmUnlike = false,
+  kicker,
+  note,
   metaExtra,
   actions,
   extra,
@@ -109,6 +114,8 @@ export function TrackCollection({
           layout="stacked"
           art={art}
           title={title}
+          kicker={kicker}
+          note={note}
           meta={meta}
           onPlay={all.length ? () => playTracks(all, 0, { shuffle: false }) : undefined}
           onShuffle={all.length ? () => playTracks(all, 0, { shuffle: true }) : undefined}

@@ -124,3 +124,15 @@ button.link:active {
 .icon[data-active] {
   color: var(--accent);
 }
+
+.kicker {
+  margin: 0;
+}
+
+.note {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-45);
+  text-wrap: pretty;
+}

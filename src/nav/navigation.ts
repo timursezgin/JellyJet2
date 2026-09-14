@@ -24,7 +24,12 @@ export type Route =
   | { name: 'liked' }
   | { name: 'album'; id: string; title?: string }
   | { name: 'artist'; id: string; title?: string }
-  | { name: 'playlist'; id: string; title?: string };
+  | { name: 'playlist'; id: string; title?: string }
+  | { name: 'mix'; id: string; title?: string }
+  | { name: 'station'; id: string; title?: string }
+  | { name: 'artist-mix' }
+  | { name: 'add-albums' }
+  | { name: 'album-result'; id: string; title?: string };
 
 export interface StackEntry {
   key: string;
@@ -124,9 +129,16 @@ export function routeTitle(route: Route): string {
       return route.kind === 'played' ? 'Recently played' : 'Recently added';
     case 'liked':
       return 'Liked Songs';
+    case 'artist-mix':
+      return 'Artist mix';
+    case 'add-albums':
+      return 'Add albums';
     case 'album':
     case 'artist':
     case 'playlist':
+    case 'mix':
+    case 'station':
+    case 'album-result':
       return route.title ?? 'Back';
   }
 }

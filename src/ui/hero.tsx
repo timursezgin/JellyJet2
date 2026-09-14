@@ -11,6 +11,10 @@ interface HeroProps {
   layout: 'side' | 'stacked';
   art: ReactNode;
   title: string;
+  /** A small accent label above the title ("Genre mix"). */
+  kicker?: string;
+  /** A sentence under the meta line (why a mix was made). */
+  note?: string;
   /** A tappable line under the title, in the accent colour (the album's artist). */
   link?: { label: string; onClick?(): void };
   meta?: string;
@@ -21,12 +25,13 @@ interface HeroProps {
 }
 
 /** The top of an album, playlist or artist page. */
-export function Hero({ layout, art, title, link, meta, onPlay, onShuffle, actions }: HeroProps) {
+export function Hero({ layout, art, title, kicker, note, link, meta, onPlay, onShuffle, actions }: HeroProps) {
   return (
     <section className={styles.hero} data-layout={layout}>
       <div className={styles.top}>
         <div className={styles.art}>{art}</div>
         <div className={styles.text}>
+          {kicker && <p className={`t-kicker ${styles.kicker}`}>{kicker}</p>}
           <h1 className={styles.title}>{title}</h1>
           {link &&
             (link.onClick ? (
@@ -37,6 +42,7 @@ export function Hero({ layout, art, title, link, meta, onPlay, onShuffle, action
               <span className={styles.link}>{link.label}</span>
             ))}
           {meta && <p className={styles.meta}>{meta}</p>}
+          {note && <p className={styles.note}>{note}</p>}
         </div>
       </div>
       <div className={styles.actions}>

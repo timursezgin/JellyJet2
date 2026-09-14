@@ -1,3 +1,6 @@
+import { Plus } from 'lucide-react';
+
+import { useSession } from '@/auth/session';
 import { useLibraryCounts, useLikedSongs } from '@/data/queries';
 import { useDownloads } from '@/downloads/downloads';
 import { navigate, type Route } from '@/nav/navigation';
@@ -22,8 +25,20 @@ export function LibraryScreen() {
   const counts = useLibraryCounts().data;
   const liked = useLikedSongs().data;
   const downloadedCount = useDownloads((s) => Object.keys(s.songs).length);
+  // Adding to the library is for admins who may also change it.
+  const canAddAlbums = useSession((s) => s.session?.permissions.canDeleteFromLibrary ?? false);
   return (
-    <Page title="Library">
+    <Page
+      title="Library"
+      trailing={
+        canAddAlbums && (
+          <button type="button" className={styles.add} onClick={() => navigate({ name: 'add-albums' })}>
+            <Plus size={15} strokeWidth={2.6} />
+            Add albums
+          </button>
+        )
+      }
+    >
       <div className={styles.special}>
         <ItemRow
           art={<LikedCover size={44} />}

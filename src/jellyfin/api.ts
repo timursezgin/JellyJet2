@@ -260,6 +260,70 @@ export async function playlistCoverArt(client: JellyfinClient, userId: string, p
   return art;
 }
 
+// --- Mixes and stations ------------------------------------------------------
+
+/** Song fields plus what the mix generator reads (genre, year, plays). */
+const MIX_FIELDS = `${TRACK_FIELDS},Genres,ProductionYear`;
+
+type Query = Record<string, string | number | boolean | undefined>;
+
+function songs(client: JellyfinClient, userId: string, parentId: string | null, query: Query) {
+  return client.get<ItemsResult>('/Items', {
+    query: {
+      userId,
+      ...scoped(parentId),
+      Recursive: true,
+      IncludeItemTypes: 'Audio',
+      Fields: MIX_FIELDS,
+      EnableUserData: true,
+      ...IMAGES,
+      ...query,
+    },
+    timeoutMs: 60_000,
+  });
+}
+
+/** Songs that have been played, most recently played first (or oldest first). */
+export const playedSongs = (c: JellyfinClient, u: string, p: string | null, limit: number, oldestFirst = false) =>
+  songs(c, u, p, { Filters: 'IsPlayed', SortBy: 'DatePlayed', SortOrder: oldestFirst ? 'Ascending' : 'Descending', Limit: limit });
+
+export const mostPlayedSongs = (c: JellyfinClient, u: string, p: string | null, limit: number) =>
+  songs(c, u, p, { Filters: 'IsPlayed', SortBy: 'PlayCount', SortOrder: 'Descending', Limit: limit });
+
+/** Liked songs, the longest-unplayed first. */
+export const favouriteSongs = (c: JellyfinClient, u: string, p: string | null, limit: number) =>
+  songs(c, u, p, { Filters: 'IsFavorite', SortBy: 'DatePlayed', SortOrder: 'Ascending', Limit: limit });
+
+export const randomSongsInGenre = (c: JellyfinClient, u: string, p: string | null, genre: string, limit: number) =>
+  songs(c, u, p, { Genres: genre, SortBy: 'Random', Limit: limit });
+
+export const randomSongsFromYears = (c: JellyfinClient, u: string, p: string | null, years: number[], limit: number) =>
+  songs(c, u, p, { Years: years.join(','), SortBy: 'Random', Limit: limit });
+
+export const randomSongs = (c: JellyfinClient, u: string, p: string | null, limit: number) =>
+  songs(c, u, p, { SortBy: 'Random', Limit: limit });
+
+/** Songs by any of these artists (their features too), in random order. */
+export const randomSongsByArtists = (c: JellyfinClient, u: string, p: string | null, artistIds: string[], limit: number) =>
+  songs(c, u, p, { ArtistIds: artistIds.join(','), SortBy: 'Random', Limit: limit });
+
+/** How many songs came out in these years (cheap: nothing is sent back). */
+export function countSongsFromYears(client: JellyfinClient, userId: string, parentId: string | null, years: number[]) {
+  return count(client, '/Items', { userId, ...scoped(parentId), Recursive: true, IncludeItemTypes: 'Audio', Years: years.join(',') });
+}
+
+/** Albums released in these years, in random order. */
+export function randomAlbumsFromYears(client: JellyfinClient, userId: string, parentId: string | null, years: number[], limit: number) {
+  return client.get<ItemsResult>('/Items', {
+    query: { userId, ...scoped(parentId), Recursive: true, IncludeItemTypes: 'MusicAlbum', Years: years.join(','), SortBy: 'Random', Limit: limit },
+  });
+}
+
+/** Asks the server to look for new files now (admins). */
+export function refreshLibrary(client: JellyfinClient) {
+  return client.post('/Library/Refresh');
+}
+
 // --- Search ------------------------------------------------------------------
 
 export function searchItems(client: JellyfinClient, userId: string, term: string, types: string, limit = 40) {

@@ -108,7 +108,7 @@ export async function removeFromPlaylist(playlist: Pick<BaseItem, 'Id' | 'Name'>
   }
 }
 
-export async function createPlaylist(name: string, trackIds: string[]) {
+export async function createPlaylist(name: string, trackIds: string[], doneMessage?: string) {
   const a = account();
   if (!a) return null;
   if (!isOnline()) {
@@ -117,7 +117,7 @@ export async function createPlaylist(name: string, trackIds: string[]) {
   }
   try {
     const id = await api.createPlaylist(a.client, a.userId, name, trackIds);
-    toast(trackIds.length ? `Added to ${name}` : `Created ${name}`);
+    toast(doneMessage ?? (trackIds.length ? `Added to ${name}` : `Created ${name}`));
     refreshPlaylist(id);
     return id;
   } catch {

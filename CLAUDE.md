@@ -43,6 +43,10 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
 - `tool/offline-test.mjs` - end-to-end downloads/offline test in Playwright
   WebKit against a pretend Jellyfin (see its header). Zustand selectors that
   build objects need `useShallow` or React loops (#185) - this test caught it.
+- `tool/extras-test.mjs` - step 6 end to end (mixes, save as playlist, radios,
+  artist mix, Add albums with a pretend key) in Playwright WebKit against a
+  pretend Jellyfin (:8793) and pretend orchestrator (:8795):
+  `JELLYFIN_UPSTREAM=localhost:8793 PIPELINE_UPSTREAM=localhost:8795 sh tool/serve-local.sh`.
 - `tool/swipe-test.mjs` - swipe-back stress test (fast repeat swipes, swipe
   then open a page, second finger, random abuse) in Playwright WebKit against
   the pretend-session dev server on :5199. Run it after touching `StackView`.
@@ -85,6 +89,15 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
 - `src/connectivity/connection.ts` - server reachable or not; every request
   reports in; pings while offline. TanStack's onlineManager follows it and the
   query cache is persisted to IndexedDB for offline browsing.
+- `src/mixes/` - `generator.ts` (Made for you recipes from play counts, last
+  played, likes, genres, years), `mixes.ts` (pool of mixes per account in
+  localStorage `jj.mixes.<userId>`, four shown, Regenerate rotates then
+  rebuilds), `stations.ts` (Library/Decade radio, Artist mix builder).
+- `src/pipeline/` - Add albums: `client.ts` (the orchestrator's API via
+  `/pipeline`, Bearer key), `pipeline.ts` (key in localStorage
+  `jj.pipelineKey`, cleared on sign-out; search; jobs polled every 10s while
+  active; on landing asks Jellyfin to refresh). The key is typed by the owner -
+  never read `api_key.txt` or put the key anywhere.
 - `src/offline/outbox.ts` - likes/playlist edits/plays made offline, sent later.
 - `public/sw.js` - app shell offline, `/offline/audio/*` with Range support,
   stored covers.
