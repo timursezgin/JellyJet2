@@ -19,6 +19,7 @@ import {
 import { QueueSheet } from './queue-sheet';
 import { Scrubber } from './scrubber';
 import { artistLine } from './track';
+import { navigate, type Route } from '@/nav/navigation';
 import styles from './full-player.module.css';
 
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
@@ -128,8 +129,22 @@ function PlayerContent() {
       <div className={styles.controls}>
         <div className={styles.titleRow}>
           <div className={styles.titles}>
-            <h2 className={styles.title}>{track.name}</h2>
-            <p className={styles.artist}>{artistLine(track)}</p>
+            <button
+              type="button"
+              className={styles.title}
+              disabled={!track.albumId}
+              onClick={() => openFromPlayer({ name: 'album', id: track.albumId!, title: track.album })}
+            >
+              {track.name}
+            </button>
+            <button
+              type="button"
+              className={styles.artist}
+              disabled={!track.artists[0]?.id}
+              onClick={() => openFromPlayer({ name: 'artist', id: track.artists[0].id!, title: track.artists[0].name })}
+            >
+              {artistLine(track)}
+            </button>
           </div>
         </div>
 
@@ -196,6 +211,12 @@ function PlayerContent() {
       </div>
     </>
   );
+}
+
+/** Close the player and open a page underneath it. */
+function openFromPlayer(route: Route) {
+  closePlayer();
+  navigate(route);
 }
 
 /** The cover as large as fits: up to 320 wide, never crowding the controls. */

@@ -9,6 +9,12 @@
   --back-row: 34px;
 }
 
+.page[data-variant='detail'] {
+  --bar-height: calc(var(--safe-top) + 44px);
+}
+
+/* --- Large-title bar ------------------------------------------------------ */
+
 .bar {
   position: absolute;
   top: 0;
@@ -19,6 +25,7 @@
   padding-top: var(--safe-top);
   display: flex;
   flex-direction: column;
+  background: var(--bg);
   border-bottom: 1px solid transparent;
   transition:
     background-color 160ms ease,
@@ -38,15 +45,18 @@
   align-self: flex-start;
   display: flex;
   align-items: center;
-  gap: 0;
   padding: 0 16px 0 calc(6px + var(--safe-left));
   color: var(--accent);
   font-size: 17px;
   font-weight: 500;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .back span {
   margin-left: -2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .titleRow {
@@ -74,6 +84,65 @@
   flex-shrink: 0;
 }
 
+/* --- Detail bar --------------------------------------------------------- */
+
+.detailBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: var(--bar-height);
+  padding-top: var(--safe-top);
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.detailBar[data-scrolled] {
+  background: var(--top-bar-fill);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  border-bottom-color: var(--hairline);
+}
+
+.detailBar .back {
+  height: 44px;
+}
+
+.detailSide {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+.detailTrailing {
+  justify-content: flex-end;
+  padding-right: calc(8px + var(--safe-right));
+}
+
+.detailTitle {
+  flex: 0 1 auto;
+  max-width: 55%;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.detailBar[data-scrolled] .detailTitle {
+  opacity: 1;
+}
+
+/* --- Scrolling content -------------------------------------------------- */
+
 .scroll {
   position: absolute;
   inset: 0;
@@ -88,4 +157,57 @@
   padding-bottom: var(--chrome-bottom);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
+}
+
+/* Room to tuck the search bar away even when the list is short. */
+.page[data-has-search] .content {
+  min-height: calc(100% + 52px);
+}
+
+.search {
+  height: 52px;
+  padding: 4px var(--page-gutter) 8px;
+}
+
+.searchField {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-radius: var(--radius-button);
+  background: var(--field-fill);
+  color: var(--ink-45);
+}
+
+.searchField input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.searchField input::placeholder {
+  color: var(--ink-35);
+}
+
+.searchField input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ink-35);
+  color: var(--bg);
 }

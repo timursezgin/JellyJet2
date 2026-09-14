@@ -53,7 +53,13 @@ fenced `bash` block. Ask before big decisions; don't re-ask settled ones in
   push/pop slides and left-edge swipe-back (Web Animations API), `PageContext`.
 - `src/shell/app-shell.tsx` - tabs + route → screen mapping. `--chrome-bottom`
   is the space pages keep clear at the bottom.
-- `src/ui/` - shared pieces (`Page` large-title scaffold, `ListRow`, ...).
+- `src/data/queries.ts` - every library read as a TanStack Query hook (cached,
+  refreshed in the background; long lists paged 100 at a time).
+- `src/jellyfin/api.ts` - the Jellyfin requests (Jellyfin 12: `/Genres` not
+  `/MusicGenres`, `/Artists/AlbumArtists` not `/Persons`, `ApiKey` for streams).
+- `src/ui/` - shared pieces: `Page` (large or detail header, hidden
+  swipe-down search, exposes its scroller), `VirtualList`/`VirtualGrid`
+  (draw only visible rows; fixed row heights), `TrackRow`, `Hero`, covers.
 - `src/screens/` - one file per screen.
 
 ## How it's hosted

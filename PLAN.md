@@ -56,6 +56,14 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 - Playback reported to Jellyfin (`/Sessions/Playing*`) so play counts and the
   mixes stay accurate.
 
+### Lock screen (decided 2026-09-14)
+- Playback continues with the phone locked, songs advance, lock-screen
+  next/previous work.
+- Accepted iOS web-app limit: after pausing from the lock screen, iOS puts the
+  app to sleep and gives the lock-screen player to another app; resuming means
+  opening JellyJet. No workarounds (genuine solutions only). A native app for
+  the owner remains a possible later addition.
+
 ### Hosting
 - Own container **JellyJet2** in tim-box `Desktop\JellyJet2`, port **8091**,
   next to the original **JellyJet** container on 8090. jj.timursezgin.work is
@@ -68,9 +76,9 @@ and untouched. Feishin is a source of ideas only - no code or logic is copied.
 0. **Setup** - toolchain, project, design tokens, container, publish script. ✅
 1. **Sign-in and app frame** - sign-in, five tabs, page slide animations. ✅ (real-account sign-in to be confirmed by the owner)
 2. **Player** - mini + full player, queue, lock-screen controls, instant next
-   song. *Checkpoint: owner tests locked-screen playback on the iPhone.*
+   song. *Checkpoint: owner tests locked-screen playback on the iPhone.* ✅
 3. **Browsing** - Home, Library, albums, artists, playlists, Liked Songs,
-   Search, swipe-down search.
+   Search, swipe-down search. ✅ (owner to check with real data)
 4. **Song buttons** - heart | download | (…) everywhere, the (…) menu,
    playlist add/remove.
 5. **Downloads and offline** - storage, collection downloads, Downloaded tab,

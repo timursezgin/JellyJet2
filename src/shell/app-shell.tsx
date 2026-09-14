@@ -7,11 +7,18 @@ import { restoreQueue, usePlayer } from '@/player/player';
 import { ToastHost } from '@/ui/toast';
 import { StackView } from '@/nav/stack-view';
 import { TAB_IDS, useNavigation, type Route, type TabId } from '@/nav/navigation';
+import { AlbumScreen } from '@/screens/album-screen';
+import { AlbumsScreen, RecentAlbumsScreen } from '@/screens/albums-screen';
+import { ArtistScreen } from '@/screens/artist-screen';
+import { ArtistsScreen } from '@/screens/artists-screen';
 import { DownloadedScreen } from '@/screens/downloaded-screen';
+import { GenresScreen } from '@/screens/genres-screen';
 import { HomeScreen } from '@/screens/home-screen';
 import { LibraryScreen } from '@/screens/library-screen';
-import { PlaceholderScreen } from '@/screens/placeholder-screen';
+import { LikedSongsScreen, PlaylistScreen } from '@/screens/playlist-screen';
+import { PlaylistsScreen } from '@/screens/playlists-screen';
 import { SearchScreen } from '@/screens/search-screen';
+import { TracksScreen } from '@/screens/tracks-screen';
 import { SettingsScreen } from '@/screens/settings-screen';
 import styles from './app-shell.module.css';
 
@@ -35,8 +42,26 @@ function renderRoute(route: Route) {
       return <DownloadedScreen />;
     case 'settings':
       return <SettingsScreen />;
-    case 'placeholder':
-      return <PlaceholderScreen title={route.title} />;
+    case 'playlists':
+      return <PlaylistsScreen />;
+    case 'artists':
+      return <ArtistsScreen />;
+    case 'albums':
+      return <AlbumsScreen title={route.title} genreId={route.genreId} />;
+    case 'tracks':
+      return <TracksScreen />;
+    case 'genres':
+      return <GenresScreen />;
+    case 'recent-albums':
+      return <RecentAlbumsScreen kind={route.kind} />;
+    case 'liked':
+      return <LikedSongsScreen />;
+    case 'album':
+      return <AlbumScreen id={route.id} title={route.title} />;
+    case 'artist':
+      return <ArtistScreen id={route.id} title={route.title} />;
+    case 'playlist':
+      return <PlaylistScreen id={route.id} title={route.title} />;
   }
 }
 

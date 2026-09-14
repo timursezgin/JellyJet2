@@ -50,6 +50,9 @@ export interface BaseItem {
   ParentIndexNumber?: number;
   ChildCount?: number;
   Container?: string;
+  CollectionType?: string;
+  SongCount?: number;
+  AlbumCount?: number;
   UserData?: UserItemData;
   PlaylistItemId?: string;
 }

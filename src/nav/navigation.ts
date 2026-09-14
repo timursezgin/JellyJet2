@@ -15,7 +15,16 @@ export type Route =
   | { name: 'library' }
   | { name: 'downloaded' }
   | { name: 'settings' }
-  | { name: 'placeholder'; title: string };
+  | { name: 'playlists' }
+  | { name: 'artists' }
+  | { name: 'albums'; genreId?: string; title?: string }
+  | { name: 'tracks' }
+  | { name: 'genres' }
+  | { name: 'recent-albums'; kind: 'played' | 'added' }
+  | { name: 'liked' }
+  | { name: 'album'; id: string; title?: string }
+  | { name: 'artist'; id: string; title?: string }
+  | { name: 'playlist'; id: string; title?: string };
 
 export interface StackEntry {
   key: string;
@@ -78,6 +87,9 @@ export const useNavigation = create<NavigationState>((set, get) => ({
   },
 }));
 
+/** Open a page on the current tab. */
+export const navigate = (route: Route) => useNavigation.getState().push(route);
+
 /** The title a page shows, used for the back button on the page above it. */
 export function routeTitle(route: Route): string {
   switch (route.name) {
@@ -91,7 +103,23 @@ export function routeTitle(route: Route): string {
       return 'Downloaded';
     case 'settings':
       return 'Settings';
-    case 'placeholder':
-      return route.title;
+    case 'playlists':
+      return 'Playlists';
+    case 'artists':
+      return 'Artists';
+    case 'albums':
+      return route.title ?? 'Albums';
+    case 'tracks':
+      return 'Tracks';
+    case 'genres':
+      return 'Genres';
+    case 'recent-albums':
+      return route.kind === 'played' ? 'Recently played' : 'Recently added';
+    case 'liked':
+      return 'Liked Songs';
+    case 'album':
+    case 'artist':
+    case 'playlist':
+      return route.title ?? 'Back';
   }
 }

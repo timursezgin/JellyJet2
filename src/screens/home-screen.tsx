@@ -1,28 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
-import { Shuffle } from 'lucide-react';
-
-import { useClient, useSession } from '@/auth/session';
-import { recentlyAddedTracks } from '@/jellyfin/api';
+import { useSession } from '@/auth/session';
+import { useLikedSongs, useRecentlyAddedAlbums, useRecentlyPlayedAlbums } from '@/data/queries';
+import type { BaseItem } from '@/jellyfin/types';
+import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
-import { trackFromItem } from '@/player/track';
-import { EmptyState } from '@/ui/empty-state';
+import { artistLine } from '@/player/track';
+import { AlbumCard } from '@/ui/album-card';
+import { Artwork } from '@/ui/artwork';
 import { Page } from '@/ui/page';
-import { TrackRow } from '@/ui/track-row';
+import { SectionHeader, Shelf } from '@/ui/section';
 import styles from './home-screen.module.css';
 
 export function HomeScreen() {
   const serverName = useSession((s) => s.session?.serverName);
-  const userId = useSession((s) => s.session?.userId);
-  const client = useClient();
-
-  // Until step 3 builds the real shelves, Home lists the newest songs so the
-  // player has something to play.
-  const recent = useQuery({
-    queryKey: ['recently-added-tracks', userId],
-    queryFn: async () => (await recentlyAddedTracks(client, userId!)).Items.map(trackFromItem),
-    enabled: !!userId,
-  });
-  const tracks = recent.data ?? [];
+  const played = useRecentlyPlayedAlbums();
+  const added = useRecentlyAddedAlbums();
+  const liked = useLikedSongs();
 
   return (
     <Page
@@ -34,20 +26,55 @@ export function HomeScreen() {
         </span>
       }
     >
-      <div className={styles.header}>
-        <h2 className="t-section-header">Recently added songs</h2>
-        {tracks.length > 0 && (
-          <button type="button" className={styles.shuffle} onClick={() => playTracks(tracks, 0, { shuffle: true })}>
-            <Shuffle size={16} strokeWidth={2.2} />
-            Shuffle
-          </button>
-        )}
-      </div>
-      {recent.isPending && <EmptyState title="Loading…" />}
-      {recent.isError && <EmptyState title="Couldn’t load songs">Check the connection and reopen the app.</EmptyState>}
-      {tracks.map((track, i) => (
-        <TrackRow key={track.id} track={track} onPlay={() => playTracks(tracks, i)} />
-      ))}
+      <SectionHeader title="Recently played" onOpen={() => navigate({ name: 'recent-albums', kind: 'played' })} />
+      <AlbumShelf query={played} empty="Nothing played yet." />
+
+      <SectionHeader title="Liked Songs" onOpen={() => navigate({ name: 'liked' })} />
+      {liked.data && liked.data.length > 0 ? (
+        <Shelf>
+          {liked.data.slice(0, 20).map((track, i, list) => (
+            <button
+              key={track.id}
+              type="button"
+              className={styles.songCard}
+              onClick={() => playTracks(list, i)}
+            >
+              <Artwork art={track.art} size={118} radius={10} />
+              <span className={styles.songTitle}>{track.name}</span>
+              <span className={styles.songArtist}>{artistLine(track)}</span>
+            </button>
+          ))}
+        </Shelf>
+      ) : (
+        <ShelfMessage loading={liked.isPending} text="Songs you like will show up here." />
+      )}
+
+      <SectionHeader title="Recently added" onOpen={() => navigate({ name: 'recent-albums', kind: 'added' })} />
+      <AlbumShelf query={added} empty="Nothing added yet." />
     </Page>
   );
+}
+
+function AlbumShelf({ query, empty }: { query: { data?: BaseItem[]; isPending: boolean }; empty: string }) {
+  if (!query.data?.length) return <ShelfMessage loading={query.isPending} text={empty} />;
+  return (
+    <Shelf>
+      {query.data.map((album) => (
+        <AlbumCard key={album.Id} album={album} size={146} small />
+      ))}
+    </Shelf>
+  );
+}
+
+function ShelfMessage({ loading, text }: { loading: boolean; text: string }) {
+  if (loading) {
+    return (
+      <Shelf>
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className={styles.placeholder} />
+        ))}
+      </Shelf>
+    );
+  }
+  return <p className={styles.empty}>{text}</p>;
 }

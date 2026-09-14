@@ -1,0 +1,52 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px var(--page-gutter) 12px;
+}
+
+.open {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 32px;
+  text-align: left;
+}
+
+.open h2 {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button.open:active {
+  opacity: 0.6;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ink-35);
+}
+
+.shelf {
+  display: flex;
+  gap: var(--shelf-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 var(--page-gutter);
+  padding: 0 var(--page-gutter) 4px;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+
+.shelf::-webkit-scrollbar {
+  display: none;
+}
+
+.shelf > * {
+  scroll-snap-align: start;
+}

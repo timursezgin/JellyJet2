@@ -209,7 +209,7 @@ export function StackView({ entries, visible, renderRoute }: Props) {
     () =>
       entries.map((_, index): PageInfo => {
         const below = entries[index - 1];
-        const label = below ? (index === 1 ? routeTitle(below.route) : 'Back') : null;
+        const label = below ? routeTitle(below.route) : null;
         return { backLabel: label, goBack: () => pop(), active: false };
       }),
     [entries, pop],

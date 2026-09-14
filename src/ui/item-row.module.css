@@ -1,0 +1,43 @@
+.row {
+  width: calc(100% - 2 * var(--page-gutter));
+  height: 70px;
+  margin: 0 var(--page-gutter);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+}
+
+.row:active {
+  opacity: 0.6;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 12.5px;
+  color: var(--ink-45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ink-30);
+}

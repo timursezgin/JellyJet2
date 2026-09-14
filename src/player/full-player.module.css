@@ -65,6 +65,18 @@
   min-width: 0;
 }
 
+.title,
+.artist {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+}
+
+.title:not(:disabled):active,
+.artist:not(:disabled):active {
+  opacity: 0.6;
+}
+
 .title {
   margin: 0;
   font-size: 21px;
@@ -77,6 +89,7 @@
 
 .artist {
   margin: 4px 0 0;
+  color: var(--ink-50) !important;
   font-size: 16px;
   color: var(--ink-50);
   white-space: nowrap;

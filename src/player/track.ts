@@ -10,6 +10,9 @@ export interface Track {
   artists: { id?: string; name: string }[];
   duration: number;
   art: { id: string; tag: string } | null;
+  /** Track and disc number within its album. */
+  number?: number;
+  disc?: number;
 }
 
 export function trackFromItem(item: BaseItem): Track {
@@ -25,6 +28,8 @@ export function trackFromItem(item: BaseItem): Track {
     artists,
     duration: ticksToSeconds(item.RunTimeTicks),
     art: artworkOf(item),
+    number: item.IndexNumber,
+    disc: item.ParentIndexNumber,
   };
 }
 

@@ -1,0 +1,56 @@
+.rows {
+  padding-top: 2px;
+}
+
+.grid {
+  padding: 6px var(--page-gutter) 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 6px var(--page-gutter) 0;
+}
+
+.tile {
+  min-height: 76px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: var(--radius-tag-tile);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  text-align: left;
+}
+
+.tile:active {
+  opacity: 0.7;
+}
+
+.tileName {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.tileCount {
+  font-size: 11.5px;
+  color: rgba(245, 244, 243, 0.4);
+}
+
+.message {
+  margin: 40px var(--page-gutter);
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-35);
+}
+
+.count {
+  margin: 4px var(--page-gutter) 10px;
+  font-size: 12.5px;
+  color: var(--ink-35);
+  font-variant-numeric: tabular-nums;
+}

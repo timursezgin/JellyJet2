@@ -1,0 +1,22 @@
+.disc {
+  margin: 16px var(--page-gutter) 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ink-35);
+}
+
+.albums {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+  padding: 0 var(--page-gutter);
+}
+
+.message {
+  margin: 32px var(--page-gutter);
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-35);
+}
