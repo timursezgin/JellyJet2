@@ -15,6 +15,31 @@
 
 /* --- Large-title bar ------------------------------------------------------ */
 
+/* iOS paints the status bar in the page colour (see index.html: a translucent
+   status bar hits an iOS 26 bug). A short fade from that colour at the top of
+   each bar melts the frosted glass into it instead of a hard edge. */
+.bar::before,
+.detailBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  /* Over the bar's glass, under its buttons and title. */
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--bg) 0%,
+    rgba(10, 10, 11, 0.82) 22%,
+    rgba(10, 10, 11, 0.55) 45%,
+    rgba(10, 10, 11, 0.25) 70%,
+    rgba(10, 10, 11, 0.07) 88%,
+    rgba(10, 10, 11, 0) 100%
+  );
+}
+
 .bar {
   position: absolute;
   top: 0;

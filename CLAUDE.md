@@ -118,7 +118,10 @@ why build files must keep content-hashed names and `/`, `/sw.js` are no-cache.
 - Status bar style must stay `black`, not `black-translucent`: with
   translucent, iOS (26) stops painting a home-screen app 62pt above the bottom
   edge (window reports 812 on an 874pt screen and content below is clipped).
-  `viewport-fit=cover` stays for the home-indicator inset. Full-screen layers
+  `viewport-fit=cover` stays for the home-indicator inset. This is WebKit bug
+  301108 (open): the page can't paint that strip at all. iOS fills the black
+  status bar with the page colour; the title bars fade into it with a short
+  gradient (`page.module.css`). Owner chose black until Apple fixes it. Full-screen layers
   use `height: var(--app-height)`; html/body must not clip overflow.
 - The status bar style is captured when the icon is added: re-add the icon to
   see a change.
