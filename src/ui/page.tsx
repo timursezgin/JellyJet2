@@ -64,10 +64,16 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
     }
   };
 
+  // Detail pages show just the chevron, so their title can sit in the middle.
   const back = backLabel && (
-    <button type="button" className={styles.back} onClick={goBack}>
+    <button
+      type="button"
+      className={styles.back}
+      onClick={goBack}
+      aria-label={variant === 'detail' ? `Back to ${backLabel}` : undefined}
+    >
       <ChevronLeft size={26} strokeWidth={2.2} />
-      <span>{backLabel}</span>
+      {variant === 'large' && <span>{backLabel}</span>}
     </button>
   );
 

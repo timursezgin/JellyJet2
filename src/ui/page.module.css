@@ -111,25 +111,24 @@
 }
 
 .detailBar .back {
+  width: 100%;
   height: 44px;
 }
 
-/* The back button keeps its full label; the title takes the space left over. */
+/* Both sides are the same width, so the title is centred on the screen. */
 .detailSide {
-  flex: 0 0 auto;
-  max-width: 60%;
+  flex: 0 0 56px;
   display: flex;
 }
 
 .detailTrailing {
   justify-content: flex-end;
-  padding-right: calc(8px + var(--safe-right));
 }
 
 .detailTitle {
   flex: 1 1 0;
   min-width: 0;
-  padding: 0 12px;
+  padding: 0 4px;
   text-align: center;
   font-size: 16px;
   font-weight: 600;
