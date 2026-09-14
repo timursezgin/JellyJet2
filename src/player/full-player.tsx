@@ -140,9 +140,9 @@ function PlayerContent() {
           data-lyrics={lyricsOpen || undefined}
           style={{ width: artSize, height: artSize }}
         >
-          <Artwork art={track.art} size={artSize} radius={14} className={styles.cover} eager />
-          {lyricsOpen && <LyricsPanel trackId={track.id} />}
+          <Artwork art={track.art} size={artSize} radius={14} eager />
         </div>
+        {lyricsOpen && <LyricsPanel trackId={track.id} />}
       </div>
 
       <div className={styles.controls}>

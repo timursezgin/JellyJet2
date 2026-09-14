@@ -1,29 +1,31 @@
-/* Fills the cover's frame, over the darkened, blurred cover. */
+/* Fills the space between the handle and the song title, edge to edge, over
+   the darkened, blurred cover. Text keeps the player's side margins. */
 .panel {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * (var(--player-gutter) + var(--safe-left)));
+  right: calc(-1 * (var(--player-gutter) + var(--safe-right)));
   z-index: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
-  padding: 30% 22px 55%;
-  border-radius: var(--radius-full-player-art);
+  padding: 44px calc(var(--player-gutter) + var(--safe-right)) 44px calc(var(--player-gutter) + var(--safe-left));
   /* Lines fade out at the top and bottom edges instead of being cut off. */
-  mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
   animation: appear 260ms var(--ease-ios);
-}
-
-/* Plain lyrics have no current line to centre, so they start at the top. */
-.panel:not([data-timed]) {
-  padding-top: 17%;
-  padding-bottom: 17%;
 }
 
 @keyframes appear {
   from {
     opacity: 0;
   }
+}
+
+/* Room under the last line so it can still scroll up to the reading spot. */
+.end {
+  height: 60%;
 }
 
 .line {

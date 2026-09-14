@@ -19,7 +19,7 @@ interface Line {
 /** After scrolling by hand, the lyrics wait this long before following the song again. */
 const HAND_SCROLL_PAUSE_MS = 3500;
 
-/** The lyrics over the cover, filling the cover's frame. */
+/** The lyrics over the blurred cover, filling the space above the song title. */
 export function LyricsPanel({ trackId }: { trackId: string }) {
   const query = useLyrics(trackId, true);
 
@@ -86,6 +86,7 @@ function LyricLines({ lines }: { lines: Line[] }) {
           }}
         />
       ))}
+      {timed && <div className={styles.end} />}
     </div>
   );
 }
