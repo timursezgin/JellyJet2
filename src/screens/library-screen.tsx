@@ -26,13 +26,13 @@ export function LibraryScreen() {
     <Page title="Library">
       <div className={styles.special}>
         <ItemRow
-          art={<LikedCover size={52} />}
+          art={<LikedCover size={44} />}
           title="Liked Songs"
           subtitle={liked ? songCount(liked.length) : undefined}
           onClick={() => navigate({ name: 'liked' })}
         />
         <ItemRow
-          art={<DownloadedCover size={52} />}
+          art={<DownloadedCover size={44} />}
           title="Downloaded"
           subtitle={downloadedCount ? songCount(downloadedCount) : 'Ready to play without internet'}
           onClick={() => navigate({ name: 'downloaded' })}

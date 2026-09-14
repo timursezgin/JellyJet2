@@ -1,7 +1,7 @@
 .row {
   --reveal: 100px;
   position: relative;
-  height: 64px;
+  height: 56px;
   margin: 0 var(--page-gutter);
   border-top: 1px solid var(--hairline);
 }

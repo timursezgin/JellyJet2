@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import styles from './item-row.module.css';
 
-export const ITEM_ROW_HEIGHT = 70;
+export const ITEM_ROW_HEIGHT = 60;
 
 interface ItemRowProps {
   art: ReactNode;

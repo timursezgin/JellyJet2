@@ -109,7 +109,7 @@ export function SearchScreen() {
           {data.artists.map((artist) => (
             <ItemRow
               key={artist.Id}
-              art={<Artwork art={artworkOf(artist)} size={46} round />}
+              art={<Artwork art={artworkOf(artist)} size={44} round />}
               title={artist.Name}
               subtitle="Artist"
               onClick={() => {
@@ -127,7 +127,7 @@ export function SearchScreen() {
           {data.albums.map((album) => (
             <ItemRow
               key={album.Id}
-              art={<Artwork art={artworkOf(album)} size={46} radius={10} />}
+              art={<Artwork art={artworkOf(album)} size={44} radius={8} />}
               title={album.Name}
               subtitle={['Album', albumSubtitle(album)].filter(Boolean).join(' · ')}
               onClick={() => {

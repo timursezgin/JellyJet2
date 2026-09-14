@@ -11,7 +11,7 @@ function OfflineMessage() {
 }
 
 /** Placeholder rows while a list loads. */
-export function LoadingRows({ count = 8, height = 64 }: { count?: number; height?: number }) {
+export function LoadingRows({ count = 8, height = 56 }: { count?: number; height?: number }) {
   const online = useOnline();
   if (!online) return <OfflineMessage />;
   return (

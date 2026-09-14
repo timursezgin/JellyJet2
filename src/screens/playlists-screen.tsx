@@ -6,7 +6,7 @@ import { navigate } from '@/nav/navigation';
 import { openNewPlaylist } from '@/songs/song-menu';
 import { Plus } from 'lucide-react';
 import { PlaylistCover } from '@/ui/covers';
-import { ItemRow } from '@/ui/item-row';
+import { ITEM_ROW_HEIGHT, ItemRow } from '@/ui/item-row';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
 import styles from './list-screens.module.css';
@@ -38,14 +38,14 @@ export function PlaylistsScreen() {
         {list.map((playlist) => (
           <ItemRow
             key={playlist.Id}
-            art={<PlaylistCover playlistId={playlist.Id} size={52} />}
+            art={<PlaylistCover playlistId={playlist.Id} size={44} />}
             title={playlist.Name}
             subtitle={[songCount(playlist.ChildCount), downloaded[`playlist:${playlist.Id}`] && 'Downloaded'].filter(Boolean).join(' · ')}
             onClick={() => navigate({ name: 'playlist', id: playlist.Id, title: playlist.Name })}
           />
         ))}
       </div>
-      {playlists.isPending && <LoadingRows count={4} height={70} />}
+      {playlists.isPending && <LoadingRows count={4} height={ITEM_ROW_HEIGHT} />}
       {playlists.isError && !playlists.data && <LoadError onRetry={() => playlists.refetch()} />}
     </Page>
   );

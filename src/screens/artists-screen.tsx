@@ -32,7 +32,7 @@ export function ArtistsScreen() {
             const artist = list.items[i];
             return (
               <ItemRow
-                art={<Artwork art={artworkOf(artist)} size={50} round />}
+                art={<Artwork art={artworkOf(artist)} size={44} round />}
                 title={artist.Name}
                 onClick={() => navigate({ name: 'artist', id: artist.Id, title: artist.Name })}
               />

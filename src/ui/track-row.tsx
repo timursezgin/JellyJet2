@@ -12,7 +12,7 @@ import { toast } from './toast';
 import styles from './track-row.module.css';
 
 /** Fixed height, so long lists can be drawn only where they're visible. */
-export const TRACK_ROW_HEIGHT = 64;
+export const TRACK_ROW_HEIGHT = 56;
 
 interface TrackRowProps {
   track: Track;
@@ -83,7 +83,7 @@ export function TrackRow({ track, onPlay, leading = 'art', subtitle, context, co
           aria-disabled={unavailable || undefined}
         >
           {leading === 'art' ? (
-            <Artwork art={track.art} size={44} radius={10} />
+            <Artwork art={track.art} size={40} radius={8} />
           ) : (
             <span className={styles.number}>{leading}</span>
           )}

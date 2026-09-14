@@ -97,11 +97,11 @@ export function DownloadedScreen() {
               key={c.key}
               art={
                 c.kind === 'liked' ? (
-                  <LikedCover size={52} />
+                  <LikedCover size={44} />
                 ) : c.kind === 'playlist' ? (
-                  <PlaylistCover playlistId={c.id} size={52} />
+                  <PlaylistCover playlistId={c.id} size={44} />
                 ) : (
-                  <Artwork art={c.art} size={52} radius={10} />
+                  <Artwork art={c.art} size={44} radius={8} />
                 )
               }
               title={c.name}
