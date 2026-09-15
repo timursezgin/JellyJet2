@@ -50,8 +50,8 @@ function LyricLines({ lines }: { lines: Line[] }) {
   const handScrollUntil = useRef(0);
   const placed = useRef(false);
 
-  /** Scrolls the current line to the middle of the area, unless the reader is scrolling. */
-  const centreActive = () => {
+  // Scroll the current line to the middle of the area, unless the reader is scrolling.
+  useLayoutEffect(() => {
     const el = scroller.current;
     if (!el || !timed || Date.now() < handScrollUntil.current) return;
     const line = el.querySelector<HTMLElement>(`[data-line="${Math.max(0, active)}"]`);
@@ -60,9 +60,7 @@ function LyricLines({ lines }: { lines: Line[] }) {
     // The first placement jumps; later lines glide.
     el.scrollTo({ top: Math.max(0, top), behavior: placed.current ? 'smooth' : 'auto' });
     placed.current = true;
-  };
-
-  useLayoutEffect(centreActive, [active, timed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [active, timed]);
 
   const onHandScroll = () => {
     handScrollUntil.current = Date.now() + HAND_SCROLL_PAUSE_MS;
@@ -76,11 +74,6 @@ function LyricLines({ lines }: { lines: Line[] }) {
       data-no-drag
       onTouchMove={onHandScroll}
       onWheel={onHandScroll}
-      // The sung line grows and the previous one shrinks after the scroll
-      // starts; once they've settled, re-aim at the exact middle.
-      onTransitionEnd={(e) => {
-        if (e.propertyName === 'font-size' && (e.target as HTMLElement).dataset.active !== undefined) centreActive();
-      }}
     >
       {/* Room above the first line and below the last, so every line can reach the middle. */}
       {timed && <div className={styles.edge} />}
