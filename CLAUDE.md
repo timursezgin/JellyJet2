@@ -219,6 +219,11 @@ Testing on this PC:
   playback straight from the tap (iOS). × remembers that note as dismissed;
   playing anything here removes the card. Continue also pauses the device the
   note came from, if it's still playing.
+- **Both are per Jellyfin account, never server-wide.** The note lives in the
+  account's own display preferences. For Play on, Jellyfin's session lists
+  include other accounts' devices (an admin may control them), so the list
+  and remote mode keep only sessions whose `UserId` is the signed-in user, and
+  a device ignores commands whose `ControllingUserId` is another account.
 - **Play on another device** (Spotify Connect style, JellyJet only): every
   open JellyJet keeps Jellyfin's live connection (`/socket`, `remote/socket.ts`)
   and reports capabilities, so other devices on the account can send it

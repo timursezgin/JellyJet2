@@ -1,4 +1,5 @@
-import { ticksToSeconds } from '@/jellyfin/api';
+import { useSession } from '@/auth/session';
+import { sameId, ticksToSeconds } from '@/jellyfin/api';
 import {
   addToQueue,
   markShuffled,
@@ -122,10 +123,24 @@ async function carryOut(message: SocketMessage) {
 
 let chain: Promise<void> = Promise.resolve();
 
+/**
+ * Only this account's own devices may control this one. Jellyfin also lets an
+ * admin (or a user allowed to control others) send commands to another
+ * account's sessions; those are ignored. Commands name who sent them.
+ */
+function fromThisAccount(message: SocketMessage) {
+  const sender = (message.Data as { ControllingUserId?: string } | undefined)?.ControllingUserId;
+  const me = useSession.getState().session?.userId;
+  // No sender named (or an empty id): not from another account.
+  if (!sender || /^[0-]*$/.test(sender)) return true;
+  return !!me && sameId(sender, me);
+}
+
 /** While signed in: carry out commands from other devices. Returns a stop function. */
 export function startReceiver() {
   return onSocketMessage((message) => {
     if (message.MessageType !== 'Play' && message.MessageType !== 'Playstate' && message.MessageType !== 'GeneralCommand') return;
+    if (!fromThisAccount(message)) return;
     chain = chain.then(() => carryOut(message)).catch(() => {});
   });
 }

@@ -514,7 +514,13 @@ export interface SessionInfo {
   };
 }
 
-/** Sessions of this account that can be controlled from here. */
+/** Jellyfin writes the same id with or without dashes, in either case. */
+export const sameId = (a: string, b: string) => a.replace(/-/g, '').toLowerCase() === b.replace(/-/g, '').toLowerCase();
+
+/**
+ * Sessions this account may control. For an admin that includes other
+ * accounts' devices, so callers keep only their own (see remote.ts).
+ */
 export function sessions(client: JellyfinClient, userId: string) {
   return client.get<SessionInfo[]>('/Sessions', { query: { controllableByUserId: userId, activeWithinSeconds: 900 } });
 }

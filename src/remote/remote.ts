@@ -5,6 +5,7 @@ import {
   remoteCommand,
   remotePlay,
   remotePlaystate,
+  sameId,
   sessions as fetchSessions,
   ticksToSeconds,
   type RemotePlaystate,
@@ -55,8 +56,21 @@ function account() {
   return client && session ? { client, userId: session.userId } : null;
 }
 
+/** The signed-in account's id: devices and commands never cross accounts. */
+const myUserId = () => useSession.getState().session?.userId;
+
+/**
+ * JellyJet on another device signed in to this same account. Jellyfin lists
+ * other accounts' sessions too (an admin may control them), so the account
+ * check matters: nobody sees or controls anyone else's music.
+ */
+const isMine = (s: SessionInfo) => {
+  const me = myUserId();
+  return !!me && !!s.UserId && sameId(s.UserId, me);
+};
+
 const isOtherJellyJet = (s: SessionInfo) =>
-  s.Client === CLIENT_NAME && s.DeviceId !== deviceId() && s.SupportsRemoteControl === true;
+  s.Client === CLIENT_NAME && isMine(s) && s.DeviceId !== deviceId() && s.SupportsRemoteControl === true;
 
 /** Look up the account's devices now (also used by the handoff to pause the other device). */
 export async function refreshDevices(): Promise<SessionInfo[]> {
@@ -99,7 +113,7 @@ let missingSince = 0;
 function onSessions(all: SessionInfo[]) {
   const remote = usePlayer.getState().remote;
   if (!remote) return;
-  const session = all.find((s) => s.DeviceId === remote.deviceId && s.SupportsRemoteControl);
+  const session = all.find((s) => s.DeviceId === remote.deviceId && isMine(s) && s.SupportsRemoteControl);
   if (!session) {
     missingSince ||= Date.now();
     if (Date.now() - missingSince > GONE_AFTER_MS) {
