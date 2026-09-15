@@ -2,13 +2,16 @@ import { Play, X } from 'lucide-react';
 
 import { Artwork } from '@/ui/artwork';
 import { acceptHandoff, dismissHandoff, useHandoff } from './handoff';
+import { usePlayer } from './player';
 import { artistLine, formatTime } from './track';
 import styles from './handoff-offer.module.css';
 
 /** "Left off on Mac (Chrome)" - a card offering to continue that song here. */
 export function HandoffOffer() {
   const offer = useHandoff((s) => s.offer);
-  if (!offer) return null;
+  // Following a device that's playing: the player already shows (and controls) that music.
+  const following = usePlayer((s) => s.remote !== null);
+  if (!offer || following) return null;
   const track = offer.tracks[offer.index];
   const artist = artistLine(track);
   return (

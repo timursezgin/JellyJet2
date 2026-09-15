@@ -17,11 +17,16 @@ export function startOfflineServices(session: Session) {
   let stopped = false;
 
   setPinger(async () => {
+    // A server that doesn't answer within a few seconds counts as unreachable.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
     try {
-      const response = await fetch(`${session.serverUrl}/System/Ping`, { cache: 'no-store' });
+      const response = await fetch(`${session.serverUrl}/System/Ping`, { cache: 'no-store', signal: controller.signal });
       return response.ok;
     } catch {
       return false;
+    } finally {
+      clearTimeout(timer);
     }
   });
 

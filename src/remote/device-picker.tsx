@@ -5,11 +5,11 @@ import { create } from 'zustand';
 import { useSession } from '@/auth/session';
 import { useOnline } from '@/connectivity/connection';
 import type { SessionInfo } from '@/jellyfin/api';
-import { deviceName } from '@/jellyfin/identity';
+import { deviceName, guessedDeviceName } from '@/jellyfin/identity';
 import { usePlayer } from '@/player/player';
 import { Sheet, type Anchor } from '@/ui/sheet';
 import { isDesktop } from '@/ui/use-desktop';
-import { playHere, playOn, useDevices, watchDevices } from './remote';
+import { playHere, playOn, refreshDevices, useDevices } from './remote';
 import styles from './device-picker.module.css';
 
 const usePicker = create<{ open: boolean; anchor: Anchor | null }>(() => ({ open: false, anchor: null }));
@@ -38,7 +38,7 @@ export function DeviceButton({ className, size = 20 }: { className: string; size
 }
 
 function iconFor(name: string) {
-  return /iPhone|Android/.test(name) ? Smartphone : Laptop;
+  return /iPhone|Android|phone/i.test(name) ? Smartphone : Laptop;
 }
 
 function describe(session: SessionInfo) {
@@ -57,10 +57,13 @@ export function DevicePickerHost() {
   const userName = useSession((s) => s.session?.userName);
   const online = useOnline();
 
-  useEffect(() => (open ? watchDevices() : undefined), [open]);
+  // The list is kept current all along; opening it also asks the server right away.
+  useEffect(() => {
+    if (open) void refreshDevices();
+  }, [open]);
 
   const here = deviceName();
-  const HereIcon = iconFor(here);
+  const HereIcon = iconFor(guessedDeviceName());
 
   return (
     <Sheet open={open} onClose={close} title="Play on" anchor={anchor}>

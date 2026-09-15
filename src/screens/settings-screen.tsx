@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from 'react';
 
 import { useSession } from '@/auth/session';
 import { useOnline } from '@/connectivity/connection';
@@ -6,15 +6,24 @@ import { useDownloads } from '@/downloads/downloads';
 import { removeAllDownloads } from '@/downloads/engine';
 import { clearAccountCache } from '@/downloads/lifecycle';
 import { requestPersistentStorage } from '@/downloads/support';
-import { CLIENT_VERSION } from '@/jellyfin/identity';
+import {
+  CLIENT_VERSION,
+  deviceName,
+  guessedDeviceName,
+  MAX_DEVICE_NAME,
+  onDeviceNameChange,
+  setDeviceName,
+} from '@/jellyfin/identity';
 import { useNavigation } from '@/nav/navigation';
 import { unloadMixes } from '@/mixes/mixes';
 import { forgetPipeline } from '@/pipeline/pipeline';
 import { clearQueue } from '@/player/player';
+import { announceDevice } from '@/remote/socket';
 import { updateSettings, useSettings } from '@/settings/settings';
 import { confirm } from '@/ui/confirm';
 import { ListGroup, ListRow } from '@/ui/list-row';
 import { Page } from '@/ui/page';
+import { Sheet } from '@/ui/sheet';
 import { formatBytes } from './downloaded-screen';
 import { songCount as songLabel } from './playlists-screen';
 import styles from './settings-screen.module.css';
@@ -42,6 +51,8 @@ export function SettingsScreen() {
         </p>
       </section>
 
+      <DeviceSettings />
+
       {session.permissions.canDownload && <DownloadSettings />}
 
       <ListGroup title="Account">
@@ -63,6 +74,53 @@ export function SettingsScreen() {
 
       <p className={`t-caption ${styles.footnote}`}>JellyJet {CLIENT_VERSION}</p>
     </Page>
+  );
+}
+
+const subscribeName = (listener: () => void) => onDeviceNameChange(listener);
+
+/** "This device": the name the account's other devices see ("Playing on Tim's iPhone"). */
+function DeviceSettings() {
+  const name = useSyncExternalStore(subscribeName, deviceName);
+  const [editing, setEditing] = useState(false);
+  return (
+    <>
+      <ListGroup title="This device">
+        <ListRow label="Device name" value={name} chevron onClick={() => setEditing(true)} />
+      </ListGroup>
+      <p className={styles.note}>Shown on your other devices when you play music on this one, and in Jellyfin.</p>
+      <Sheet open={editing} onClose={() => setEditing(false)} title="Device name" closeLabel="Cancel">
+        {editing && <DeviceNameForm current={name} onDone={() => setEditing(false)} />}
+      </Sheet>
+    </>
+  );
+}
+
+function DeviceNameForm({ current, onDone }: { current: string; onDone(): void }) {
+  const [value, setValue] = useState(current);
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    setDeviceName(value);
+    announceDevice();
+    onDone();
+  };
+  return (
+    <form className={styles.form} onSubmit={submit}>
+      <input
+        className={styles.input}
+        placeholder={guessedDeviceName()}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        enterKeyHint="done"
+        maxLength={MAX_DEVICE_NAME}
+        autoFocus
+        aria-label="Device name"
+      />
+      <button type="submit" className={styles.save}>
+        Save
+      </button>
+      <p className={styles.formNote}>Like “Tim’s iPhone” or “tim-desktop”. Leave it empty to go back to “{guessedDeviceName()}”.</p>
+    </form>
   );
 }
 

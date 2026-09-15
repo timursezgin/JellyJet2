@@ -224,23 +224,51 @@ Testing on this PC:
   include other accounts' devices (an admin may control them), so the list
   and remote mode keep only sessions whose `UserId` is the signed-in user, and
   a device ignores commands whose `ControllingUserId` is another account.
-- **Play on another device** (Spotify Connect style, JellyJet only): every
-  open JellyJet keeps Jellyfin's live connection (`/socket`, `remote/socket.ts`)
-  and reports capabilities, so other devices on the account can send it
-  Play / Playstate / GeneralCommand messages (`remote/receiver.ts`, carried out
-  one at a time). The device button (player bar, mini player, full player)
-  opens "Play on": This device + other JellyJet sessions. Choosing one sends
-  it the queue (up to 200 ids, from the same spot) plus repeat and
-  `SetShuffleQueue` with `KeepOrder` (already shuffled), and this device
-  becomes its **remote** (`remote/remote.ts`): the player store mirrors that
-  device from the server's pushed `Sessions` updates (queue from the
-  `NowPlayingQueue` each device now reports), the transport functions in
-  `player.ts` send it commands, volume is replaced by "Playing on …", and the
-  queue is shown read-only (tap a song to play it there). "This device"
-  brings the music back (the other pauses). A controlled device missing for
-  10s ends remote mode with a toast. iOS limits: a paused/locked iPhone app is
-  suspended and can't receive; a song sent to a phone that hasn't played since
-  opening shows a "Ready to play here" card (autoplay needs a tap).
+- **Play on another device** (Spotify Connect style, JellyJet only), with
+  **one place at a time per account**: every open JellyJet keeps Jellyfin's
+  live connection (`/socket`, `remote/socket.ts`), reports capabilities and
+  stays subscribed to the account's sessions the whole time it's signed in
+  (also asked for on open/front/reconnect, every 5s while the connection is
+  down, every 30s otherwise). Other devices send it Play / Playstate /
+  GeneralCommand messages (`remote/receiver.ts`, carried out one at a time).
+  - **Follow:** when another device is playing and nothing plays (or waits for
+    a tap) here, this device becomes its **remote** by itself (`remote/remote.ts`):
+    the player store mirrors that device from the pushed `Sessions` updates,
+    with its **queue from that device's playback note** (`player/playback-note.ts`,
+    the handoff note; read ~2s after each report from it, at most every 3s,
+    and on coming to the front; right after sending songs, those songs).
+    Jellyfin 12 ignores `NowPlayingQueue` in start/progress reports (it only
+    keeps one from a stop report), so reports no longer carry it. The
+    transport functions in `player.ts` send it commands,
+    volume is replaced by "Playing on …", the queue is read-only (tap a song to
+    play it there) and the handoff card is hidden. A controlled device paused
+    stays followed; if another starts playing, it follows that one.
+  - **Claim:** music starting on a device (not as a remote) pauses any other
+    device on the account that's playing. Devices just paused are ignored for
+    8s while their reports catch up (no ping-pong).
+  - The device button (player bar, mini player, full player) opens "Play on":
+    This device + other JellyJet sessions. Choosing one sends it the queue (up
+    to 200 ids, from the same spot, playing or paused as it was) plus repeat
+    and `SetShuffleQueue` with `KeepOrder`; the remote ignores that device's
+    old state until it reports the sent song, and if it hasn't within 12s
+    ("… didn't respond": asleep or gone) the music stays here, paused at the
+    same spot. "This device" brings the music and queue here (the other pauses).
+  - Between songs a device reports nothing playing for a moment; the remote
+    only shows it stopped after 5s. A controlled device missing for 10s ends
+    remote mode, keeping its queue (a toast only if it was playing).
+  - iOS limits: a paused/locked iPhone app is suspended and can't receive; a
+    song sent to a phone that hasn't played since opening shows a "Ready to
+    play here" card (autoplay needs a tap) and is reported as paused there.
+- **Device name** (Settings → This device): browsers can't read the phone's or
+  computer's own name, so it's guessed from the browser ("iPhone (Safari)")
+  unless named here. Kept per device (localStorage `jj.deviceName`, cleaned to
+  header-safe ASCII, max 40), sent as the `Device` in the auth header - so it
+  shows in Play on, "Playing on …", the handoff card and Jellyfin - and
+  re-announced (capabilities) on save so other devices see it at once.
+- **Offline detection** (`connectivity/connection.ts`): a failed request
+  only counts once `/System/Ping` also fails (6s limit) - a single slow reply
+  used to flip the app "offline", and the next song, not downloaded, was
+  skipped, stopping the music.
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
   Regenerate, savable as "JellyJet · <name>" playlists). **Stations**: Artist
   mix, Library radio (offline it shuffles downloads), Decade radio.

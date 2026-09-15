@@ -13,6 +13,7 @@ import {
   type Repeat,
 } from './player';
 import type { Track } from './track';
+import { CLIENT, KEY, PREFS_ID, readPlaybackNote, type PlaybackNote, type Prefs } from './playback-note';
 import { queueFromIds } from './track-lookup';
 
 /**
@@ -26,10 +27,6 @@ import { queueFromIds } from './track-lookup';
  * spot. Only listening counts: opening the app never overwrites the note.
  */
 
-const PREFS_ID = 'jellyjet-playback';
-const CLIENT = 'JellyJet';
-const KEY = 'nowPlaying';
-
 /** At most this many songs of the queue go in the note, starting a little before the one on. */
 const WINDOW_BEFORE = 50;
 const WINDOW_SIZE = 300;
@@ -39,19 +36,6 @@ const TICK_WRITE_MS = 30_000;
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** Switching windows back and forth doesn't ask the server every time. */
 const CHECK_GAP_MS = 5_000;
-
-interface Note {
-  v: 1;
-  device: string;
-  deviceName: string;
-  /** When the listening happened (ms since 1970). */
-  at: number;
-  ids: string[];
-  index: number;
-  position: number;
-  shuffle: boolean;
-  repeat: Repeat;
-}
 
 export interface HandoffOffer {
   deviceName: string;
@@ -66,8 +50,6 @@ export interface HandoffOffer {
 }
 
 export const useHandoff = create<{ offer: HandoffOffer | null }>(() => ({ offer: null }));
-
-type Prefs = { CustomPrefs?: Record<string, string | null> } & Record<string, unknown>;
 
 const activeKey = (userId: string) => `jj.handoff.activeAt.${userId}`;
 const dismissedKey = (userId: string) => `jj.handoff.dismissed.${userId}`;
@@ -100,7 +82,7 @@ let prefs: Prefs | null = null;
 let lastWrite = 0;
 let writeTimer: ReturnType<typeof setTimeout> | undefined;
 
-function snapshot(): Note | null {
+function snapshot(): PlaybackNote | null {
   const { queue, index, shuffle, repeat } = usePlayer.getState();
   if (queue.length === 0) return null;
   const start = Math.max(0, Math.min(index - WINDOW_BEFORE, queue.length - WINDOW_SIZE));
@@ -160,11 +142,10 @@ export async function checkHandoff() {
   lastCheck = Date.now();
   checking = true;
   try {
-    prefs = (await a.client.get<Prefs>(`/DisplayPreferences/${PREFS_ID}`, { query: { userId: a.userId, client: CLIENT } })) ?? {};
-    const raw = prefs.CustomPrefs?.[KEY];
-    if (!raw) return;
-    const note = JSON.parse(raw) as Note;
-    if (note.v !== 1 || note.device === deviceId() || !note.ids?.length) return;
+    const read = await readPlaybackNote(a.client, a.userId);
+    prefs = read.prefs;
+    const note = read.note;
+    if (!note || note.device === deviceId() || !note.ids.length) return;
 
     const key = `${note.device}:${note.at}`;
     const activeAt = Number(readLocal(activeKey(a.userId)) ?? 0);

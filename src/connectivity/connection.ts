@@ -4,8 +4,9 @@ import { create } from 'zustand';
  * Whether Jellyfin can be reached right now. "Offline" covers both no
  * internet and the server being unreachable (e.g. Tailscale off).
  *
- * Every request reports in: a network failure flips to offline, any answer
- * flips back. While offline the server is pinged every few seconds.
+ * Every request reports in: a network failure flips to offline once a ping
+ * confirms it, any answer flips back. While offline the server is pinged
+ * every few seconds.
  */
 
 interface ConnectionState {
@@ -37,7 +38,29 @@ export function reportReachable() {
   for (const fn of listeners) fn();
 }
 
+let confirming = false;
+
+/**
+ * A request failed. One failure isn't proof of being offline - a busy server
+ * can be slow to answer one request - so the server is asked directly first.
+ * (A false "offline" skips every song that isn't downloaded, stopping the music.)
+ */
 export function reportUnreachable() {
+  if (!useConnection.getState().online || confirming) return;
+  if (!pinger || !navigator.onLine) {
+    goOffline();
+    return;
+  }
+  confirming = true;
+  void pinger()
+    .catch(() => false)
+    .then((ok) => {
+      confirming = false;
+      if (!ok) goOffline();
+    });
+}
+
+function goOffline() {
   if (!useConnection.getState().online) return;
   useConnection.setState({ online: false });
   schedulePing();
@@ -58,7 +81,7 @@ export function setPinger(fn: Pinger) {
   pinger = fn;
 }
 
-window.addEventListener('offline', () => reportUnreachable());
+window.addEventListener('offline', () => goOffline());
 window.addEventListener('online', () => {
   // The network is back, but the server may not be: check before trusting it.
   if (pinger) void pinger().then((ok) => (ok ? reportReachable() : schedulePing()), () => schedulePing());

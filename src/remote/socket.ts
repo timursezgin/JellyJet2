@@ -39,6 +39,15 @@ export function onSocketMessage(listener: Listener) {
   return () => void listeners.delete(listener);
 }
 
+/**
+ * Tell the server about this device again (after it's renamed): its sessions
+ * pick up the new name, and other devices hear about it straight away.
+ */
+export function announceDevice() {
+  const { client } = useSession.getState();
+  if (client) void reportCapabilities(client, SUPPORTED_COMMANDS).catch(() => {});
+}
+
 function send(message: SocketMessage) {
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
 }

@@ -453,11 +453,7 @@ interface PlaybackReport {
   paused?: boolean;
   repeatMode?: JellyfinRepeatMode;
   shuffle?: boolean;
-  /**
-   * The queue around the song that's on (each entry's `entryId` tells copies
-   * of a song apart), so another device controlling this one can show it.
-   */
-  queue?: { id: string; entryId: string }[];
+  /** Which queue entry is on (tells copies of a song apart). */
   entryId?: string;
 }
 
@@ -475,7 +471,8 @@ function report(client: JellyfinClient, path: string, r: PlaybackReport) {
         PlayMethod: 'DirectStream',
         RepeatMode: r.repeatMode ?? 'RepeatNone',
         PlaybackOrder: r.shuffle ? 'Shuffle' : 'Default',
-        NowPlayingQueue: r.queue?.map((q) => ({ Id: q.id, PlaylistItemId: q.entryId })),
+        // No NowPlayingQueue: Jellyfin ignores it in these reports (it only keeps
+        // one sent with a stop). The queue goes in the playback note instead.
         PlaylistItemId: r.entryId,
       },
     })
@@ -503,8 +500,9 @@ export interface SessionInfo {
   UserId: string;
   SupportsRemoteControl?: boolean;
   LastActivityDate?: string;
+  /** When the device last reported on its playback. */
+  LastPlaybackCheckIn?: string;
   NowPlayingItem?: BaseItem | null;
-  NowPlayingQueue?: { Id: string; PlaylistItemId?: string }[] | null;
   PlaylistItemId?: string | null;
   PlayState?: {
     PositionTicks?: number | null;

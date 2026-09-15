@@ -312,6 +312,7 @@ function startPlayback() {
     // Refused for want of a tap (a song sent from another device): ask for one.
     const needsTap = error instanceof DOMException && error.name === 'NotAllowedError';
     set({ playing: false, buffering: false, needsTap });
+    if (needsTap) reportWaiting();
   });
 }
 
@@ -495,6 +496,7 @@ export function addToQueue(tracks: Track[]) {
   }));
   if (get().queue.length === items.length) load(0, { autoplay: false });
   save(true);
+  reportProgress(true);
   activity('now');
 }
 
@@ -515,6 +517,7 @@ export function playNext(tracks: Track[]) {
     original: original ? [...original.slice(0, at), ...items, ...original.slice(at)] : null,
   });
   save(true);
+  reportProgress(true);
   activity('now');
 }
 
@@ -539,6 +542,7 @@ export function removeFromQueue(index: number) {
     load(Math.min(index, nextQueue.length - 1), { autoplay: playing });
   }
   save(true);
+  reportProgress(true);
   activity('now');
 }
 
@@ -552,6 +556,7 @@ export function moveInQueue(from: number, to: number) {
   nextQueue.splice(to, 0, moved);
   set({ queue: nextQueue, index: nextQueue.indexOf(current) });
   save(true);
+  reportProgress(true);
   activity('now');
 }
 
@@ -734,17 +739,33 @@ function reportProgress(force: boolean) {
   });
 }
 
-/** How many songs of the queue go with each report, around the one that's on. */
-const REPORTED_QUEUE = 200;
+/**
+ * A song sent here is waiting for a tap (iOS won't start sound without one):
+ * tell the server it's here, paused, so the device that sent it shows the
+ * song and the queue rather than nothing.
+ */
+function reportWaiting() {
+  const track = currentTrack();
+  const s = session();
+  if (!track || !s || reportedStart) return;
+  reportPlaybackProgress(s.client, {
+    itemId: track.id,
+    playSessionId,
+    positionSeconds: pendingSeek ?? audio.currentTime,
+    paused: true,
+    ...stateReport(),
+  });
+}
 
-/** Repeat, shuffle and the queue, so a device controlling this one can show them. */
+/**
+ * Repeat, shuffle and which entry is on, so a device controlling this one can
+ * show them. (The queue itself reaches it through the playback note, handoff.ts.)
+ */
 function stateReport() {
   const { queue, index, repeat, shuffle } = get();
-  const start = Math.max(0, Math.min(index - 50, queue.length - REPORTED_QUEUE));
   return {
     repeatMode: repeat === 'all' ? ('RepeatAll' as const) : repeat === 'one' ? ('RepeatOne' as const) : ('RepeatNone' as const),
     shuffle,
-    queue: queue.slice(start, start + REPORTED_QUEUE).map((item) => ({ id: item.id, entryId: item.uid })),
     entryId: queue[index]?.uid,
   };
 }
