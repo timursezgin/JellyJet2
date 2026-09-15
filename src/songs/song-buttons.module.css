@@ -26,8 +26,18 @@
   color: var(--accent);
 }
 
-.button[data-muted],
+/* In rows a paler arrow quietly marks a song that isn't downloaded. */
+.button[data-muted] {
+  color: var(--ink-28);
+}
+
+/* The full player's buttons are brighter; a pale arrow there looked disabled,
+   so it matches the heart and (…) - paler only when it truly can't be used. */
 .buttons[data-large] .button[data-muted] {
+  color: var(--ink-60);
+}
+
+.buttons[data-large] .button[data-unavailable] {
   color: var(--ink-28);
 }
 

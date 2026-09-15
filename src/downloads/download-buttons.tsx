@@ -115,6 +115,7 @@ export function SongDownloadButton({ track, className, large = false }: { track:
       className={className}
       data-active={state.status === 'done' || state.status === 'downloading' || state.status === 'queued' || undefined}
       data-muted={unavailable || state.status === 'none' || state.status === 'missing' || undefined}
+      data-unavailable={unavailable || undefined}
       onClick={() => void toggleSongDownload(track)}
       aria-label={label}
     >

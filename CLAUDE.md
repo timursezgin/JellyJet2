@@ -133,6 +133,8 @@ Testing on this PC:
     deletion allowed.
 - **Liked and downloaded are properties of the song**, shown identically
   everywhere. Liking never downloads anything.
+- A not-downloaded arrow is pale grey in rows; in the full player it matches
+  the heart and (…) (pale there only when offline, i.e. unusable).
 - Tapping the song that's already playing does nothing (paused: resumes).
 
 ### Downloads
