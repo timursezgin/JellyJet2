@@ -26,11 +26,14 @@ download service behind Add albums, now lives here in `pipeline/`.
   blocks something, say so plainly and offer real fixes.
 - Ask before big decisions; don't re-ask the settled ones below.
 - The owner reviews on their iPhone and sends annotated screenshots.
-- After each tested change: commit, push to `origin`
-  (github.com/timursezgin/JellyJet2), publish with `npm run deploy`, and tell
-  the owner to close and reopen the home-screen app (twice after big
-  service-worker changes). Commit messages end with the session's
-  Co-Authored-By line. Don't commit `.claude/launch.json`.
+- **Work locally; don't commit or push after each change** (it's slow). Ask
+  the owner whether to commit and push to `origin`
+  (github.com/timursezgin/JellyJet2) roughly every 10 messages or after a
+  major change, and only do it on a yes. Commit messages end with the
+  session's Co-Authored-By line. Don't commit `.claude/launch.json`.
+- After a tested change, publish with `npm run deploy` (that's how the owner
+  tries it on the iPhone) and tell them to close and reopen the home-screen
+  app (twice after big service-worker changes).
 
 ## Rules
 
@@ -213,27 +216,48 @@ Testing on this PC:
   opened. No workarounds (a silent-audio trick was tried and removed at the
   owner's request). A native app remains a possible later addition.
 
+### Desktop (windows 1000px wide and up)
+Kept light: the same screens, optimised for mouse and keyboard. Below 1000px
+the phone layout is exactly as before (`src/ui/use-desktop.ts` +
+`@media (min-width: 1000px)`; hover styles use `(hover: hover) and (pointer: fine)`).
+- **Left sidebar:** Home, Search, Library, Settings; Liked Songs, Downloaded;
+  Playlists (+ new). Liked/Downloaded/playlists open on top of Library's first page.
+- **Bottom player bar** (no full-screen player on desktop): cover and title go to
+  the album, artist to the artist; the names get a fixed 150px (wrapping to two
+  lines each) with heart | download | (…) right after, never moving; shuffle,
+  previous, play, next, repeat and a progress bar (middle column at most
+  500px); at the right volume, Lyrics, Queue, evenly spaced.
+- **Queue and lyrics** open in a framed panel at the right edge (one at a time;
+  the button toggles). The left edge drags to resize, 280px up to half the
+  window; double-click resets. Open panel and width are remembered.
+- **Song lists** are columns - Title | Artist | Album | Length | buttons (album
+  pages drop Album) - under a sticky header: click a column to sort A-Z, again
+  Z-A, a third time back to the list's own order (the Tracks page sorts on the
+  server and just flips). Playing from a sorted list plays in that order.
+  Artist/album names are links (`TextLink`: inline text, so they can "…" and
+  line-clamp). A play symbol shows on the cover (or over the track number)
+  when clicking would start the song; Home's liked-song cards get a plain white
+  one in the cover's bottom-left corner.
+  Album grids fit more covers per row.
+- **Mouse:** hover highlights; right-click a song for its (…) menu at the
+  mouse; the (…) button and other sheets open as a small menu / centred window;
+  drag a song row onto a sidebar playlist (adds it) or Liked Songs (likes it),
+  with the song and a round red (+) following the mouse. Shelves get tall
+  rounded arrow buttons level with the covers, hidden searches stay visible, Add albums rows show Cancel/Dismiss on
+  hover, pages switch without the iPhone slide.
+- **Keys:** Space play/pause; ←/→ 10s; Ctrl+←/→ previous/next; Ctrl+F or /
+  Search; Alt+← or the mouse back button: back; Esc closes menus.
+- The Browser pane emulates a touch device (no hover, `(hover: hover)` false):
+  check desktop visuals with Playwright WebKit at 1440x900.
+
 ## Status and next
 
 Done and in daily use: everything above, plus a performance pass (instant
 start from the saved page with safe background updates, WOFF2 fonts, capped
-saved cache, covers that never fade in twice, cheap per-row lookups).
+saved cache, covers that never fade in twice, cheap per-row lookups). The
+desktop layout is live and being tried out by the owner.
 
-**Next: the desktop layout.** Nothing is decided yet - **ask the owner before
-building**, e.g.:
-- At what window width it starts; the phone layout must stay exactly as is
-  below that.
-- Navigation: a left sidebar instead of bottom tabs? What's in it (Home,
-  Search, Library sections, playlists)?
-- Player: a full-width bottom bar? What happens to the full-screen player and
-  the queue (side panel)?
-- Lists: multi-column song tables (title, artist, album, time) or wider phone
-  rows? Hover states, right-click for (…), keyboard shortcuts (space)?
-- Install as a desktop app (Chrome/Edge) with downloads/offline?
-
-Approach: one codebase and one set of screens - layout at a CSS breakpoint
-plus a few desktop-only components (sidebar, player bar), not forked pages.
-Check the phone layout is untouched (tests use 390-402px viewports).
+Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
 
 ## Code layout
 
@@ -246,8 +270,10 @@ Check the phone layout is untouched (tests use 390-402px viewports).
   the app at once and only signs out on a 401.
 - `src/nav/` - per-tab page stacks (`navigation.ts`), `StackView` (iOS
   push/pop slides, left-edge swipe-back, Web Animations API), `PageContext`.
-- `src/shell/app-shell.tsx` - tabs + route → screen mapping. `--chrome-bottom`
-  is the space pages keep clear at the bottom.
+- `src/shell/app-shell.tsx` - tabs + route → screen mapping (phone), or
+  sidebar + pages + side panel + player bar (desktop). `--chrome-bottom` is the
+  space pages keep clear at the bottom. `sidebar.tsx`, `shortcuts.ts` (keys,
+  mouse back button, Search focus requests).
 - `src/screens/` - one file per screen.
 - `src/data/queries.ts` - every library read as a TanStack Query hook (cached,
   refreshed in the background; long lists paged 100 at a time).
@@ -262,9 +288,13 @@ Check the phone layout is untouched (tests use 390-402px viewports).
   sheet and New playlist).
 - `src/player/player.ts` - one audio element, queue (localStorage
   `jj.player.<userId>`, saved only after restore), lock-screen handlers.
-  `full-player.tsx` - the full-screen player; `lyrics.tsx` - its lyrics view
-  (the panel scrolls inside the player's drag-to-close area: `data-no-drag`
-  plus its own `touch-action: pan-y`).
+  `full-player.tsx` - the full-screen player (phone); `lyrics.tsx` - its lyrics
+  view (the panel scrolls inside the player's drag-to-close area: `data-no-drag`
+  plus its own `touch-action: pan-y`), also used by the desktop side panel.
+  Desktop: `player-bar.tsx`, `side-panel.tsx` (queue/lyrics frame, width),
+  `queue-sheet.tsx` exports `QueueList` for both.
+- `src/songs/song-drag.tsx` - desktop drag of a song row onto the sidebar
+  (pointer events, not HTML drag and drop; drop targets carry `data-drop-id`).
 - `src/downloads/` - `downloads.ts` (index: songs with `sources`, collections
   with `excluded`, jobs, progress; IndexedDB), `engine.ts` (queue, fetching
   into Cache Storage `jellyjet2-audio` at `/offline/audio/<id>`, covers in

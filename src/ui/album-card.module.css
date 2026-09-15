@@ -29,6 +29,20 @@
   min-height: 15px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .card > :first-child {
+    transition: filter 140ms ease;
+  }
+
+  .card:hover > :first-child {
+    filter: brightness(1.12);
+  }
+
+  .card:hover .title {
+    text-decoration: underline;
+  }
+}
+
 .card[data-small] .title {
   font-size: 13px;
 }

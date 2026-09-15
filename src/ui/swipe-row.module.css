@@ -63,6 +63,44 @@
   transition-delay: 0s;
 }
 
+.hoverAction {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hoverAction {
+    position: absolute;
+    top: 50%;
+    right: var(--page-gutter);
+    display: block;
+    padding: 6px 12px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-pill);
+    background: var(--control-fill);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    opacity: 0;
+    transition:
+      opacity 120ms ease,
+      background-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .row:hover .hoverAction {
+    opacity: 1;
+  }
+
+  .hoverAction:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .row[data-open] .hoverAction {
+    display: none;
+  }
+}
+
 /* Done: the whole row eases away to the left before the space closes. */
 .row[data-leaving] {
   pointer-events: none;

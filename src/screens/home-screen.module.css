@@ -27,6 +27,38 @@
   opacity: 0.7;
 }
 
+.songCover {
+  position: relative;
+  display: flex;
+}
+
+.playHint {
+  display: none;
+}
+
+/* With a mouse: a white play symbol in the cover's bottom-left corner, as a
+   hint that clicking plays. */
+@media (hover: hover) and (pointer: fine) {
+  .playHint {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    display: flex;
+    color: #fff;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+
+  .songCard:hover .playHint {
+    opacity: 1;
+  }
+
+  .songCard:hover .songTitle {
+    text-decoration: underline;
+  }
+}
+
 .songTitle {
   margin-top: 8px;
   font-size: 13px;

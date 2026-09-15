@@ -83,3 +83,17 @@
   touch-action: none;
   cursor: grab;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .slot:not([data-dragging]):hover {
+    background: #202026;
+  }
+
+  .main:not(:disabled):hover .title {
+    text-decoration: underline;
+  }
+
+  .icon:hover {
+    color: var(--ink);
+  }
+}

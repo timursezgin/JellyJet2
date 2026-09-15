@@ -1,8 +1,17 @@
-import { useRef, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useDesktop } from './use-desktop';
 import { usePresence } from './use-presence';
 import styles from './sheet.module.css';
+
+/** A point on screen (a right-click, a clicked button) a desktop menu opens beside. */
+export interface Anchor {
+  x: number;
+  y: number;
+  /** A button's top edge: a menu that opens upwards ends there, not over the button. */
+  top?: number;
+}
 
 interface SheetProps {
   open: boolean;
@@ -13,38 +22,77 @@ interface SheetProps {
   closeLabel?: string;
   /** Replaces the title and subtitle (e.g. a song's cover and name). */
   header?: ReactNode;
+  /** Desktop: open as a menu at this point instead of a centred window. */
+  anchor?: Anchor | null;
   children: ReactNode;
 }
 
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const MENU_WIDTH = 340;
 
 /**
  * The design's bottom sheet: dimmed backdrop, rounded panel sliding up, grab
  * handle. Drag the top of the panel down (or tap the backdrop) to close.
+ * On a computer it's a centred window, or a menu beside the mouse when
+ * anchored; Escape or a click outside closes it.
  */
-export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', header, children }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', header, anchor, children }: SheetProps) {
+  const desktop = useDesktop();
   const { mounted, ref } = usePresence<HTMLDivElement>(
     open,
-    (root) => [
-      root.querySelector(`.${styles.scrim}`)!.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease' }),
-      root
-        .querySelector(`.${styles.panel}`)!
-        .animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 300, easing: EASE }),
-    ],
     (root) => {
+      const scrim = root.querySelector(`.${styles.scrim}`)!;
+      const panel = root.querySelector(`.${styles.panel}`)!;
+      if (desktop) {
+        return [
+          scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'ease' }),
+          panel.animate([{ opacity: 0, transform: 'scale(0.97)' }, { opacity: 1, transform: 'scale(1)' }], {
+            duration: 160,
+            easing: EASE,
+          }),
+        ];
+      }
+      return [
+        scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease' }),
+        panel.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 300, easing: EASE }),
+      ];
+    },
+    (root) => {
+      const scrim = root.querySelector(`.${styles.scrim}`)!;
       const panel = root.querySelector<HTMLElement>(`.${styles.panel}`)!;
+      if (desktop) {
+        return [
+          scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease', fill: 'forwards' }),
+          panel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease', fill: 'forwards' }),
+        ];
+      }
       const from = panel.style.transform || 'translateY(0)';
       panel.style.transform = '';
       return [
-        root.querySelector(`.${styles.scrim}`)!.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease', fill: 'forwards' }),
+        scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease', fill: 'forwards' }),
         panel.animate([{ transform: from }, { transform: 'translateY(100%)' }], { duration: 260, easing: EASE, fill: 'forwards' }),
       ];
     },
   );
 
+  // Escape closes the topmost sheet only (it's heard before anything else).
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      closeRef.current();
+    };
+    document.addEventListener('keydown', onKey, { capture: true });
+    return () => document.removeEventListener('keydown', onKey, { capture: true });
+  }, [open]);
+
   const drag = useRef<{ y: number; t: number; id: number; lastY: number; lastT: number } | null>(null);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (desktop) return;
     drag.current = { y: e.clientY, t: e.timeStamp, id: e.pointerId, lastY: e.clientY, lastT: e.timeStamp };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
@@ -75,10 +123,25 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', hea
 
   if (!mounted) return null;
 
+  const anchored = desktop && anchor ? anchor : null;
+
   return createPortal(
-    <div ref={ref} className={styles.root} data-closing={!open || undefined}>
-      <div className={styles.scrim} onClick={onClose} />
-      <div className={styles.panel} role="dialog" aria-label={title}>
+    <div
+      ref={ref}
+      className={styles.root}
+      data-closing={!open || undefined}
+      data-desktop={desktop || undefined}
+      data-anchored={anchored ? true : undefined}
+    >
+      <div
+        className={styles.scrim}
+        onClick={onClose}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+      />
+      <div className={styles.panel} role="dialog" aria-label={title} style={anchored ? menuPosition(anchored) : undefined}>
         <div
           className={styles.header}
           onPointerDown={onPointerDown}
@@ -111,4 +174,21 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel = 'Done', hea
     </div>,
     document.body,
   );
+}
+
+/** Beside the point, flipped left or up when it would run off the window. */
+function menuPosition({ x, y, top = y }: Anchor): CSSProperties {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const style: CSSProperties = {};
+  if (x + MENU_WIDTH + 8 > width) style.right = Math.max(8, width - x);
+  else style.left = x;
+  if (y > height * 0.55) {
+    style.bottom = height - top;
+    style.maxHeight = top - 12;
+  } else {
+    style.top = y;
+    style.maxHeight = height - y - 12;
+  }
+  return style;
 }

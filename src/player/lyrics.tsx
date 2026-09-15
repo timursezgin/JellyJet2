@@ -19,8 +19,11 @@ interface Line {
 /** After scrolling by hand, the lyrics wait this long before following the song again. */
 const HAND_SCROLL_PAUSE_MS = 3500;
 
-/** The lyrics over the blurred cover, filling the space above the song title. */
-export function LyricsPanel({ trackId }: { trackId: string }) {
+/**
+ * The lyrics over the blurred cover, filling the space above the song title;
+ * `side`: filling the desktop side panel instead.
+ */
+export function LyricsPanel({ trackId, side = false }: { trackId: string; side?: boolean }) {
   const query = useLyrics(trackId, true);
 
   const lines = useMemo<Line[]>(() => {
@@ -29,7 +32,7 @@ export function LyricsPanel({ trackId }: { trackId: string }) {
     return raw.map((l) => ({ text: l.Text.trim(), start: timed && l.Start != null ? ticksToSeconds(l.Start) : null }));
   }, [query.data]);
 
-  if (query.data) return <LyricLines key={trackId} lines={lines} />;
+  if (query.data) return <LyricLines key={trackId} lines={lines} side={side} />;
 
   let message = '';
   if (query.data === null) message = 'No lyrics for this song yet';
@@ -37,13 +40,13 @@ export function LyricsPanel({ trackId }: { trackId: string }) {
   else if (query.isError) message = 'Couldn’t load the lyrics';
 
   return (
-    <div className={styles.panel} data-no-drag>
+    <div className={styles.panel} data-side={side || undefined} data-no-drag>
       <p className={styles.message}>{message}</p>
     </div>
   );
 }
 
-function LyricLines({ lines }: { lines: Line[] }) {
+function LyricLines({ lines, side }: { lines: Line[]; side: boolean }) {
   const timed = lines.some((l) => l.start != null);
   const active = useActiveLine(lines, timed);
   const scroller = useRef<HTMLDivElement>(null);
@@ -71,6 +74,7 @@ function LyricLines({ lines }: { lines: Line[] }) {
       ref={scroller}
       className={styles.panel}
       data-timed={timed || undefined}
+      data-side={side || undefined}
       data-no-drag
       onTouchMove={onHandScroll}
       onWheel={onHandScroll}

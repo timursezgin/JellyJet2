@@ -3,6 +3,7 @@ import { Ellipsis, Heart } from 'lucide-react';
 import { useSession } from '@/auth/session';
 import type { Track } from '@/player/track';
 import { SongDownloadButton } from '@/downloads/download-buttons';
+import { isDesktop } from '@/ui/use-desktop';
 import { toggleLiked, useIsLiked } from './likes';
 import { openSongMenu, type SongContext } from './song-menu';
 import styles from './song-buttons.module.css';
@@ -20,13 +21,18 @@ interface Props {
 export function SongButtons({ track, large = false, context, onUnlikeRequest }: Props) {
   const canDownload = useSession((s) => s.session?.permissions.canDownload ?? false);
   return (
-    <div className={styles.buttons} data-large={large || undefined}>
+    <div className={styles.buttons} data-large={large || undefined} data-no-song-drag>
       <LikeButton track={track} large={large} onUnlikeRequest={onUnlikeRequest} />
       {canDownload && <SongDownloadButton track={track} className={styles.button} large={large} />}
       <button
         type="button"
         className={styles.button}
-        onClick={() => openSongMenu(track, context)}
+        onClick={(e) => {
+          // On a computer the menu drops down from the button.
+          const rect = e.currentTarget.getBoundingClientRect();
+          openSongMenu(track, context, isDesktop() ? { x: rect.right, y: rect.bottom, top: rect.top } : null);
+        }}
+        title="More"
         aria-label={`More for ${track.name}`}
       >
         <Ellipsis size={large ? 24 : 20} strokeWidth={2.2} />

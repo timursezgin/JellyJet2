@@ -41,6 +41,13 @@
   color: var(--ink-28);
 }
 
+/* With a mouse, the icon under it brightens (a liked heart stays red). */
+@media (hover: hover) and (pointer: fine) {
+  .button:not([data-active]):not([data-unavailable]):hover {
+    color: var(--ink);
+  }
+}
+
 /* Pressing shrinks the icon a touch; it never dims and brightens again. */
 .button svg {
   transition: transform 120ms ease;

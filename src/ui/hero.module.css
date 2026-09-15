@@ -125,6 +125,46 @@ button.link:active {
   color: var(--accent);
 }
 
+/* A computer: buttons keep a button's width instead of stretching across the page. */
+@media (min-width: 1000px) {
+  .hero {
+    padding-top: 16px;
+  }
+
+  .top {
+    gap: 24px;
+  }
+
+  .title {
+    font-size: 30px;
+    letter-spacing: -0.6px;
+  }
+
+  .hero[data-layout='stacked'] .title {
+    font-size: 34px;
+  }
+
+  .play,
+  .shuffle {
+    flex: 0 0 140px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+
+  .shuffle:not(:disabled):hover,
+  .icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  button.link:hover {
+    text-decoration: underline;
+  }
+}
+
 .kicker {
   margin: 0;
 }

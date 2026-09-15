@@ -5,8 +5,11 @@ import { formatTime } from './track';
 import { usePosition } from './use-position';
 import styles from './scrubber.module.css';
 
-/** The draggable progress bar with elapsed and remaining time. */
-export function Scrubber() {
+/**
+ * The draggable progress bar with elapsed and remaining time. `inline` (the
+ * desktop player bar): a thinner bar with the times either side of it.
+ */
+export function Scrubber({ inline = false }: { inline?: boolean }) {
   const duration = usePlayer((s) => s.duration);
   const position = usePosition(true);
   const track = useRef<HTMLDivElement>(null);
@@ -21,7 +24,8 @@ export function Scrubber() {
   };
 
   return (
-    <div className={styles.scrubber} data-no-drag>
+    <div className={styles.scrubber} data-inline={inline || undefined} data-no-drag>
+      {inline && <span className={styles.time}>{formatTime(shown)}</span>}
       <div
         ref={track}
         className={styles.hit}
@@ -49,10 +53,14 @@ export function Scrubber() {
         </div>
         <div className={styles.knob} style={{ left: `${fraction * 100}%` }} />
       </div>
-      <div className={styles.times}>
-        <span>{formatTime(shown)}</span>
-        <span>-{formatTime(Math.max(0, duration - shown))}</span>
-      </div>
+      {inline ? (
+        <span className={styles.time}>{formatTime(duration)}</span>
+      ) : (
+        <div className={styles.times}>
+          <span>{formatTime(shown)}</span>
+          <span>-{formatTime(Math.max(0, duration - shown))}</span>
+        </div>
+      )}
     </div>
   );
 }

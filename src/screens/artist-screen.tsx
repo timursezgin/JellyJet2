@@ -9,7 +9,9 @@ import { HERO_ART, Hero } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { SectionHeader } from '@/ui/section';
 import { LoadError, LoadingRows } from '@/ui/states';
-import { TrackRow } from '@/ui/track-row';
+import { sortTracks, useTrackSort } from '@/songs/track-sort';
+import { TrackListHeader, TrackRow } from '@/ui/track-row';
+import { gridColumns } from './albums-screen';
 import styles from './detail-screens.module.css';
 
 const TOP_SONGS = 5;
@@ -25,7 +27,8 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
 
   const searching = term.trim().length > 0;
   const words = term.trim().toLowerCase();
-  const songs = searching ? filterTracks(allTracks, term) : allTracks.slice(0, TOP_SONGS);
+  const [sort, onSort] = useTrackSort();
+  const songs = sortTracks(searching ? filterTracks(allTracks, term) : allTracks.slice(0, TOP_SONGS), sort);
   const albumList = searching ? allAlbums.filter((a) => a.Name.toLowerCase().includes(words)) : allAlbums;
 
   const meta = [
@@ -35,9 +38,9 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
     .filter(Boolean)
     .join(' · ');
 
-  // Grid cells fill the page width, two to a row.
+  // Grid cells fill the page width, two to a row on a phone, more when wider.
   const gridRef = useRef<HTMLDivElement>(null);
-  const cellSize = useCellSize(gridRef);
+  const { size: cellSize, columns } = useCellSize(gridRef);
 
   return (
     <Page
@@ -57,6 +60,7 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
       )}
 
       <SectionHeader title={searching ? 'Songs' : 'Top songs'} />
+      {songs.length > 0 && <TrackListHeader sort={sort} onSort={onSort} />}
       {tracks.isPending && <LoadingRows count={TOP_SONGS} />}
       {tracks.isError && !tracks.data && <LoadError onRetry={() => tracks.refetch()} />}
       {songs.map((track, i) => (
@@ -70,7 +74,7 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
       {searching && songs.length === 0 && !tracks.isPending && <p className={styles.message}>No songs match that.</p>}
 
       {(albumList.length > 0 || albums.isPending) && <SectionHeader title="Albums" />}
-      <div ref={gridRef} className={styles.albums}>
+      <div ref={gridRef} className={styles.albums} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {cellSize > 0 &&
           albumList.map((album) => (
             <AlbumCard key={album.Id} album={album} size={cellSize} subtitle={album.ProductionYear ? String(album.ProductionYear) : ''} />
@@ -81,17 +85,19 @@ export function ArtistScreen({ id, title }: { id: string; title?: string }) {
 }
 
 function useCellSize(ref: RefObject<HTMLDivElement | null>) {
-  const [size, setSize] = useState(0);
+  const [cells, setCells] = useState({ size: 0, columns: 2 });
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const observer = new ResizeObserver(() => {
       const style = getComputedStyle(el);
       const inner = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      setSize(Math.floor((inner - 16) / 2));
+      const columns = gridColumns(inner);
+      const size = Math.floor((inner - 16 * (columns - 1)) / columns);
+      setCells((c) => (c.size === size && c.columns === columns ? c : { size, columns }));
     });
     observer.observe(el);
     return () => observer.disconnect();
   }, [ref]);
-  return size;
+  return cells;
 }

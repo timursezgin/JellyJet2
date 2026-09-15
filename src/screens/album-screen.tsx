@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useAlbumTracks, useItem } from '@/data/queries';
 import { artworkOf } from '@/jellyfin/api';
 import { navigate } from '@/nav/navigation';
@@ -9,7 +11,8 @@ import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/download
 import { useKeepInSync } from '@/downloads/use-keep-in-sync';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
-import { TrackRow } from '@/ui/track-row';
+import { sortTracks, useTrackSort } from '@/songs/track-sort';
+import { TrackListHeader, TrackRow } from '@/ui/track-row';
 import styles from './detail-screens.module.css';
 
 export function AlbumScreen({ id, title }: { id: string; title?: string }) {
@@ -31,7 +34,10 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
   ]
     .filter(Boolean)
     .join(' · ');
-  const discs = new Set(list.map((t) => t.disc ?? 1)).size > 1;
+  // Sorted by a column, the disc headings go: they'd split up a sorted list.
+  const [sort, onSort] = useTrackSort();
+  const shown = useMemo(() => sortTracks(list, sort), [list, sort]);
+  const discs = !sort && new Set(list.map((t) => t.disc ?? 1)).size > 1;
 
   return (
     <Page title={info?.Name ?? title ?? ''} variant="detail">
@@ -58,10 +64,11 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
           />
         }
       />
+      {list.length > 0 && <TrackListHeader sort={sort} onSort={onSort} numbered hideAlbum />}
       {tracks.isPending && <LoadingRows count={6} />}
       {tracks.isError && !tracks.data && <LoadError onRetry={() => tracks.refetch()} />}
-      {list.map((track, i) => {
-        const showDisc = discs && (i === 0 || (list[i - 1].disc ?? 1) !== (track.disc ?? 1));
+      {shown.map((track, i) => {
+        const showDisc = discs && (i === 0 || (shown[i - 1].disc ?? 1) !== (track.disc ?? 1));
         const ownArtist = artistLine(track);
         return (
           <div key={track.id}>
@@ -70,7 +77,8 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
               track={track}
               leading={track.number ?? i + 1}
               subtitle={ownArtist && ownArtist !== artistName ? ownArtist : ''}
-              onPlay={() => playTracks(list, i, { shuffle: false })}
+              hideAlbum
+              onPlay={() => playTracks(shown, i, { shuffle: false })}
             />
           </div>
         );

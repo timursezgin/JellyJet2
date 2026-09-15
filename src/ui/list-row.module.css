@@ -27,6 +27,28 @@ button.row:active {
   opacity: 0.55;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  button.row {
+    position: relative;
+    isolation: isolate;
+  }
+
+  button.row::before {
+    content: '';
+    position: absolute;
+    inset: 0 -10px;
+    z-index: -1;
+    border-radius: 8px;
+    background: var(--hover-fill);
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+
+  button.row:hover::before {
+    opacity: 1;
+  }
+}
+
 .label {
   flex: 1;
   min-width: 0;

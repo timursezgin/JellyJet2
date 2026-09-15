@@ -73,6 +73,12 @@ a {
   text-decoration: none;
 }
 
+/* Dragging a song onto a playlist (desktop). */
+html[data-song-drag],
+html[data-song-drag] * {
+  cursor: grabbing !important;
+}
+
 img {
   display: block;
   max-width: 100%;

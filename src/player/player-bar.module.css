@@ -1,0 +1,258 @@
+/* Desktop: along the bottom of the window, under the sidebar and pages. */
+.bar {
+  height: 100%;
+  display: grid;
+  /* The sides never squeeze the song or the volume; the middle stays centred
+     whenever there's room. */
+  grid-template-columns: minmax(max-content, 1fr) minmax(320px, 500px) minmax(max-content, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 0 16px;
+  background: var(--player-bar-fill);
+  border-top: 1px solid var(--hairline);
+}
+
+/* --- The song ------------------------------------------------------------ */
+
+.song {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cover {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cover > * {
+  transition: filter 140ms ease;
+}
+
+.cover:not(:disabled):hover > * {
+  filter: brightness(1.12);
+}
+
+.cover:disabled {
+  cursor: default;
+}
+
+/* A fixed-width space for the names, so the heart, download and (…) right
+   after it never move; names too long for it wrap (two lines each at most). */
+.text {
+  flex: 0 0 150px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* The heart's own padding gives the separation from the names. */
+.song > .text {
+  margin-right: -8px;
+}
+
+.title {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+}
+
+/* Buttons can't clamp lines themselves, so the title's text does. */
+.clamp,
+.artists {
+  max-width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.artists {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink-50);
+}
+
+.artist {
+  cursor: pointer;
+  outline: none;
+}
+
+.title:not(:disabled):hover .clamp,
+.artist:hover,
+.artist:focus-visible {
+  text-decoration: underline;
+  color: var(--ink);
+}
+
+.title:disabled {
+  cursor: default;
+}
+
+/* --- Transport and progress ------------------------------------------------ */
+
+.middle {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.side,
+.skip {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--ink-60);
+  transition: color 120ms ease;
+}
+
+.skip {
+  color: var(--ink-70);
+}
+
+.side:hover,
+.skip:hover {
+  color: var(--ink);
+}
+
+.side[data-active] {
+  color: var(--accent);
+}
+
+.play {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  transition: transform 120ms ease;
+}
+
+.play:hover {
+  transform: scale(1.06);
+}
+
+.play:active,
+.side:active,
+.skip:active {
+  transform: scale(0.94);
+}
+
+.playGlyph {
+  margin-left: 2px;
+}
+
+.play[data-buffering]::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--ink-60);
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Lyrics, queue, volume ------------------------------------------------ */
+
+.end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* The extra margin makes the gap from the slider's end to the Lyrics icon
+   match the gap between the Lyrics and Queue icons (their buttons have 8px
+   of padding around each icon). */
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.volumeHit {
+  position: relative;
+  width: 96px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.volumeTrack {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.13);
+  overflow: hidden;
+}
+
+.volumeFill {
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: left;
+}
+
+.volumeHit:hover .volumeFill,
+.volumeHit:focus-visible .volumeFill,
+.volumeHit[data-dragging] .volumeFill {
+  background: var(--accent);
+}
+
+.volumeKnob {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.volumeHit:hover .volumeKnob,
+.volumeHit:focus-visible .volumeKnob,
+.volumeHit[data-dragging] .volumeKnob {
+  opacity: 1;
+}

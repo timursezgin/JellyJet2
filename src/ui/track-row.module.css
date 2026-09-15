@@ -35,6 +35,54 @@
   opacity: 0.6;
 }
 
+.lead {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+}
+
+.playHint {
+  display: none;
+}
+
+/* With a mouse: a play symbol over the cover (or in place of the track
+   number) while the pointer is on a song that clicking would start. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  .playHint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+
+  .lead[data-art] .playHint {
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+  }
+
+  .lead:not([data-art]) .playHint {
+    background: var(--hover-solid);
+  }
+
+  .row:hover .playHint {
+    opacity: 1;
+  }
+
+  .row[data-current] .lead:not([data-art]) .playHint {
+    color: var(--accent);
+  }
+
+  /* Not while a song is being dragged over it. */
+  :root[data-song-drag] .playHint {
+    opacity: 0;
+  }
+}
+
 .number {
   width: 24px;
   flex-shrink: 0;
@@ -83,6 +131,170 @@
 
 .row[data-unavailable] .main:active {
   opacity: 0.32;
+}
+
+/* --- Desktop: Artist, Album, Length columns; the header above them ---------- */
+
+/* Column widths, shared by the rows and the header so everything lines up. */
+.colArtist {
+  flex: 0 0 24%;
+}
+
+.colAlbum {
+  flex: 0 0 26%;
+}
+
+.colLength {
+  flex: 0 0 64px;
+  justify-content: flex-end;
+  padding-right: 20px;
+}
+
+/* The three buttons always sit in the same place, whatever the names. */
+.colActions {
+  flex: 0 0 120px;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cell {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+  font-size: 13.5px;
+  color: var(--ink-45);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.cellText {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link {
+  cursor: pointer;
+  outline: none;
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.row[data-unavailable] .cell {
+  opacity: 0.32;
+}
+
+.header {
+  position: sticky;
+  top: var(--bar-height);
+  z-index: 2;
+  height: 36px;
+  margin: 0 var(--page-gutter);
+  display: flex;
+  align-items: stretch;
+  background: var(--bg);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* The header's Title sits over the rows' titles (after the cover or number). */
+.headMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headLead {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.headLead[data-numbered] {
+  width: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-35);
+}
+
+.headCell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.headButton,
+.headLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--ink-45);
+  white-space: nowrap;
+}
+
+.headButton:hover {
+  color: var(--ink);
+}
+
+.headButton[data-active] {
+  color: var(--ink);
+}
+
+.headButton[data-active] svg {
+  color: var(--accent);
+}
+
+@media (min-width: 1000px) {
+  /* Rounded highlight a little wider than the text. */
+  .slide {
+    margin: 0 -10px;
+    padding: 0 10px;
+    border-radius: 8px;
+  }
+
+  .unlike {
+    left: -10px;
+    right: -10px;
+    border-radius: 8px;
+  }
+
+  .main:active {
+    opacity: 1;
+  }
+
+  .main {
+    padding-right: 20px;
+  }
+
+  /* Its own row of the header lines up with the padded rows. */
+  .header {
+    padding: 0 10px;
+    margin: 0 calc(var(--page-gutter) - 10px);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  .row:hover .slide {
+    background: var(--hover-solid);
+  }
+
+  /* No hairlines touching a highlighted row. */
+  .row:hover,
+  :has(> .row:hover) + * > .row {
+    border-top-color: transparent;
+  }
 }
 
 /* --- Liked Songs: slide open to Unlike, then fly out ----------------------- */

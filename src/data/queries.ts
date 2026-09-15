@@ -5,6 +5,7 @@ import * as api from '@/jellyfin/api';
 import type { JellyfinClient } from '@/jellyfin/client';
 import type { BaseItem, ItemsResult } from '@/jellyfin/types';
 import { trackFromItem, type Track } from '@/player/track';
+import type { TrackSort } from '@/songs/track-sort';
 
 /**
  * Every library read goes through these hooks. Results are cached and
@@ -139,12 +140,12 @@ export function useArtistList(searchTerm: string) {
   );
 }
 
-export function useTrackList(searchTerm: string) {
+export function useTrackList(searchTerm: string, sort: TrackSort = { key: 'title', descending: false }) {
   const { client, userId } = useAccount();
   const term = searchTerm.trim();
   return usePagedList(
-    ['tracks', term],
-    (parentId, page) => api.tracks(client, userId, parentId, { ...page, searchTerm: term }),
+    ['tracks', term, sort.key, sort.descending],
+    (parentId, page) => api.tracks(client, userId, parentId, { ...page, searchTerm: term }, sort),
     toTracks,
   );
 }

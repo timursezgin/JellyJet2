@@ -60,7 +60,7 @@ export function usePlaylistMembership(trackId: string, enabled: boolean) {
 
 const SAVED_OFFLINE = 'Saved - it will sync when you’re back online';
 
-export async function addToPlaylist(playlist: BaseItem, trackIds: string[]) {
+export async function addToPlaylist(playlist: Pick<BaseItem, 'Id' | 'Name'>, trackIds: string[]) {
   const a = account();
   if (!a) return;
   if (!isOnline()) {

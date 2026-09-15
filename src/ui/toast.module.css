@@ -2,7 +2,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--chrome-bottom, 100px) + 20px);
+  bottom: calc(var(--toast-bottom, var(--chrome-bottom, 100px)) + 20px);
   z-index: 100;
   display: flex;
   justify-content: center;

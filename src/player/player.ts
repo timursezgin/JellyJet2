@@ -43,6 +43,15 @@ interface PlayerState {
   /** Full-screen player open. */
   expanded: boolean;
   queueOpen: boolean;
+  /** 0-1; only computers show a volume control (iPhones use their buttons). */
+  volume: number;
+}
+
+const VOLUME_KEY = 'jj.volume';
+
+function savedVolume() {
+  const value = Number(localStorage.getItem(VOLUME_KEY) ?? 1);
+  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
 }
 
 export const usePlayer = create<PlayerState>(() => ({
@@ -56,12 +65,14 @@ export const usePlayer = create<PlayerState>(() => ({
   duration: 0,
   expanded: false,
   queueOpen: false,
+  volume: savedVolume(),
 }));
 
 const get = usePlayer.getState;
 const set = usePlayer.setState;
 
 export const audio = new Audio();
+audio.volume = get().volume;
 audio.preload = 'auto';
 audio.setAttribute('playsinline', '');
 audio.setAttribute('aria-hidden', 'true');
@@ -326,6 +337,30 @@ export function clearQueue() {
   set({ queue: [], original: null, index: 0, playing: false, buffering: false, duration: 0, expanded: false, queueOpen: false });
   save(true);
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
+}
+
+/** The volume before muting, so unmuting goes back to it. */
+let volumeBeforeMute = 1;
+
+export function setVolume(volume: number) {
+  const value = Math.min(1, Math.max(0, volume));
+  audio.volume = value;
+  set({ volume: value });
+  try {
+    localStorage.setItem(VOLUME_KEY, String(value));
+  } catch {
+    // Storage full; the volume just won't be remembered.
+  }
+}
+
+export function toggleMute() {
+  const { volume } = get();
+  if (volume > 0) {
+    volumeBeforeMute = volume;
+    setVolume(0);
+  } else {
+    setVolume(volumeBeforeMute || 1);
+  }
 }
 
 export const openPlayer = () => set({ expanded: true });

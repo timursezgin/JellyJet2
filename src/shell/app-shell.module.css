@@ -21,6 +21,56 @@
   inset: 0;
 }
 
+/* --- Desktop: sidebar | pages, player bar along the bottom ------------------ */
+
+.shell[data-desktop] {
+  --sidebar-width: 248px;
+  --player-bar-height: 88px;
+  --bottom-bar: 0px;
+  /* Pages end above the player bar, so they only keep a little room. */
+  --chrome-bottom: 32px;
+  --toast-bottom: var(--bottom-bar);
+}
+
+.shell[data-desktop][data-mini] {
+  --bottom-bar: var(--player-bar-height);
+}
+
+.shell[data-desktop] .stacks {
+  left: var(--sidebar-width);
+  bottom: var(--bottom-bar);
+}
+
+/* Queue or lyrics open: pages make room for the frame at the right edge. */
+.shell[data-desktop][data-panel] .stacks {
+  right: calc(var(--side-panel-width) + 8px);
+}
+
+.sidePanel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: calc(var(--bottom-bar) + 8px);
+  width: var(--side-panel-width);
+}
+
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: var(--bottom-bar);
+  width: var(--sidebar-width);
+}
+
+.playerBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  height: var(--player-bar-height);
+}
+
 .tabBar {
   position: absolute;
   left: 0;

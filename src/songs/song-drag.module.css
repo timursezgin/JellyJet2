@@ -1,0 +1,88 @@
+/* Follows the mouse: its top-left corner is the pointer. */
+.ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  max-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 10px;
+  background: rgba(34, 34, 40, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sheet);
+  animation: lift 120ms ease;
+}
+
+@keyframes lift {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title,
+.subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 11.5px;
+  color: var(--ink-50);
+}
+
+.ghost[data-over] .subtitle {
+  color: var(--accent);
+}
+
+/* The Library's round (+), right at the pointer, once a playlist is under it. */
+.add {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(var(--accent-tint), var(--accent-tint)), #1b1b20;
+  box-shadow:
+    inset 0 0 0 1px var(--accent-border),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  color: var(--accent);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity 120ms ease,
+    transform 160ms var(--ease-ios);
+}
+
+.ghost[data-over] .add {
+  opacity: 1;
+  transform: scale(1);
+}

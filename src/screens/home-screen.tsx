@@ -1,9 +1,12 @@
+import { Play } from 'lucide-react';
+
 import { useSession } from '@/auth/session';
 import { useLikedSongs, useRecentlyAddedAlbums, useRecentlyPlayedAlbums } from '@/data/queries';
 import type { BaseItem } from '@/jellyfin/types';
 import { navigate } from '@/nav/navigation';
-import { continueIfCurrent, playTracks } from '@/player/player';
-import { artistLine } from '@/player/track';
+import { continueIfCurrent, currentTrack, playTracks, usePlayer } from '@/player/player';
+import { artistLine, type Track } from '@/player/track';
+import { songContextMenu } from '@/songs/song-menu';
 import { AlbumCard } from '@/ui/album-card';
 import { Artwork } from '@/ui/artwork';
 import { Page } from '@/ui/page';
@@ -34,18 +37,7 @@ export function HomeScreen() {
       {liked.data && liked.data.length > 0 ? (
         <Shelf>
           {liked.data.slice(0, 20).map((track, i, list) => (
-            <button
-              key={track.id}
-              type="button"
-              className={styles.songCard}
-              onClick={() => {
-                if (!continueIfCurrent(track.id)) playTracks(list, i);
-              }}
-            >
-              <Artwork art={track.art} size={118} radius={10} />
-              <span className={styles.songTitle}>{track.name}</span>
-              <span className={styles.songArtist}>{artistLine(track)}</span>
-            </button>
+            <SongCard key={track.id} track={track} onPlay={() => playTracks(list, i)} />
           ))}
         </Shelf>
       ) : (
@@ -59,6 +51,32 @@ export function HomeScreen() {
 
       <Stations />
     </Page>
+  );
+}
+
+/** A liked song on Home's shelf; with a mouse, a play symbol shows over the cover. */
+function SongCard({ track, onPlay }: { track: Track; onPlay(): void }) {
+  const isPlaying = usePlayer((s) => s.playing && currentTrack(s)?.id === track.id);
+  return (
+    <button
+      type="button"
+      className={styles.songCard}
+      onClick={() => {
+        if (!continueIfCurrent(track.id)) onPlay();
+      }}
+      onContextMenu={songContextMenu(track)}
+    >
+      <span className={styles.songCover}>
+        <Artwork art={track.art} size={118} radius={10} />
+        {!isPlaying && (
+          <span className={styles.playHint} aria-hidden="true">
+            <Play size={22} fill="currentColor" strokeWidth={0} />
+          </span>
+        )}
+      </span>
+      <span className={styles.songTitle}>{track.name}</span>
+      <span className={styles.songArtist}>{artistLine(track)}</span>
+    </button>
   );
 }
 

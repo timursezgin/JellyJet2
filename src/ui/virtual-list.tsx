@@ -126,7 +126,8 @@ export function VirtualList({ count, rowHeight, renderRow, rowKey, animateMoves 
 
 interface VirtualGridProps {
   count: number;
-  columns: number;
+  /** A number, or worked out from the grid's width. */
+  columns: number | ((width: number) => number);
   /** Space between cells, horizontally and vertically (px). */
   gap: { row: number; column: number };
   /** Height of a cell given its width (a square cover plus its caption). */
@@ -135,9 +136,10 @@ interface VirtualGridProps {
   onNearEnd?(): void;
 }
 
-export function VirtualGrid({ count, columns, gap, cellHeight, renderCell, onNearEnd }: VirtualGridProps) {
+export function VirtualGrid({ count, columns: columnsFor, gap, cellHeight, renderCell, onNearEnd }: VirtualGridProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const columns = typeof columnsFor === 'number' ? columnsFor : Math.max(1, columnsFor(width));
 
   useEffect(() => {
     const el = ref.current;

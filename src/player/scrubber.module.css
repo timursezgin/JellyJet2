@@ -53,6 +53,49 @@
   transform: scale(1);
 }
 
+/* Desktop player bar: times beside a thinner bar that thickens under the mouse. */
+.scrubber[data-inline] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scrubber[data-inline] .hit {
+  flex: 1;
+  height: 20px;
+}
+
+.scrubber[data-inline] .track {
+  height: 4px;
+}
+
+.scrubber[data-inline] .hit:hover .track,
+.scrubber[data-inline] .hit[data-dragging] .track {
+  height: 6px;
+}
+
+.scrubber[data-inline] .hit:hover .knob {
+  opacity: 1;
+  transform: scale(0.85);
+}
+
+.scrubber[data-inline] .hit:hover .fill,
+.scrubber[data-inline] .hit[data-dragging] .fill {
+  background: var(--accent);
+}
+
+.time {
+  width: 40px;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: #686868;
+  font-variant-numeric: tabular-nums;
+}
+
+.time:first-child {
+  text-align: right;
+}
+
 .times {
   display: flex;
   justify-content: space-between;

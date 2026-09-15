@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { filterTracks, useItem, useLikedSongs, usePlaylistTracks } from '@/data/queries';
 import { playTracks } from '@/player/player';
@@ -10,7 +10,8 @@ import { LikedCover, PlaylistCover } from '@/ui/covers';
 import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
-import { TRACK_ROW_HEIGHT, TrackRow } from '@/ui/track-row';
+import { sortTracks, useTrackSort } from '@/songs/track-sort';
+import { TRACK_ROW_HEIGHT, TrackListHeader, TrackRow } from '@/ui/track-row';
 import { VirtualList } from '@/ui/virtual-list';
 import { formatLength } from './album-screen';
 import { useKeepInSync } from '@/downloads/use-keep-in-sync';
@@ -94,9 +95,10 @@ export function TrackCollection({
   animateRemovals = false,
 }: TrackCollectionProps) {
   const [term, setTerm] = useState('');
+  const [sort, onSort] = useTrackSort();
   const all = query.data ?? [];
   const searching = term.trim().length > 0;
-  const shown = searching ? filterTracks(all, term) : all;
+  const shown = useMemo(() => sortTracks(searching ? filterTracks(all, term) : all, sort), [all, term, searching, sort]);
   const totalSeconds = all.reduce((sum, t) => sum + t.duration, 0);
   const meta =
     [
@@ -123,6 +125,7 @@ export function TrackCollection({
         />
       )}
       {!searching && extra}
+      {shown.length > 0 && <TrackListHeader sort={sort} onSort={onSort} />}
       {query.isPending && <LoadingRows count={6} />}
       {query.isError && !query.data && <LoadError onRetry={() => query.refetch()} />}
       {!query.isPending && !(query.isError && !query.data) && shown.length === 0 && (

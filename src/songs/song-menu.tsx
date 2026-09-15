@@ -14,7 +14,7 @@ import {
   CircleCheck,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type MouseEvent } from 'react';
 import { create } from 'zustand';
 
 import { useSession } from '@/auth/session';
@@ -27,7 +27,7 @@ import { Artwork } from '@/ui/artwork';
 import { toggleSongDownload, useSongDownloadState } from '@/downloads/download-buttons';
 import { confirm } from '@/ui/confirm';
 import { PlaylistCover } from '@/ui/covers';
-import { Sheet } from '@/ui/sheet';
+import { Sheet, type Anchor } from '@/ui/sheet';
 import { toast } from '@/ui/toast';
 import { setLiked, useIsLiked } from './likes';
 import { addToPlaylist, createPlaylist, removeFromPlaylist, usePlaylistMembership } from './playlists';
@@ -46,24 +46,39 @@ interface MenuState {
   context: SongContext;
   open: boolean;
   view: View;
+  /** Desktop: where it was opened (a right-click or the (…) button). */
+  anchor: Anchor | null;
 }
 
-const useSongMenu = create<MenuState>(() => ({ track: null, context: {}, open: false, view: 'menu' }));
+const useSongMenu = create<MenuState>(() => ({ track: null, context: {}, open: false, view: 'menu', anchor: null }));
 
-export function openSongMenu(track: Track, context: SongContext = {}) {
-  useSongMenu.setState({ track, context, open: true, view: 'menu' });
+export function openSongMenu(track: Track, context: SongContext = {}, anchor: Anchor | null = null) {
+  useSongMenu.setState({ track, context, open: true, view: 'menu', anchor });
 }
 
 /** Open the "Add to playlist" list straight away (e.g. from the player). */
 export function openAddToPlaylist(track: Track) {
-  useSongMenu.setState({ track, context: {}, open: true, view: 'add' });
+  useSongMenu.setState({ track, context: {}, open: true, view: 'add', anchor: null });
+}
+
+/** What last pressed on the page: a long press on a touch screen also "right-clicks". */
+let lastPointer = 'mouse';
+window.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType), { capture: true, passive: true });
+
+/** Right-clicking a song opens its (…) menu where the mouse is. */
+export function songContextMenu(track: Track, context?: SongContext) {
+  return (event: MouseEvent) => {
+    if (lastPointer === 'touch') return;
+    event.preventDefault();
+    openSongMenu(track, context, { x: event.clientX, y: event.clientY });
+  };
 }
 
 const close = () => useSongMenu.setState({ open: false });
 const show = (view: View) => useSongMenu.setState({ view });
 
 export function SongMenuHost() {
-  const { track, context, open, view } = useSongMenu();
+  const { track, context, open, view, anchor } = useSongMenu();
   if (!track) return null;
   const titles: Record<View, string> = {
     menu: track.name,
@@ -77,6 +92,7 @@ export function SongMenuHost() {
       onClose={close}
       title={titles[view]}
       closeLabel={view === 'menu' ? 'Done' : 'Cancel'}
+      anchor={anchor}
       header={
         view === 'menu' ? (
           <div className={styles.song}>

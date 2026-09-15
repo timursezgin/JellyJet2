@@ -49,6 +49,8 @@ interface NavigationState {
    */
   pop(options?: { instant?: boolean; tab?: TabId; key?: string }): void;
   popToRoot(tab?: TabId): void;
+  /** Desktop sidebar: show this page straight on top of Library's first page. */
+  openInLibrary(route: Route): void;
   reset(): void;
 }
 
@@ -93,10 +95,23 @@ export const useNavigation = create<NavigationState>((set, get) => ({
     set({ instant: false, stacks: { ...stacks, [tab]: stacks[tab].slice(0, 1) } });
   },
 
+  openInLibrary(route) {
+    const { tab, stacks } = get();
+    const stack = stacks.library;
+    const top = stack[stack.length - 1].route;
+    if (tab === 'library' && sameRoute(top, route)) return;
+    set({ tab: 'library', instant: true, stacks: { ...stacks, library: [stack[0], entry(route)] } });
+  },
+
   reset() {
     set({ tab: 'home', stacks: initialStacks(), instant: true });
   },
 }));
+
+/** Whether two routes show the same page (titles aside). */
+export function sameRoute(a: Route, b: Route) {
+  return a.name === b.name && ('id' in a ? a.id : '') === ('id' in b ? b.id : '');
+}
 
 /** Open a page on the current tab. */
 export const navigate = (route: Route) => useNavigation.getState().push(route);

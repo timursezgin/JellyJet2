@@ -152,6 +152,36 @@
   opacity: 0.7;
 }
 
+@media (min-width: 1000px) {
+  .stations {
+    grid-template-columns: repeat(3, 200px);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card,
+  .station {
+    transition: background-color 120ms ease;
+  }
+
+  .card:hover,
+  .station:hover {
+    background: #1e1e24;
+  }
+
+  .play:hover::before {
+    transform: scale(1.1);
+  }
+
+  .regenerate:hover {
+    opacity: 0.8;
+  }
+
+  .decade:hover {
+    background: var(--hover-fill);
+  }
+}
+
 .decades {
   padding-bottom: 8px;
 }

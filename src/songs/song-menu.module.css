@@ -161,6 +161,38 @@
   text-align: center;
 }
 
+/* --- Computer: a tighter menu, rows light up under the mouse ----------------- */
+
+@media (min-width: 1000px) {
+  .menuRow {
+    min-height: 42px;
+  }
+
+  .menuLabel,
+  .rowLabel {
+    font-size: 14.5px;
+  }
+
+  .row {
+    min-height: 54px;
+  }
+
+  .songTitle {
+    font-size: 15px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuRow:hover,
+  .row:not(:disabled):hover {
+    background: var(--hover-fill);
+  }
+
+  .create:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+}
+
 /* --- New playlist ----------------------------------------------------------- */
 
 .form {

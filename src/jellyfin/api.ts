@@ -131,7 +131,21 @@ export function artists(client: JellyfinClient, userId: string, parentId: string
   });
 }
 
-export function tracks(client: JellyfinClient, userId: string, parentId: string | null, page: PageRequest) {
+/** Jellyfin's sort fields for each song column (ties go by title). */
+const TRACK_SORT_FIELDS = {
+  title: 'SortName',
+  artist: 'Artist,SortName',
+  album: 'Album,SortName',
+  duration: 'Runtime,SortName',
+} as const;
+
+export function tracks(
+  client: JellyfinClient,
+  userId: string,
+  parentId: string | null,
+  page: PageRequest,
+  sort: { key: keyof typeof TRACK_SORT_FIELDS; descending: boolean } = { key: 'title', descending: false },
+) {
   return client.get<ItemsResult>('/Items', {
     query: {
       userId,
@@ -139,8 +153,8 @@ export function tracks(client: JellyfinClient, userId: string, parentId: string 
       ...search(page.searchTerm),
       Recursive: true,
       IncludeItemTypes: 'Audio',
-      SortBy: 'SortName',
-      SortOrder: 'Ascending',
+      SortBy: TRACK_SORT_FIELDS[sort.key],
+      SortOrder: sort.descending ? 'Descending' : 'Ascending',
       StartIndex: page.startIndex,
       Limit: page.limit,
       Fields: TRACK_FIELDS,

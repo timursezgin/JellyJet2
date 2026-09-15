@@ -1,10 +1,14 @@
 import { House, Library, Search, SlidersHorizontal, type LucideIcon } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 
 import { useSession } from '@/auth/session';
 import { startOfflineServices } from '@/downloads/lifecycle';
 import { FullPlayer } from '@/player/full-player';
 import { MiniPlayer } from '@/player/mini-player';
+import { PlayerBar } from '@/player/player-bar';
+import { SidePanel, useSidePanel } from '@/player/side-panel';
+import { SongDragGhost } from '@/songs/song-drag';
+import { useDesktop } from '@/ui/use-desktop';
 import { restoreQueue, usePlayer } from '@/player/player';
 import { NewPlaylistHost, SongMenuHost } from '@/songs/song-menu';
 import { ConfirmHost } from '@/ui/confirm';
@@ -28,6 +32,8 @@ import { PlaylistsScreen } from '@/screens/playlists-screen';
 import { SearchScreen } from '@/screens/search-screen';
 import { TracksScreen } from '@/screens/tracks-screen';
 import { SettingsScreen } from '@/screens/settings-screen';
+import { useShortcuts } from './shortcuts';
+import { Sidebar } from './sidebar';
 import styles from './app-shell.module.css';
 
 const TABS: Record<TabId, { label: string; icon: LucideIcon }> = {
@@ -89,10 +95,58 @@ export function AppShell() {
   const selectTab = useNavigation((s) => s.selectTab);
   const hasQueue = usePlayer((s) => s.queue.length > 0);
   const session = useSession((s) => s.session);
+  const desktop = useDesktop();
+  const sidePanel = useSidePanel((s) => s.view);
+  const sidePanelWidth = useSidePanel((s) => s.width);
 
   useEffect(restoreQueue, []);
   // Downloads, offline changes and the backup run while signed in.
   useEffect(() => (session ? startOfflineServices(session) : undefined), [session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useShortcuts();
+
+  const pages = (
+    <div className={styles.stacks}>
+      {TAB_IDS.map((id) => (
+        <StackView key={id} tab={id} entries={stacks[id]} visible={id === tab} renderRoute={renderRoute} />
+      ))}
+    </div>
+  );
+
+  // A computer: sidebar on the left, pages beside it, queue or lyrics in a
+  // frame at the right, the player bar along the bottom. No full-screen player.
+  if (desktop) {
+    const panel = hasQueue ? sidePanel : null;
+    return (
+      <div
+        className={styles.shell}
+        data-desktop
+        data-mini={hasQueue || undefined}
+        data-panel={panel || undefined}
+        // Never more than half the window, even if the window has shrunk since.
+        style={{ '--side-panel-width': `min(${sidePanelWidth}px, 50vw)` } as CSSProperties}
+      >
+        <SongMenuHost />
+        <NewPlaylistHost />
+        <ConfirmHost />
+        <ToastHost />
+        <div className={styles.sidebar}>
+          <Sidebar tabs={TABS} />
+        </div>
+        {pages}
+        {panel && (
+          <div className={styles.sidePanel}>
+            <SidePanel view={panel} />
+          </div>
+        )}
+        <SongDragGhost />
+        {hasQueue && (
+          <div className={styles.playerBar}>
+            <PlayerBar />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.shell} data-mini={hasQueue || undefined}>
@@ -102,11 +156,7 @@ export function AppShell() {
       <ConfirmHost />
       <ToastHost />
       <MiniPlayer />
-      <div className={styles.stacks}>
-        {TAB_IDS.map((id) => (
-          <StackView key={id} tab={id} entries={stacks[id]} visible={id === tab} renderRoute={renderRoute} />
-        ))}
-      </div>
+      {pages}
 
       <nav className={styles.tabBar}>
         {TAB_IDS.map((id) => {

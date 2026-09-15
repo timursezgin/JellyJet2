@@ -36,6 +36,12 @@
   --mini-player-fill: rgba(28, 28, 32, 0.82);
   --top-bar-fill: rgba(10, 10, 11, 0.72);
   --tab-bar-fill: rgba(10, 10, 11, 0.8);
+  --sidebar-fill: #0e0e10;
+  --player-bar-fill: #111114;
+  /* Rows and buttons under the mouse (desktop). */
+  --hover-fill: rgba(255, 255, 255, 0.055);
+  --hover-solid: #171719; /* the same over --bg, for rows that must cover what's under them */
+  --selected-fill: rgba(255, 255, 255, 0.09);
   --art-placeholder: #26262b;
   --art-placeholder-mini: #33333a;
 
@@ -108,4 +114,11 @@
 
   /* Typography */
   --font: 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+/* A computer (see src/ui/use-desktop.ts): a little more room at the page sides. */
+@media (min-width: 1000px) {
+  :root {
+    --page-gutter: 32px;
+  }
 }

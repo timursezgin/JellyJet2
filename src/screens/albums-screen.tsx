@@ -11,6 +11,14 @@ import styles from './list-screens.module.css';
 
 const GAP = { row: 20, column: 16 };
 
+/**
+ * Covers per row: two on a phone, more as the window widens (each about
+ * 180px or more).
+ */
+export function gridColumns(width: number, gap = GAP.column) {
+  return Math.max(2, Math.floor((width + gap) / (180 + gap)));
+}
+
 /** Every album (or a genre's albums), two to a row. */
 export function AlbumsScreen({ title = 'Albums', genreId }: { title?: string; genreId?: string }) {
   const [term, setTerm] = useState('');
@@ -49,7 +57,7 @@ export function AlbumGrid({ albums, subtitle, onNearEnd }: { albums: BaseItem[];
     <div className={styles.grid}>
       <VirtualGrid
         count={albums.length}
-        columns={2}
+        columns={gridColumns}
         gap={GAP}
         cellHeight={(width) => width + ALBUM_CAPTION_HEIGHT}
         onNearEnd={onNearEnd}

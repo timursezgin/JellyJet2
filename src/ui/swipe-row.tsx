@@ -171,6 +171,10 @@ export function SwipeRow({ actionLabel, onAction, onGone, open, onOpenChange, cl
       </button>
       <div ref={slide} className={styles.slide}>
         {children}
+        {/* A mouse can't swipe: the same action as a button shown on hover. */}
+        <button type="button" className={styles.hoverAction} tabIndex={-1} onClick={() => void run()}>
+          {actionLabel}
+        </button>
       </div>
     </div>
   );

@@ -1,0 +1,142 @@
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 14px;
+  background: var(--sidebar-fill);
+  border-right: 1px solid var(--hairline);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+}
+
+.section {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-60);
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.section:hover {
+  color: var(--ink);
+  background: var(--hover-fill);
+}
+
+.section[data-active] {
+  color: var(--ink);
+  background: var(--selected-fill);
+}
+
+.section[data-active] svg {
+  color: var(--accent);
+}
+
+.divider {
+  height: 1px;
+  margin: 14px 20px 8px;
+  background: var(--hairline);
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 16px;
+}
+
+.item {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  border-radius: 8px;
+  text-align: left;
+  color: var(--ink-70);
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.item:hover {
+  color: var(--ink);
+  background: var(--hover-fill);
+}
+
+.item[data-active] {
+  color: var(--ink);
+  background: var(--selected-fill);
+}
+
+/* A song being dragged: Liked Songs and playlists are where it can go; the one under it lights up. */
+.sidebar[data-dragging] .item:not([data-drop-id]) {
+  opacity: 0.4;
+}
+
+.sidebar[data-dragging] .item[data-drop-id]:not([data-drop-over]) {
+  background: transparent;
+}
+
+.item[data-drop-over] {
+  color: var(--ink);
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 4px;
+  padding: 0 4px 0 8px;
+}
+
+.headingLink {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--ink-45);
+}
+
+.headingLink:hover {
+  color: var(--ink);
+}
+
+.add {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--ink-60);
+}
+
+.add:hover {
+  color: var(--ink);
+  background: var(--hover-fill);
+}

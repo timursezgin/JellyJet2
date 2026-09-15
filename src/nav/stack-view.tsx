@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 
+import { isDesktop } from '@/ui/use-desktop';
 import { PageContext, type PageInfo } from './page-context';
 import { routeTitle, useNavigation, type Route, type StackEntry, type TabId } from './navigation';
 import styles from './stack-view.module.css';
@@ -62,7 +63,7 @@ export function StackView({ tab, entries, visible, renderRoute }: Props) {
   if (prevEntries !== entries) {
     const prevTop = prevEntries[prevEntries.length - 1];
     const stillThere = entries.some((e) => e.key === prevTop.key);
-    if (!stillThere && !instant && visible && exiting?.key !== prevTop.key) {
+    if (!stillThere && !instant && visible && !isDesktop() && exiting?.key !== prevTop.key) {
       setExiting(prevTop);
     }
   }
@@ -74,7 +75,8 @@ export function StackView({ tab, entries, visible, renderRoute }: Props) {
     // The stack changed some other way: nothing may be left mid-swipe.
     settleRef.current?.(false);
     abandonDrag();
-    if (!visible || instant) return;
+    // On a computer pages switch at once, as desktop apps do; the slide is the iPhone's.
+    if (!visible || instant || isDesktop()) return;
 
     const top = entries[entries.length - 1];
     const prevTop = prevEntries[prevEntries.length - 1];

@@ -12,6 +12,7 @@ import {
 import { useOnline } from '@/connectivity/connection';
 import { navigate } from '@/nav/navigation';
 import { usePage } from '@/nav/page-context';
+import { isDesktop } from './use-desktop';
 import styles from './page.module.css';
 
 /** The page's scrolling element, for lists that only draw what's on screen. */
@@ -63,7 +64,8 @@ export function Page({ title, variant = 'large', trailing, search, children }: P
   };
 
   useLayoutEffect(() => {
-    if (scroller && search && !search.value && !searchStarted.current) scroller.scrollTop = SEARCH_HEIGHT;
+    // On a computer it stays in view: a mouse can't pull the page down to find it.
+    if (scroller && search && !search.value && !searchStarted.current && !isDesktop()) scroller.scrollTop = SEARCH_HEIGHT;
     if (scroller) fadeSearch(scroller.scrollTop);
     // Only when the page first appears.
     // eslint-disable-next-line react-hooks/exhaustive-deps

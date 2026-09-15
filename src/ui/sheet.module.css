@@ -85,3 +85,43 @@
   overscroll-behavior: contain;
   padding-bottom: calc(var(--safe-bottom) + 12px);
 }
+
+/* --- Desktop: a centred window, or a menu beside the mouse ------------------- */
+
+.root[data-desktop] .panel {
+  inset: 0;
+  width: 440px;
+  max-width: calc(100% - 32px);
+  height: fit-content;
+  max-height: min(80%, 720px);
+  margin: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-card);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.root[data-desktop] .grabber {
+  display: none;
+}
+
+.root[data-desktop] .header {
+  padding-top: 16px;
+}
+
+.root[data-desktop] .body {
+  padding-bottom: 8px;
+}
+
+.root[data-anchored] .scrim {
+  background: transparent;
+}
+
+.root[data-anchored] .panel {
+  inset: auto;
+  width: 340px;
+  margin: 0;
+}
+
+.close:hover {
+  text-decoration: underline;
+}

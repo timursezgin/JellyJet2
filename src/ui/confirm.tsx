@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { create } from 'zustand';
 
@@ -23,13 +24,29 @@ export function confirm(options: Omit<ConfirmRequest, 'resolve'>): Promise<boole
   });
 }
 
+function answer(ok: boolean) {
+  const request = useConfirm.getState().request;
+  if (!request) return;
+  useConfirm.setState({ request: null });
+  request.resolve(ok);
+}
+
 export function ConfirmHost() {
   const request = useConfirm((s) => s.request);
+
+  // Escape cancels, before anything else hears it.
+  useEffect(() => {
+    if (!request) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      answer(false);
+    };
+    document.addEventListener('keydown', onKey, { capture: true });
+    return () => document.removeEventListener('keydown', onKey, { capture: true });
+  }, [request]);
+
   if (!request) return null;
-  const answer = (ok: boolean) => {
-    useConfirm.setState({ request: null });
-    request.resolve(ok);
-  };
   return createPortal(
     <div className={styles.backdrop} onClick={() => answer(false)}>
       <div className={styles.alert} role="alertdialog" aria-label={request.title} onClick={(e) => e.stopPropagation()}>

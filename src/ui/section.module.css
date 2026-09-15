@@ -50,3 +50,55 @@ button.open:active {
 .shelf > * {
   scroll-snap-align: start;
 }
+
+.shelfFrame {
+  position: relative;
+}
+
+/* Mouse only: tall rounded arrows over the ends of a shelf while hovering it,
+   level with the middle of the covers (`top` is set from the first cover). */
+.arrow {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .arrow {
+    position: absolute;
+    z-index: 1;
+    width: 32px;
+    height: 88px;
+    margin-top: -44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(40, 40, 46, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-sheet);
+    color: var(--ink);
+    opacity: 0;
+    transition:
+      opacity 140ms ease,
+      background-color 120ms ease;
+  }
+
+  .arrow[data-side='start'] {
+    left: calc(var(--page-gutter) + 8px);
+  }
+
+  .arrow[data-side='end'] {
+    right: calc(var(--page-gutter) + 8px);
+  }
+
+  .shelfFrame:hover .arrow {
+    opacity: 1;
+  }
+
+  .arrow:hover {
+    background: rgba(60, 60, 68, 0.96);
+  }
+
+  button.open:hover h2 {
+    text-decoration: underline;
+  }
+}

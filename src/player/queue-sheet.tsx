@@ -2,6 +2,7 @@ import { GripVertical, X } from 'lucide-react';
 import { useRef, useState, type ButtonHTMLAttributes, type PointerEvent } from 'react';
 
 import { LikeButton } from '@/songs/song-buttons';
+import { songContextMenu } from '@/songs/song-menu';
 import { Artwork } from '@/ui/artwork';
 import { Sheet } from '@/ui/sheet';
 import { jumpTo, moveInQueue, removeFromQueue, setQueueOpen, usePlayer, type QueueItem } from './player';
@@ -13,13 +14,22 @@ const ROW_HEIGHT = 60;
 /** The queue: tap a song to play it, drag the grip to reorder, × to remove. */
 export function QueueSheet() {
   const open = usePlayer((s) => s.queueOpen);
+  return (
+    <Sheet open={open} onClose={() => setQueueOpen(false)} title="Queue">
+      <QueueList />
+    </Sheet>
+  );
+}
+
+/** Now playing and up next; in the phone's sheet or the desktop side panel. */
+export function QueueList() {
   const queue = usePlayer((s) => s.queue);
   const index = usePlayer((s) => s.index);
   const current = queue[index];
   const upcoming = queue.slice(index + 1);
 
   return (
-    <Sheet open={open} onClose={() => setQueueOpen(false)} title="Queue">
+    <>
       {current && (
         <>
           <p className={`t-eyebrow ${styles.heading}`}>Now playing</p>
@@ -32,7 +42,7 @@ export function QueueSheet() {
           <ReorderList items={upcoming} offset={index + 1} />
         </>
       )}
-    </Sheet>
+    </>
   );
 }
 
@@ -102,7 +112,7 @@ interface QueueRowProps {
 
 function QueueRow({ item, current = false, onPlay, onRemove, grip }: QueueRowProps) {
   return (
-    <div className={styles.row} data-current={current || undefined}>
+    <div className={styles.row} data-current={current || undefined} onContextMenu={songContextMenu(item)}>
       <button type="button" className={styles.main} onClick={onPlay} disabled={!onPlay}>
         <Artwork art={item.art} size={44} radius={8} />
         <span className={styles.text}>

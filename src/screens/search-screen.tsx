@@ -1,16 +1,18 @@
 import { Search, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useSearch, type SearchFilter } from '@/data/queries';
 import { artworkOf } from '@/jellyfin/api';
 import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
+import { useSearchFocus } from '@/shell/shortcuts';
 import { albumSubtitle } from '@/ui/album-card';
 import { Artwork } from '@/ui/artwork';
 import { ItemRow } from '@/ui/item-row';
 import { Page } from '@/ui/page';
 import { SectionHeader } from '@/ui/section';
-import { TrackRow } from '@/ui/track-row';
+import { sortTracks, useTrackSort } from '@/songs/track-sort';
+import { TrackListHeader, TrackRow } from '@/ui/track-row';
 import styles from './search-screen.module.css';
 
 const FILTERS: { id: SearchFilter; label: string }[] = [
@@ -47,6 +49,17 @@ export function SearchScreen() {
   };
 
   const nothing = data && data.artists.length + data.albums.length + data.songs.length === 0;
+  const [sort, onSort] = useTrackSort();
+  const songs = sortTracks(data?.songs ?? [], sort);
+
+  // Ctrl+F, / or Search in the sidebar: ready to type.
+  const input = useRef<HTMLInputElement>(null);
+  const focusRequests = useSearchFocus((s) => s.requests);
+  useEffect(() => {
+    if (!focusRequests) return;
+    input.current?.focus();
+    input.current?.select();
+  }, [focusRequests]);
 
   return (
     <Page title="Search">
@@ -54,6 +67,7 @@ export function SearchScreen() {
         <label className={styles.field}>
           <Search size={17} strokeWidth={2.2} />
           <input
+            ref={input}
             type="search"
             enterKeyHint="search"
             autoCorrect="off"
@@ -139,16 +153,17 @@ export function SearchScreen() {
         </>
       )}
 
-      {data && data.songs.length > 0 && (
+      {songs.length > 0 && (
         <>
           {filter === 'all' && <SectionHeader title="Songs" />}
-          {data.songs.map((track, i) => (
+          <TrackListHeader sort={sort} onSort={onSort} />
+          {songs.map((track, i) => (
             <TrackRow
               key={track.id}
               track={track}
               onPlay={() => {
                 remember();
-                playTracks(data.songs, i, { shuffle: false });
+                playTracks(songs, i, { shuffle: false });
               }}
             />
           ))}
