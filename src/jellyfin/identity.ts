@@ -7,7 +7,7 @@
 const DEVICE_ID_KEY = 'jj.deviceId';
 
 export const CLIENT_NAME = 'JellyJet';
-export const CLIENT_VERSION = '2.0.0';
+export const CLIENT_VERSION = __APP_VERSION__;
 
 function randomId(): string {
   // crypto.randomUUID needs a secure (https) page; getRandomValues doesn't.

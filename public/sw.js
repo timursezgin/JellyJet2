@@ -32,6 +32,18 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// "Update available" tapped: save the published page and its files now, then
+// answer, so the app's reload opens the new version rather than the saved one.
+self.addEventListener('message', (event) => {
+  if (event.data?.type !== 'refresh-shell') return;
+  const source = event.source;
+  event.waitUntil(
+    refreshShell()
+      .catch(() => false)
+      .then(() => source?.postMessage({ type: 'shell-refreshed' })),
+  );
+});
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;

@@ -34,6 +34,11 @@ download service behind Add albums, now lives here in `pipeline/`.
 - After a tested change, publish with `npm run deploy` (that's how the owner
   tries it on the iPhone) and tell them to close and reopen the home-screen
   app (twice after big service-worker changes).
+- **Versioning:** the app's version is `version` in `package.json` (also in
+  `package-lock.json`), shown at the bottom of Settings with the build date.
+  Raise it with each commit that changes the app: the last number for fixes
+  (2.1.0 → 2.1.1), the middle one for new features (2.1.1 → 2.2.0). Started
+  at 2.1.0 (versioning, device names, one-place-at-a-time Play on).
 
 ## Rules
 
@@ -259,6 +264,15 @@ Testing on this PC:
   - iOS limits: a paused/locked iPhone app is suspended and can't receive; a
     song sent to a phone that hasn't played since opening shows a "Ready to
     play here" card (autoplay needs a tap) and is reported as paused there.
+- **Update available** (`update/update.ts`): each build writes
+  `/version.json` (version + build time, `vite.config.ts`, also baked in as
+  `__APP_VERSION__`/`__APP_BUILD__`). An open app fetches it (fresh address,
+  no-store) 3s after start, on coming to the front (at most once a minute)
+  and every 10 min while visible; a different build - or the service worker
+  reporting it saved a newer page - shows "Update available, please
+  refresh! |" before the connection state on Settings' server card. Tapping
+  asks the service worker to save the new page and files (`refresh-shell`
+  message, 8s limit) and reloads. Published = `npm run deploy`, not a git push.
 - **Device name** (Settings → This device): browsers can't read the phone's or
   computer's own name, so it's guessed from the browser ("iPhone (Safari)")
   unless named here. Kept per device (localStorage `jj.deviceName`, cleaned to

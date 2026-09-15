@@ -10,6 +10,31 @@
   margin: 0;
 }
 
+.statusLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.update {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: left;
+}
+
+.update:disabled {
+  opacity: 0.6;
+}
+
+.divider {
+  width: 1px;
+  height: 12px;
+  background: var(--ink-35);
+}
+
 .status {
   display: flex;
   align-items: center;

@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './app';
 import { persistOptions, queryClient } from './data/query-client';
 import { ErrorBoundary } from './ui/error-boundary';
+import { startUpdateChecks } from './update/update';
 import './theme/global.css';
 
 /** The window height; full-screen layers use it instead of `inset: 0`. */
@@ -42,3 +43,6 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     if (!touched && performance.now() < 6000) window.location.reload();
   });
 }
+
+// Later than that, Settings shows "Update available" (src/update/update.ts).
+startUpdateChecks();
