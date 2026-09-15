@@ -1,0 +1,93 @@
+.list {
+  padding: 4px 0 8px;
+}
+
+.row {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 var(--sheet-gutter);
+  text-align: left;
+  color: var(--ink);
+}
+
+.row:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--control-fill);
+  color: var(--ink-70);
+}
+
+.row[data-current] .icon {
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  color: var(--accent);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name,
+.detail {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.row[data-current] .name {
+  color: var(--accent);
+}
+
+.detail {
+  font-size: 12.5px;
+  color: var(--ink-45);
+}
+
+.check {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.note {
+  margin: 10px var(--sheet-gutter) 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-35);
+}
+
+@media (min-width: 1000px) {
+  .row {
+    min-height: 54px;
+  }
+
+  .name {
+    font-size: 14.5px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--hover-fill);
+  }
+}

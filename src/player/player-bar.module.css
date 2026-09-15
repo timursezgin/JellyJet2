@@ -196,6 +196,28 @@
   gap: 6px;
 }
 
+/* Controlling another device: its name where the volume usually is. */
+.remote {
+  max-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.remote span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.remote svg {
+  flex-shrink: 0;
+}
+
 /* The extra margin makes the gap from the slider's end to the Lyrics icon
    match the gap between the Lyrics and Queue icons (their buttons have 8px
    of padding around each icon). */

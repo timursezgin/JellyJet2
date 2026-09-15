@@ -444,12 +444,21 @@ export function streamUrl(client: JellyfinClient, userId: string, itemId: string
 
 const TICKS_PER_SECOND = 10_000_000;
 
+export type JellyfinRepeatMode = 'RepeatNone' | 'RepeatAll' | 'RepeatOne';
+
 interface PlaybackReport {
   itemId: string;
   playSessionId: string;
   positionSeconds: number;
   paused?: boolean;
-  repeatMode?: 'RepeatNone' | 'RepeatAll' | 'RepeatOne';
+  repeatMode?: JellyfinRepeatMode;
+  shuffle?: boolean;
+  /**
+   * The queue around the song that's on (each entry's `entryId` tells copies
+   * of a song apart), so another device controlling this one can show it.
+   */
+  queue?: { id: string; entryId: string }[];
+  entryId?: string;
 }
 
 function report(client: JellyfinClient, path: string, r: PlaybackReport) {
@@ -465,6 +474,9 @@ function report(client: JellyfinClient, path: string, r: PlaybackReport) {
         CanSeek: true,
         PlayMethod: 'DirectStream',
         RepeatMode: r.repeatMode ?? 'RepeatNone',
+        PlaybackOrder: r.shuffle ? 'Shuffle' : 'Default',
+        NowPlayingQueue: r.queue?.map((q) => ({ Id: q.id, PlaylistItemId: q.entryId })),
+        PlaylistItemId: r.entryId,
       },
     })
     .catch(() => {});
@@ -477,6 +489,78 @@ export const reportPlaybackStopped = (c: JellyfinClient, r: PlaybackReport) =>
   report(c, '/Sessions/Playing/Stopped', r);
 
 export const ticksToSeconds = (ticks: number | undefined) => (ticks ?? 0) / TICKS_PER_SECOND;
+export const secondsToTicks = (seconds: number) => Math.round(seconds * TICKS_PER_SECOND);
+
+// --- Sessions and remote control ------------------------------------------------
+// Every open JellyJet keeps a live connection (src/remote/socket.ts) so other
+// devices on the account can send it commands through these.
+
+export interface SessionInfo {
+  Id: string;
+  DeviceId: string;
+  DeviceName: string;
+  Client: string;
+  UserId: string;
+  SupportsRemoteControl?: boolean;
+  LastActivityDate?: string;
+  NowPlayingItem?: BaseItem | null;
+  NowPlayingQueue?: { Id: string; PlaylistItemId?: string }[] | null;
+  PlaylistItemId?: string | null;
+  PlayState?: {
+    PositionTicks?: number | null;
+    IsPaused?: boolean;
+    RepeatMode?: JellyfinRepeatMode;
+    PlaybackOrder?: 'Default' | 'Shuffle';
+  };
+}
+
+/** Sessions of this account that can be controlled from here. */
+export function sessions(client: JellyfinClient, userId: string) {
+  return client.get<SessionInfo[]>('/Sessions', { query: { controllableByUserId: userId, activeWithinSeconds: 900 } });
+}
+
+/** Tell the server this app plays audio and takes commands over its live connection. */
+export function reportCapabilities(client: JellyfinClient, supportedCommands: string[]) {
+  return client.post('/Sessions/Capabilities/Full', {
+    body: {
+      PlayableMediaTypes: ['Audio'],
+      SupportedCommands: supportedCommands,
+      SupportsMediaControl: true,
+      SupportsPersistentIdentifier: true,
+    },
+  });
+}
+
+/** Start songs on another session: `ids` from `startIndex`, `startSeconds` in. */
+export function remotePlay(
+  client: JellyfinClient,
+  sessionId: string,
+  command: 'PlayNow' | 'PlayNext' | 'PlayLast',
+  ids: string[],
+  startIndex = 0,
+  startSeconds = 0,
+) {
+  return client.post(`/Sessions/${sessionId}/Playing`, {
+    query: {
+      playCommand: command,
+      itemIds: ids.join(','),
+      startIndex,
+      startPositionTicks: secondsToTicks(startSeconds),
+    },
+  });
+}
+
+export type RemotePlaystate = 'Pause' | 'Unpause' | 'PlayPause' | 'Stop' | 'NextTrack' | 'PreviousTrack' | 'Seek';
+
+export function remotePlaystate(client: JellyfinClient, sessionId: string, command: RemotePlaystate, seekSeconds?: number) {
+  return client.post(`/Sessions/${sessionId}/Playing/${command}`, {
+    query: seekSeconds === undefined ? undefined : { seekPositionTicks: secondsToTicks(seekSeconds) },
+  });
+}
+
+export function remoteCommand(client: JellyfinClient, sessionId: string, name: string, args: Record<string, string>) {
+  return client.post(`/Sessions/${sessionId}/Command`, { body: { Name: name, Arguments: args } });
+}
 
 // --- Changing things -----------------------------------------------------------
 

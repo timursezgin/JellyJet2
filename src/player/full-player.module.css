@@ -186,3 +186,18 @@
   display: flex;
   gap: 12px;
 }
+
+/* Controlling another device: its name between the lyrics and device buttons. */
+.remote {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  padding: 0 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

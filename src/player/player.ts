@@ -45,6 +45,34 @@ interface PlayerState {
   queueOpen: boolean;
   /** 0-1; only computers show a volume control (iPhones use their buttons). */
   volume: number;
+  /**
+   * Set while the music plays on another device and this one controls it:
+   * the queue, index, playing, duration, shuffle and repeat above then mirror
+   * that device, and the transport functions below send it commands.
+   */
+  remote: RemoteDevice | null;
+  /** A song was sent here but iOS wants a tap before sound can start. */
+  needsTap: boolean;
+}
+
+export interface RemoteDevice {
+  sessionId: string;
+  deviceId: string;
+  deviceName: string;
+}
+
+/** What remote mode does instead of playing here (src/remote/remote.ts). */
+export interface RemoteController {
+  play(): void;
+  pause(): void;
+  next(): void;
+  previous(): void;
+  seek(seconds: number): void;
+  jumpTo(index: number): void;
+  setShuffle(on: boolean): void;
+  setRepeat(repeat: Repeat): void;
+  playTracks(tracks: Track[], startIndex: number, shuffle: boolean): void;
+  addToQueue(tracks: Track[]): void;
 }
 
 const VOLUME_KEY = 'jj.volume';
@@ -66,6 +94,8 @@ export const usePlayer = create<PlayerState>(() => ({
   expanded: false,
   queueOpen: false,
   volume: savedVolume(),
+  remote: null,
+  needsTap: false,
 }));
 
 const get = usePlayer.getState;
@@ -90,6 +120,113 @@ let errorStreak = 0;
 /** Swapping the source fires a `pause`; that one isn't the listener pausing. */
 let switchingTracks = false;
 
+// --- Listening activity ------------------------------------------------------
+
+/**
+ * `now`: something the listener did (play, pause, skip, seek, a queue change).
+ * `tick`: a song carrying on playing (every few seconds). Opening the app or
+ * bringing back a saved queue is neither, so it never counts as listening here.
+ */
+export type PlaybackActivity = 'now' | 'tick';
+const activityListeners = new Set<(kind: PlaybackActivity) => void>();
+let lastTick = 0;
+
+/** Hear about listening on this device (the handoff note uses it). */
+export function onPlaybackActivity(listener: (kind: PlaybackActivity) => void) {
+  activityListeners.add(listener);
+  return () => void activityListeners.delete(listener);
+}
+
+function activity(kind: PlaybackActivity) {
+  // Controlling another device isn't listening here: that device keeps the note.
+  if (get().queue.length === 0 || controller) return;
+  for (const listener of activityListeners) listener(kind);
+}
+
+// --- Position updates -----------------------------------------------------------
+
+const positionListeners = new Set<() => void>();
+
+/**
+ * Hear when the position may have changed (seeks, new songs, progress), here
+ * or on the device being controlled. Between these, `currentPosition()` keeps
+ * moving while `playing` is true.
+ */
+export function subscribePosition(listener: () => void) {
+  positionListeners.add(listener);
+  return () => void positionListeners.delete(listener);
+}
+
+function notifyPosition() {
+  for (const listener of positionListeners) listener();
+}
+
+for (const event of ['timeupdate', 'seeked', 'loadedmetadata', 'emptied']) audio.addEventListener(event, notifyPosition);
+
+// --- Remote mode --------------------------------------------------------------------
+
+let controller: RemoteController | null = null;
+/** The controlled device's position when last heard, and whether it's moving on from there. */
+let remoteClock = { seconds: 0, at: 0, running: false };
+
+/** Stop playing here without forgetting the queue (the music is moving elsewhere). */
+function stopHere() {
+  reportStopped();
+  switchingTracks = false;
+  audio.pause();
+  if (audio.getAttribute('src')) {
+    audio.removeAttribute('src');
+    audio.load();
+  }
+  loadedUid = null;
+}
+
+/** Control another device from here: the music stops here and the player mirrors that device. */
+export function enterRemoteMode(device: RemoteDevice, remoteController: RemoteController) {
+  remoteClock = { seconds: currentPosition(), at: performance.now(), running: false };
+  stopHere();
+  controller = remoteController;
+  set({ remote: device, playing: false, buffering: false, needsTap: false, original: null });
+  notifyPosition();
+}
+
+/** Back to playing here; the queue stays as it last was there, paused at that spot. */
+export function leaveRemoteMode() {
+  if (!controller) return;
+  restoredPosition = currentPosition();
+  controller = null;
+  set({ remote: null, playing: false, buffering: false });
+  notifyPosition();
+  save(true);
+}
+
+/** The controlled device's latest state (from the server's session updates). */
+export function applyRemoteState(state: {
+  queue?: QueueItem[];
+  index: number;
+  playing: boolean;
+  duration: number;
+  shuffle: boolean;
+  repeat: Repeat;
+  position: number;
+}) {
+  if (!controller) return;
+  remoteClock = { seconds: state.position, at: performance.now(), running: state.playing };
+  const { queue, ...rest } = state;
+  set(queue ? { ...rest, queue, buffering: false } : { ...rest, buffering: false });
+  notifyPosition();
+}
+
+/** Optimistic changes while a command is on its way (so a tap shows at once). */
+export function nudgeRemoteState(change: { playing?: boolean; position?: number }) {
+  if (!controller) return;
+  const seconds = change.position ?? currentPosition();
+  const running = change.playing ?? remoteClock.running;
+  remoteClock = { seconds, at: performance.now(), running };
+  if (change.playing !== undefined) set({ playing: change.playing });
+  notifyPosition();
+}
+
 let uidCounter = 0;
 const withUid = (track: Track): QueueItem => ({ ...track, uid: `q${Date.now().toString(36)}${++uidCounter}` });
 
@@ -103,6 +240,12 @@ export function currentTrack(state: PlayerState = get()): QueueItem | undefined 
 
 /** Position in seconds, including a restored position before playback starts. */
 export function currentPosition(): number {
+  if (controller) {
+    const { seconds, at, running } = remoteClock;
+    const now = running ? seconds + (performance.now() - at) / 1000 : seconds;
+    const duration = get().duration;
+    return duration > 0 ? Math.min(now, duration) : now;
+  }
   return loadedUid ? audio.currentTime : restoredPosition;
 }
 
@@ -166,7 +309,9 @@ function startPlayback() {
     // Refused (e.g. no tap yet after launch) or interrupted by a newer load.
     if (error instanceof DOMException && error.name === 'AbortError') return;
     switchingTracks = false;
-    set({ playing: false, buffering: false });
+    // Refused for want of a tap (a song sent from another device): ask for one.
+    const needsTap = error instanceof DOMException && error.name === 'NotAllowedError';
+    set({ playing: false, buffering: false, needsTap });
   });
 }
 
@@ -185,13 +330,17 @@ export function playTracks(tracks: Track[], startIndex = 0, options: { shuffle?:
   }
   const items = tracks.map(withUid);
   const shuffle = options.shuffle ?? get().shuffle;
+  let order = items;
   if (shuffle) {
     const first = options.shuffle && startIndex === 0 ? items[Math.floor(Math.random() * items.length)] : items[startIndex];
-    const rest = shuffled(items.filter((item) => item !== first));
-    set({ queue: [first, ...rest], original: items, shuffle: true });
-  } else {
-    set({ queue: items, original: null, shuffle: false });
+    order = [first, ...shuffled(items.filter((item) => item !== first))];
   }
+  // Controlling another device: the same queue starts there instead.
+  if (controller) {
+    controller.playTracks(order, shuffle ? 0 : startIndex, shuffle);
+    return;
+  }
+  set(shuffle ? { queue: order, original: items, shuffle: true } : { queue: items, original: null, shuffle: false });
   errorStreak = 0;
   load(shuffle ? 0 : startIndex, { autoplay: true });
 }
@@ -207,6 +356,11 @@ export function continueIfCurrent(id: string): boolean {
 }
 
 export function play() {
+  if (controller) {
+    controller.play();
+    return;
+  }
+  set({ needsTap: false });
   const track = currentTrack();
   if (!track) return;
   if (loadedUid !== track.uid) {
@@ -218,6 +372,10 @@ export function play() {
 }
 
 export function pause() {
+  if (controller) {
+    controller.pause();
+    return;
+  }
   switchingTracks = false;
   audio.pause();
   set({ playing: false });
@@ -229,6 +387,10 @@ export function togglePlay() {
 }
 
 export function next() {
+  if (controller) {
+    controller.next();
+    return;
+  }
   const { queue, index, repeat } = get();
   if (queue.length === 0) return;
   if (index + 1 < queue.length) load(index + 1, { autoplay: true });
@@ -237,6 +399,10 @@ export function next() {
 }
 
 export function previous() {
+  if (controller) {
+    controller.previous();
+    return;
+  }
   const { index } = get();
   if (currentPosition() > 3 || index === 0) {
     seek(0);
@@ -246,23 +412,36 @@ export function previous() {
 }
 
 export function seek(seconds: number) {
+  if (controller) {
+    controller.seek(Math.max(0, seconds));
+    return;
+  }
   const track = currentTrack();
   if (!track) return;
   if (loadedUid !== track.uid) {
     restoredPosition = Math.max(0, seconds);
-    audio.dispatchEvent(new Event('timeupdate'));
+    notifyPosition();
     return;
   }
   audio.currentTime = Math.max(0, seconds);
   reportProgress(true);
+  activity('now');
 }
 
 export function jumpTo(index: number) {
   if (index < 0 || index >= get().queue.length) return;
+  if (controller) {
+    controller.jumpTo(index);
+    return;
+  }
   load(index, { autoplay: true });
 }
 
 export function setShuffle(on: boolean) {
+  if (controller) {
+    controller.setShuffle(on);
+    return;
+  }
   const { queue, original, index, shuffle } = get();
   if (on === shuffle || queue.length === 0) {
     set({ shuffle: on });
@@ -277,15 +456,38 @@ export function setShuffle(on: boolean) {
     set({ queue: restored, original: null, index: Math.max(0, restored.indexOf(current)), shuffle: false });
   }
   save(true);
+  reportProgress(true);
+  activity('now');
+}
+
+/** Shuffle on without reordering: the queue arrived already shuffled (from another device). */
+export function markShuffled(on: boolean) {
+  set({ shuffle: on, original: null });
+  save(true);
+  reportProgress(true);
+}
+
+export function setRepeat(repeat: Repeat) {
+  if (controller) {
+    controller.setRepeat(repeat);
+    return;
+  }
+  set({ repeat });
+  save(true);
+  reportProgress(true);
+  activity('now');
 }
 
 export function cycleRepeat() {
   const order: Repeat[] = ['off', 'all', 'one'];
-  set({ repeat: order[(order.indexOf(get().repeat) + 1) % order.length] });
-  save(true);
+  setRepeat(order[(order.indexOf(get().repeat) + 1) % order.length]);
 }
 
 export function addToQueue(tracks: Track[]) {
+  if (controller) {
+    controller.addToQueue(tracks);
+    return;
+  }
   const items = tracks.map(withUid);
   set((s) => ({
     queue: [...s.queue, ...items],
@@ -293,9 +495,32 @@ export function addToQueue(tracks: Track[]) {
   }));
   if (get().queue.length === items.length) load(0, { autoplay: false });
   save(true);
+  activity('now');
+}
+
+/** Put songs straight after the one that's on (sent by another device's "play next"). */
+export function playNext(tracks: Track[]) {
+  if (controller || tracks.length === 0) return;
+  const { queue, original, index } = get();
+  if (queue.length === 0) {
+    addToQueue(tracks);
+    return;
+  }
+  const items = tracks.map(withUid);
+  const current = queue[index];
+  const nextQueue = [...queue.slice(0, index + 1), ...items, ...queue.slice(index + 1)];
+  const at = original ? original.indexOf(current) + 1 : -1;
+  set({
+    queue: nextQueue,
+    original: original ? [...original.slice(0, at), ...items, ...original.slice(at)] : null,
+  });
+  save(true);
+  activity('now');
 }
 
 export function removeFromQueue(index: number) {
+  // Another device's queue is shown, not edited (the queue list hides these controls).
+  if (controller) return;
   const { queue, original, index: currentIndex, playing } = get();
   const item = queue[index];
   if (!item) return;
@@ -314,9 +539,11 @@ export function removeFromQueue(index: number) {
     load(Math.min(index, nextQueue.length - 1), { autoplay: playing });
   }
   save(true);
+  activity('now');
 }
 
 export function moveInQueue(from: number, to: number) {
+  if (controller) return;
   const { queue, index } = get();
   if (from === to || !queue[from] || to < 0 || to >= queue.length) return;
   const current = queue[index];
@@ -325,9 +552,11 @@ export function moveInQueue(from: number, to: number) {
   nextQueue.splice(to, 0, moved);
   set({ queue: nextQueue, index: nextQueue.indexOf(current) });
   save(true);
+  activity('now');
 }
 
 export function clearQueue() {
+  leaveRemoteMode();
   reportStopped();
   audio.pause();
   audio.removeAttribute('src');
@@ -363,6 +592,22 @@ export function toggleMute() {
   }
 }
 
+/**
+ * Take over a queue from another device (the handoff offer): the same songs,
+ * shuffle and repeat, starting at `index` from `position` seconds. Called
+ * straight from the Continue tap, so iOS lets it start playing.
+ */
+export function resumeQueue(tracks: Track[], index: number, position: number, options: { shuffle: boolean; repeat: Repeat }) {
+  if (tracks.length === 0) return;
+  // The music comes here, so this device stops controlling another one.
+  leaveRemoteMode();
+  const items = tracks.map(withUid);
+  const start = Math.min(Math.max(0, index), items.length - 1);
+  errorStreak = 0;
+  set({ queue: items, original: null, index: start, shuffle: options.shuffle, repeat: options.repeat });
+  load(start, { autoplay: true, startAt: position });
+}
+
 export const openPlayer = () => set({ expanded: true });
 export const closePlayer = () => set({ expanded: false, queueOpen: false });
 export const setQueueOpen = (queueOpen: boolean) => set({ queueOpen });
@@ -381,27 +626,34 @@ function shuffled<T>(items: T[]): T[] {
 audio.addEventListener('playing', () => {
   errorStreak = 0;
   switchingTracks = false;
-  set({ playing: true, buffering: false });
+  set({ playing: true, buffering: false, needsTap: false });
   if (!reportedStart) {
     reportedStart = true;
     const track = currentTrack();
     const s = session();
-    if (track && s) reportPlaybackStart(s.client, { itemId: track.id, playSessionId, positionSeconds: audio.currentTime });
+    if (track && s) {
+      reportPlaybackStart(s.client, { itemId: track.id, playSessionId, positionSeconds: audio.currentTime, ...stateReport() });
+    }
   } else {
     reportProgress(true);
   }
   syncMediaSession();
+  activity('now');
 });
 
 audio.addEventListener('pause', () => {
-  if (audio.ended || switchingTracks) return;
+  // Stopping here to control another device isn't a pause of the music.
+  if (audio.ended || switchingTracks || controller) return;
   set({ playing: false, buffering: false });
   reportProgress(true);
   syncMediaSession();
   save(true);
+  activity('now');
 });
 
-audio.addEventListener('waiting', () => set({ buffering: true }));
+audio.addEventListener('waiting', () => {
+  if (!controller) set({ buffering: true });
+});
 
 audio.addEventListener('loadedmetadata', () => {
   if (pendingSeek !== null) {
@@ -411,6 +663,7 @@ audio.addEventListener('loadedmetadata', () => {
 });
 
 audio.addEventListener('durationchange', () => {
+  if (controller) return;
   if (Number.isFinite(audio.duration) && audio.duration > 0) set({ duration: audio.duration });
   syncMediaSession();
 });
@@ -420,6 +673,10 @@ audio.addEventListener('timeupdate', () => {
   const now = performance.now();
   if (now - lastProgressReport > 10_000) reportProgress(false);
   if (now - lastSaved > 5_000) save(false);
+  if (!audio.paused && now - lastTick > 5_000) {
+    lastTick = now;
+    activity('tick');
+  }
 });
 
 audio.addEventListener('seeked', syncMediaSession);
@@ -468,14 +725,28 @@ function reportProgress(force: boolean) {
   const now = performance.now();
   if (!force && now - lastProgressReport < 10_000) return;
   lastProgressReport = now;
-  const repeat = get().repeat;
   reportPlaybackProgress(s.client, {
     itemId: track.id,
     playSessionId,
     positionSeconds: audio.currentTime,
     paused: audio.paused,
-    repeatMode: repeat === 'all' ? 'RepeatAll' : repeat === 'one' ? 'RepeatOne' : 'RepeatNone',
+    ...stateReport(),
   });
+}
+
+/** How many songs of the queue go with each report, around the one that's on. */
+const REPORTED_QUEUE = 200;
+
+/** Repeat, shuffle and the queue, so a device controlling this one can show them. */
+function stateReport() {
+  const { queue, index, repeat, shuffle } = get();
+  const start = Math.max(0, Math.min(index - 50, queue.length - REPORTED_QUEUE));
+  return {
+    repeatMode: repeat === 'all' ? ('RepeatAll' as const) : repeat === 'one' ? ('RepeatOne' as const) : ('RepeatNone' as const),
+    shuffle,
+    queue: queue.slice(start, start + REPORTED_QUEUE).map((item) => ({ id: item.id, entryId: item.uid })),
+    entryId: queue[index]?.uid,
+  };
 }
 
 function reportStopped() {

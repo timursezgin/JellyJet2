@@ -1,6 +1,7 @@
 import { Pause, Play, SkipForward } from 'lucide-react';
 import { useRef, type PointerEvent } from 'react';
 
+import { DeviceButton } from '@/remote/device-picker';
 import { Artwork } from '@/ui/artwork';
 import { currentTrack, next, openPlayer, previous, togglePlay, usePlayer } from './player';
 import { artistLine } from './track';
@@ -12,6 +13,7 @@ export function MiniPlayer() {
   const track = usePlayer((s) => currentTrack(s));
   const playing = usePlayer((s) => s.playing);
   const duration = usePlayer((s) => s.duration);
+  const remote = usePlayer((s) => s.remote);
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null);
   const suppressTap = useRef(false);
 
@@ -51,9 +53,14 @@ export function MiniPlayer() {
         <Artwork art={track.art} size={42} radius={8} eager />
         <span className={styles.text}>
           <span className={styles.title}>{track.name}</span>
-          <span className={styles.artist}>{artistLine(track)}</span>
+          {remote ? (
+            <span className={`${styles.artist} ${styles.remote}`}>Playing on {remote.deviceName}</span>
+          ) : (
+            <span className={styles.artist}>{artistLine(track)}</span>
+          )}
         </span>
       </button>
+      <DeviceButton className={styles.device} size={20} />
       <button
         type="button"
         className={styles.control}

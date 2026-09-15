@@ -5,6 +5,13 @@ import { useSession } from '@/auth/session';
 import { startOfflineServices } from '@/downloads/lifecycle';
 import { FullPlayer } from '@/player/full-player';
 import { MiniPlayer } from '@/player/mini-player';
+import { startHandoff } from '@/player/handoff';
+import { DevicePickerHost } from '@/remote/device-picker';
+import { startReceiver } from '@/remote/receiver';
+import { startRemote } from '@/remote/remote';
+import { startSocket } from '@/remote/socket';
+import { TapToPlay } from '@/remote/tap-to-play';
+import { HandoffOffer } from '@/player/handoff-offer';
 import { PlayerBar } from '@/player/player-bar';
 import { SidePanel, useSidePanel } from '@/player/side-panel';
 import { SongDragGhost } from '@/songs/song-drag';
@@ -102,6 +109,14 @@ export function AppShell() {
   useEffect(restoreQueue, []);
   // Downloads, offline changes and the backup run while signed in.
   useEffect(() => (session ? startOfflineServices(session) : undefined), [session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Keep the "where was I" note on the account, and offer one from another device.
+  useEffect(() => (session ? startHandoff() : undefined), [session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The live connection: take commands from other devices, and control theirs.
+  useEffect(() => {
+    if (!session) return undefined;
+    const stops = [startSocket(), startReceiver(), startRemote()];
+    return () => stops.forEach((stop) => stop());
+  }, [session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
   useShortcuts();
 
   const pages = (
@@ -139,6 +154,9 @@ export function AppShell() {
           </div>
         )}
         <SongDragGhost />
+        <HandoffOffer />
+        <TapToPlay />
+        <DevicePickerHost />
         {hasQueue && (
           <div className={styles.playerBar}>
             <PlayerBar />
@@ -156,6 +174,9 @@ export function AppShell() {
       <ConfirmHost />
       <ToastHost />
       <MiniPlayer />
+      <HandoffOffer />
+      <TapToPlay />
+      <DevicePickerHost />
       {pages}
 
       <nav className={styles.tabBar}>

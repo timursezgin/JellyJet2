@@ -25,6 +25,7 @@ export function QueueSheet() {
 export function QueueList() {
   const queue = usePlayer((s) => s.queue);
   const index = usePlayer((s) => s.index);
+  const remote = usePlayer((s) => s.remote);
   const current = queue[index];
   const upcoming = queue.slice(index + 1);
 
@@ -32,16 +33,25 @@ export function QueueList() {
     <>
       {current && (
         <>
-          <p className={`t-eyebrow ${styles.heading}`}>Now playing</p>
+          <p className={`t-eyebrow ${styles.heading}`}>{remote ? `Now playing on ${remote.deviceName}` : 'Now playing'}</p>
           <QueueRow item={current} current />
         </>
       )}
-      {upcoming.length > 0 && (
-        <>
-          <p className={`t-eyebrow ${styles.heading}`}>Up next · {upcoming.length}</p>
-          <ReorderList items={upcoming} offset={index + 1} />
-        </>
-      )}
+      {upcoming.length > 0 &&
+        (remote ? (
+          // Another device's queue: tap a song to play it there; it's edited on that device.
+          <>
+            <p className={`t-eyebrow ${styles.heading}`}>Up next · {upcoming.length}</p>
+            {upcoming.map((item, i) => (
+              <QueueRow key={item.uid} item={item} onPlay={() => jumpTo(index + 1 + i)} />
+            ))}
+          </>
+        ) : (
+          <>
+            <p className={`t-eyebrow ${styles.heading}`}>Up next · {upcoming.length}</p>
+            <ReorderList items={upcoming} offset={index + 1} />
+          </>
+        ))}
     </>
   );
 }

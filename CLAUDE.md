@@ -124,6 +124,11 @@ Testing on this PC:
   rAF, stale screenshots): check visuals with Playwright WebKit screenshots at
   402x874, and on the owner's iPhone.
 - Test servers started in the background keep ports busy; stop them after.
+- Two devices (handoff, Play on): two Playwright browser contexts (separate
+  storage = separate device ids) against a pretend Jellyfin that also speaks
+  the live connection and tracks sessions; restart it between runs (it
+  doesn't expire vanished devices the way Jellyfin does). offline-test ends
+  by stopping serve-local; start it again before extras-test.
 
 ## Settled product decisions
 
@@ -202,6 +207,35 @@ Testing on this PC:
   last). Timed lyrics light up the sung line, follow the song
   (pausing 3.5s after a hand scroll) and seek on tap; plain lyrics just
   scroll; otherwise "No lyrics for this song yet". Fetched only while shown.
+- **Continue on another device** (`player/handoff.ts`): while music plays, a
+  note (queue window of up to 300 song ids, index, position, shuffle, repeat,
+  device name, time) is kept in display preferences `jellyjet-playback` -
+  written on play/pause/skip/seek/queue changes and every 30s while playing,
+  never just for opening the app. When the app opens or comes to the front
+  (visible/focus, at most every 5s) and the note is from another device, newer
+  than this device's own last listening (`jj.handoff.activeAt.<user>`), under a
+  week old and not at the same song and place, a card offers "Left off on …
+  · Continue". The songs are fetched before offering, so Continue starts
+  playback straight from the tap (iOS). × remembers that note as dismissed;
+  playing anything here removes the card. Continue also pauses the device the
+  note came from, if it's still playing.
+- **Play on another device** (Spotify Connect style, JellyJet only): every
+  open JellyJet keeps Jellyfin's live connection (`/socket`, `remote/socket.ts`)
+  and reports capabilities, so other devices on the account can send it
+  Play / Playstate / GeneralCommand messages (`remote/receiver.ts`, carried out
+  one at a time). The device button (player bar, mini player, full player)
+  opens "Play on": This device + other JellyJet sessions. Choosing one sends
+  it the queue (up to 200 ids, from the same spot) plus repeat and
+  `SetShuffleQueue` with `KeepOrder` (already shuffled), and this device
+  becomes its **remote** (`remote/remote.ts`): the player store mirrors that
+  device from the server's pushed `Sessions` updates (queue from the
+  `NowPlayingQueue` each device now reports), the transport functions in
+  `player.ts` send it commands, volume is replaced by "Playing on …", and the
+  queue is shown read-only (tap a song to play it there). "This device"
+  brings the music back (the other pauses). A controlled device missing for
+  10s ends remote mode with a toast. iOS limits: a paused/locked iPhone app is
+  suspended and can't receive; a song sent to a phone that hasn't played since
+  opening shows a "Ready to play here" card (autoplay needs a tap).
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
   Regenerate, savable as "JellyJet · <name>" playlists). **Stations**: Artist
   mix, Library radio (offline it shuffles downloads), Decade radio.
@@ -264,7 +298,11 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
 - `src/jellyfin/` - `client.ts` (fetch + MediaBrowser auth header),
   `identity.ts` (device id/name, ASCII-only header values), `types.ts`,
   `api.ts` (all requests; Jellyfin 12: `/Genres` not `/MusicGenres`,
-  `/Artists/AlbumArtists` not `/Persons`, `ApiKey` not `api_key` for streams).
+  `/Artists/AlbumArtists` not `/Persons`, `ApiKey` not `api_key` for streams
+  and the `/socket` live connection). Jellyfin's own log
+  (`C:\ProgramData\Jellyfin\Server\log`) shows why a request was refused.
+  An anonymous probe of `/socket` through Cloudflare returns 502; that's not a
+  fault (signed-in connections pass).
 - `src/auth/session.ts` - zustand session store (restore / signIn / signOut,
   permissions from the user policy), localStorage `jj.session`. Restore opens
   the app at once and only signs out on a 401.
@@ -293,6 +331,12 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
   plus its own `touch-action: pan-y`), also used by the desktop side panel.
   Desktop: `player-bar.tsx`, `side-panel.tsx` (queue/lyrics frame, width),
   `queue-sheet.tsx` exports `QueueList` for both.
+  `handoff.ts` - the "where was I" note and Continue card; `track-lookup.ts` -
+  songs by id. Position: always read `currentPosition()` and listen with
+  `subscribePosition()` (not audio events) - in remote mode the position is
+  the other device's.
+- `src/remote/` - the live connection, commands received, remote mode and the
+  "Play on" picker (see Features).
 - `src/songs/song-drag.tsx` - desktop drag of a song row onto the sidebar
   (pointer events, not HTML drag and drop; drop targets carry `data-drop-id`).
 - `src/downloads/` - `downloads.ts` (index: songs with `sources`, collections

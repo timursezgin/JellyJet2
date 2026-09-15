@@ -156,7 +156,8 @@ await visiblePage().getByText(/^Offline/).first().waitFor({ timeout: 20000 });
 log('offline notice shown under the title');
 if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/offline-notice.png` });
 await page.waitForTimeout(500);
-const rows = await visiblePage().locator('[data-unavailable]').count();
+// Song rows only: a greyed row's download button is marked unavailable too.
+const rows = await visiblePage().locator('div[data-unavailable]').count();
 log('greyed rows offline (expect 1 - Three):', rows);
 if (rows !== 1) fail('grey rows');
 

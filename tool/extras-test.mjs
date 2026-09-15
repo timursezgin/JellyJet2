@@ -363,7 +363,8 @@ async function swipeLeft(text) {
 // The finished download: swipe, Dismiss.
 await swipeLeft('Great Album');
 await shot('add-albums-dismiss');
-await top().getByText('Dismiss', { exact: true }).click();
+// The word on the red row uncovered by the swipe (not the same action's mouse-hover button).
+await top().locator('span', { hasText: /^Dismiss$/ }).click();
 await page.waitForTimeout(900);
 check(orchestrator.deleted.includes('job1') && !(await top().getByText('Added to your library').count()), 'a finished download swipes to Dismiss and leaves the list');
 
@@ -375,7 +376,7 @@ await swipeLeft('Other Album (FLAC)');
 await top().getByRole('button', { name: 'Cancel' }).waitFor();
 await shot('add-albums-cancel');
 check(!(await page.getByRole('alertdialog').count()), 'no popup - the row shows Cancel');
-await top().getByText('Cancel', { exact: true }).click();
+await top().locator('span', { hasText: /^Cancel$/ }).click();
 await page.waitForTimeout(900);
 check(orchestrator.deleted.includes('job2') && !(await top().getByText(/Downloading 40%/).count()), 'Cancel stops the download and the row leaves');
 

@@ -16,6 +16,12 @@
   --chrome-bottom: calc(var(--tab-bar-height) + var(--mini-player-height) + 8px + 24px);
 }
 
+/* Cards floating over the pages (the handoff offer) sit 8px above the mini
+   player, or above the tab bar when there isn't one. */
+.shell {
+  --offer-bottom: calc(var(--chrome-bottom) - 16px);
+}
+
 .stacks {
   position: absolute;
   inset: 0;
@@ -30,6 +36,7 @@
   /* Pages end above the player bar, so they only keep a little room. */
   --chrome-bottom: 32px;
   --toast-bottom: var(--bottom-bar);
+  --offer-bottom: calc(var(--bottom-bar) + 16px);
 }
 
 .shell[data-desktop][data-mini] {

@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 
+import { DeviceButton } from '@/remote/device-picker';
 import { Artwork } from '@/ui/artwork';
 import { usePresence } from '@/ui/use-presence';
 import {
@@ -123,6 +124,7 @@ function PlayerContent() {
   const repeat = usePlayer((s) => s.repeat);
   const airPlay = useAirPlayAvailable();
   const lyricsOpen = useLyricsView((s) => s.open);
+  const remote = usePlayer((s) => s.remote);
   const stage = useRef<HTMLDivElement>(null);
   const artSize = useArtSize(stage);
 
@@ -222,8 +224,9 @@ function PlayerContent() {
           >
             <MessageSquareQuote size={22} strokeWidth={2} />
           </button>
+          {remote && <span className={styles.remote}>Playing on {remote.deviceName}</span>}
           <div className={styles.secondaryEnd}>
-            {airPlay && (
+            {airPlay && !remote && (
               <button
                 type="button"
                 className={styles.side}
@@ -233,6 +236,7 @@ function PlayerContent() {
                 <Airplay size={22} strokeWidth={2} />
               </button>
             )}
+            <DeviceButton className={styles.side} size={22} />
             <button type="button" className={styles.side} onClick={() => setQueueOpen(true)} aria-label="Queue">
               <ListMusic size={23} strokeWidth={2} />
             </button>

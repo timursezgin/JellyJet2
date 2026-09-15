@@ -3,7 +3,7 @@ import { create } from 'zustand';
 
 import { useLyrics } from '@/data/queries';
 import { ticksToSeconds } from '@/jellyfin/api';
-import { audio, currentPosition, seek } from './player';
+import { currentPosition, seek, subscribePosition, usePlayer } from './player';
 import styles from './lyrics.module.css';
 
 /** Lyrics shown instead of the bare cover; stays on from song to song. */
@@ -131,6 +131,7 @@ const LyricLine = memo(function LyricLine({
  */
 function useActiveLine(lines: Line[], timed: boolean) {
   const [active, setActive] = useState(-1);
+  const playing = usePlayer((s) => s.playing);
 
   useEffect(() => {
     if (!timed) return;
@@ -146,33 +147,23 @@ function useActiveLine(lines: Line[], timed: boolean) {
       setActive(index);
     };
 
+    // Seeks and new songs (here or on the device being controlled), and every frame while playing.
+    const unsubscribe = subscribePosition(update);
     let frame = 0;
-    const tick = () => {
-      update();
+    if (playing) {
+      const tick = () => {
+        update();
+        frame = requestAnimationFrame(tick);
+      };
       frame = requestAnimationFrame(tick);
-    };
-    const startFrames = () => {
-      if (!frame) frame = requestAnimationFrame(tick);
-    };
-    const stopFrames = () => {
-      cancelAnimationFrame(frame);
-      frame = 0;
-      update();
-    };
-    const events = ['timeupdate', 'seeked', 'loadedmetadata', 'emptied'];
-    for (const event of events) audio.addEventListener(event, update);
-    audio.addEventListener('playing', startFrames);
-    audio.addEventListener('pause', stopFrames);
-    if (!audio.paused) startFrames();
+    }
     update();
 
     return () => {
-      for (const event of events) audio.removeEventListener(event, update);
-      audio.removeEventListener('playing', startFrames);
-      audio.removeEventListener('pause', stopFrames);
+      unsubscribe();
       cancelAnimationFrame(frame);
     };
-  }, [lines, timed]);
+  }, [lines, timed, playing]);
 
   return active;
 }

@@ -20,6 +20,8 @@ export default defineConfig({
       '/jellyfin': {
         target: JELLYFIN,
         changeOrigin: true,
+        // The live connection (/socket) other devices send commands through.
+        ws: true,
         rewrite: (path) => path.replace(/^\/jellyfin/, ''),
       },
       '/pipeline': {

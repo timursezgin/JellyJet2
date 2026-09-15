@@ -1,6 +1,7 @@
 import {
   ListMusic,
   MessageSquareQuote,
+  MonitorSpeaker,
   Pause,
   Play,
   Repeat,
@@ -15,6 +16,7 @@ import {
 import { useRef, useState, type PointerEvent } from 'react';
 
 import { navigate } from '@/nav/navigation';
+import { DeviceButton } from '@/remote/device-picker';
 import { SongButtons } from '@/songs/song-buttons';
 import { songContextMenu } from '@/songs/song-menu';
 import { Artwork } from '@/ui/artwork';
@@ -42,6 +44,7 @@ export function PlayerBar() {
   const shuffle = usePlayer((s) => s.shuffle);
   const repeat = usePlayer((s) => s.repeat);
   const panel = useSidePanel((s) => s.view);
+  const remote = usePlayer((s) => s.remote);
 
   if (!track) return null;
 
@@ -134,7 +137,14 @@ export function PlayerBar() {
       </div>
 
       <div className={styles.end}>
-        <VolumeControl />
+        {remote ? (
+          <span className={styles.remote} title={`Playing on ${remote.deviceName}`}>
+            <MonitorSpeaker size={16} strokeWidth={2.2} />
+            <span>Playing on {remote.deviceName}</span>
+          </span>
+        ) : (
+          <VolumeControl />
+        )}
         <button
           type="button"
           className={styles.side}
@@ -157,6 +167,7 @@ export function PlayerBar() {
         >
           <ListMusic size={19} strokeWidth={2} />
         </button>
+        <DeviceButton className={styles.side} size={19} />
       </div>
     </div>
   );
