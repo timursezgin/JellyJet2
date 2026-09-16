@@ -182,12 +182,12 @@
   margin: 14px -6px 0;
 }
 
-.secondaryEnd {
+.secondaryGroup {
   display: flex;
   gap: 12px;
 }
 
-/* Controlling another device: its name between the lyrics and device buttons. */
+/* Controlling another device: its name between the device and lyrics buttons. */
 .remote {
   flex: 1;
   min-width: 0;

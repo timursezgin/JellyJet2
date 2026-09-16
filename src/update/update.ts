@@ -3,8 +3,10 @@ import { create } from 'zustand';
 /**
  * Is a newer JellyJet published than the one running? Every build writes
  * /version.json (vite.config.ts); an open app compares its own build stamp
- * with it when it opens, when it comes back to the front and every so often,
- * and shows "Update available" (Settings) when they differ. The service worker
+ * with it when it opens, when it comes back to the front (a phone app shown
+ * again, a computer's window clicked into, the connection back) and every two
+ * minutes while on screen, and shows "Update available" (Home, Settings) when
+ * they differ. The service worker
  * saying it has saved a newer page counts too.
  */
 
@@ -20,7 +22,7 @@ interface UpdateState {
 
 export const useUpdate = create<UpdateState>(() => ({ available: false, latest: null, refreshing: false }));
 
-const CHECK_EVERY_MS = 10 * 60 * 1000;
+const CHECK_EVERY_MS = 2 * 60 * 1000;
 const CHECK_GAP_MS = 60 * 1000;
 let lastCheck = 0;
 
@@ -74,9 +76,13 @@ export function startUpdateChecks() {
   navigator.serviceWorker?.addEventListener('message', (event) => {
     if (event.data?.type === 'update-ready') useUpdate.setState({ available: true });
   });
-  document.addEventListener('visibilitychange', () => {
+  const onFront = () => {
     if (document.visibilityState === 'visible') void checkForUpdate();
-  });
+  };
+  document.addEventListener('visibilitychange', onFront);
+  // A computer's window left open never gets hidden: clicking back into it counts too.
+  window.addEventListener('focus', onFront);
+  window.addEventListener('online', onFront);
   setInterval(() => {
     if (document.visibilityState === 'visible') {
       lastCheck = 0;

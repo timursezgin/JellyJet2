@@ -1,12 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
 
-import { filterTracks, useItem, useLikedSongs, usePlaylistTracks } from '@/data/queries';
+import { filterTracks, useItem, useLikedSongs, usePlaylistTracks, useRecentlyPlayedSongs } from '@/data/queries';
 import { playTracks } from '@/player/player';
 import type { Track } from '@/player/track';
 import type { SongContext } from '@/songs/song-menu';
 import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
 import { artworkOf } from '@/jellyfin/api';
-import { LikedCover, PlaylistCover } from '@/ui/covers';
+import { LikedCover, PlaylistCover, SongsCover } from '@/ui/covers';
 import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
 import { Page } from '@/ui/page';
 import { LoadError, LoadingRows } from '@/ui/states';
@@ -54,6 +54,19 @@ export function LikedSongsScreen() {
           className={heroIconClass}
         />
       }
+    />
+  );
+}
+
+/** Home's "Recently played": the songs played last, newest first. */
+export function RecentSongsScreen() {
+  const recent = useRecentlyPlayedSongs();
+  return (
+    <TrackCollection
+      title="Recently played"
+      art={<SongsCover tracks={recent.data ?? []} size={HERO_ART} />}
+      query={recent}
+      empty="Songs you play will show up here."
     />
   );
 }

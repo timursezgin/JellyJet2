@@ -50,3 +50,69 @@
 .card[data-small] .subtitle {
   font-size: 11.5px;
 }
+
+/* Home's Liked Albums: cover and name open the album, a play button plays it. */
+.cover {
+  position: relative;
+  display: flex;
+}
+
+.coverButton {
+  display: flex;
+}
+
+.card[data-playable] .title {
+  text-align: left;
+}
+
+.play {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card[data-playable]:hover .title {
+    text-decoration: none;
+  }
+
+  .card[data-playable] .title:hover {
+    text-decoration: underline;
+  }
+
+  .card[data-playable] > :first-child {
+    filter: none;
+  }
+
+  .coverButton {
+    transition: filter 140ms ease;
+  }
+
+  .cover:hover .coverButton {
+    filter: brightness(1.12);
+  }
+
+  /* The same plain white play symbol as Home's liked songs, in the cover's bottom-left corner. */
+  .play {
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+    opacity: 0;
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease;
+  }
+
+  .card:hover .play {
+    opacity: 1;
+  }
+
+  .play:hover {
+    transform: scale(1.15);
+  }
+}

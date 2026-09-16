@@ -17,7 +17,7 @@ import { SidePanel, useSidePanel } from '@/player/side-panel';
 import { SongDragGhost } from '@/songs/song-drag';
 import { useDesktop } from '@/ui/use-desktop';
 import { restoreQueue, usePlayer } from '@/player/player';
-import { NewPlaylistHost, SongMenuHost } from '@/songs/song-menu';
+import { AlbumMenuHost, NewPlaylistHost, SongMenuHost } from '@/songs/song-menu';
 import { ConfirmHost } from '@/ui/confirm';
 import { ToastHost } from '@/ui/toast';
 import { StackView } from '@/nav/stack-view';
@@ -27,14 +27,14 @@ import { AlbumResultScreen } from '@/screens/album-result-screen';
 import { AlbumScreen } from '@/screens/album-screen';
 import { ArtistMixScreen } from '@/screens/artist-mix-screen';
 import { MixScreen, StationScreen } from '@/screens/mix-screen';
-import { AlbumsScreen, RecentAlbumsScreen } from '@/screens/albums-screen';
+import { AlbumsScreen, LikedAlbumsScreen, RecentAlbumsScreen } from '@/screens/albums-screen';
 import { ArtistScreen } from '@/screens/artist-screen';
 import { ArtistsScreen } from '@/screens/artists-screen';
 import { DownloadedScreen } from '@/screens/downloaded-screen';
 import { GenresScreen } from '@/screens/genres-screen';
 import { HomeScreen } from '@/screens/home-screen';
 import { LibraryScreen } from '@/screens/library-screen';
-import { LikedSongsScreen, PlaylistScreen } from '@/screens/playlist-screen';
+import { LikedSongsScreen, PlaylistScreen, RecentSongsScreen } from '@/screens/playlist-screen';
 import { PlaylistsScreen } from '@/screens/playlists-screen';
 import { SearchScreen } from '@/screens/search-screen';
 import { TracksScreen } from '@/screens/tracks-screen';
@@ -73,9 +73,13 @@ function renderRoute(route: Route) {
     case 'genres':
       return <GenresScreen />;
     case 'recent-albums':
-      return <RecentAlbumsScreen kind={route.kind} />;
+      return <RecentAlbumsScreen />;
+    case 'recent-songs':
+      return <RecentSongsScreen />;
     case 'liked':
       return <LikedSongsScreen />;
+    case 'liked-albums':
+      return <LikedAlbumsScreen />;
     case 'album':
       return <AlbumScreen id={route.id} title={route.title} />;
     case 'artist':
@@ -141,6 +145,7 @@ export function AppShell() {
         style={{ '--side-panel-width': `min(${sidePanelWidth}px, 50vw)` } as CSSProperties}
       >
         <SongMenuHost />
+        <AlbumMenuHost />
         <NewPlaylistHost />
         <ConfirmHost />
         <ToastHost />
@@ -170,6 +175,7 @@ export function AppShell() {
     <div className={styles.shell} data-mini={hasQueue || undefined}>
       <FullPlayer />
       <SongMenuHost />
+      <AlbumMenuHost />
       <NewPlaylistHost />
       <ConfirmHost />
       <ToastHost />

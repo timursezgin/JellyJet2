@@ -35,7 +35,8 @@ download service behind Add albums, now lives here in `pipeline/`.
   tries it on the iPhone) and tell them to close and reopen the home-screen
   app (twice after big service-worker changes).
 - **Versioning:** the app's version is `version` in `package.json` (also in
-  `package-lock.json`), shown at the bottom of Settings with the build date.
+  `package-lock.json`), shown beside the server's name on Home ("v2.3.0") and
+  in its own card next to the server's on Settings, with the build date.
   Raise it with each commit that changes the app: the last number for fixes
   (2.1.0 → 2.1.1), the middle one for new features (2.1.1 → 2.2.0). Started
   at 2.1.0 (versioning, device names, one-place-at-a-time Play on).
@@ -174,8 +175,8 @@ Testing on this PC:
 - Likes, playlist edits and plays made offline save instantly and sync later.
 
 ### Layout and look (phone)
-- Tabs: **Home · Search · Library · Settings**. **Liked Songs** and
-  **Downloaded** sit at the top of Library (not inside Playlists). Add albums
+- Tabs: **Home · Search · Library · Settings**. **Liked Songs**, **Liked
+  Albums** and **Downloaded** sit at the top of Library (not inside Playlists). Add albums
   on Library is a round **+** (admins with deletion rights).
 - **Hidden search**: swipe down to reveal it in playlists (incl. Liked and
   Downloaded), artist pages and library lists. No pull-to-refresh; lists
@@ -197,10 +198,23 @@ Testing on this PC:
 ### Features
 - Username + password sign-in (no Quick Connect).
 - Player: mini + full player, queue, lock-screen controls, instant next song.
+  Full player's bottom row: where it plays on the left (Play on, AirPlay),
+  lyrics and queue on the right.
+- **Liked Albums** (`songs/liked-albums.ts`): an album's own heart, kept as a
+  Jellyfin favourite on the album - not a playlist, and separate from liking
+  its songs. The heart sits between Shuffle and download on album pages; the
+  Liked Albums page is a grid of whole albums (A-Z, hidden search; with a
+  mouse, the same white play symbol on each cover as Home's row). Offline
+  changes go through the outbox like song likes.
+- **Home rows:** Recently played (songs, newest first, like the Liked Songs
+  row; refreshed once the server has a song's start report; "see all" is a
+  song list), Liked Songs, Liked Albums (with a mouse, a white play symbol on
+  the cover plays the whole album from its first song; cover or name opens
+  it), Made for you, Recently added, Stations.
   Playback reported to Jellyfin (`/Sessions/Playing*`) so play counts and
   mixes stay accurate.
 - **Lyrics** (from Jellyfin's lyrics plugin, `/Audio/{id}/Lyrics`): a quote
-  icon at the full player's bottom left (AirPlay and queue sit bottom right)
+  icon at the full player's bottom right, beside the queue
   shows them across the whole area above the song title, edge to edge (not
   inside the cover's square), with the whole cover - edges included -
   darkened and softly blurred behind; stays on from song to song. The lyrics
@@ -275,10 +289,13 @@ Testing on this PC:
 - **Update available** (`update/update.ts`): each build writes
   `/version.json` (version + build time, `vite.config.ts`, also baked in as
   `__APP_VERSION__`/`__APP_BUILD__`). An open app fetches it (fresh address,
-  no-store) 3s after start, on coming to the front (at most once a minute)
-  and every 10 min while visible; a different build - or the service worker
-  reporting it saved a newer page - shows "Update available, please
-  refresh! |" before the connection state on Settings' server card. Tapping
+  no-store) 3s after start, on coming to the front - shown again, its window
+  clicked into (`focus`: a computer's window left open is never hidden),
+  back online - at most once a minute, and every 2 min while visible; a
+  different build - or the service worker reporting it saved a newer page -
+  shows "New version available. Update?" under the version: on Home under
+  "v2.3.0" (right-aligned with it), on Settings in the version card
+  (`update/update-notice.tsx`). Tapping
   asks the service worker to save the new page and files (`refresh-shell`
   message, 8s limit) and reloads. Published = `npm run deploy`, not a git push.
 - **Device name** (Settings → This device): browsers can't read the phone's or
@@ -327,13 +344,13 @@ Testing on this PC:
 Kept light: the same screens, optimised for mouse and keyboard. Below 1000px
 the phone layout is exactly as before (`src/ui/use-desktop.ts` +
 `@media (min-width: 1000px)`; hover styles use `(hover: hover) and (pointer: fine)`).
-- **Left sidebar:** Home, Search, Library, Settings; Liked Songs, Downloaded;
+- **Left sidebar:** Home, Search, Library, Settings; Liked Songs, Liked Albums, Downloaded;
   Playlists (+ new). Liked/Downloaded/playlists open on top of Library's first page.
 - **Bottom player bar** (no full-screen player on desktop): cover and title go to
   the album, artist to the artist; the names get a fixed 150px (wrapping to two
   lines each) with heart | download | (…) right after, never moving; shuffle,
   previous, play, next, repeat and a progress bar (middle column at most
-  500px); at the right volume, Lyrics, Queue, evenly spaced.
+  500px); at the right Play on, volume, Lyrics, Queue, evenly spaced.
 - **Queue and lyrics** open in a framed panel at the right edge (one at a time;
   the button toggles). The left edge drags to resize, 280px up to half the
   window; double-click resets. Open panel and width are remembered.
@@ -347,9 +364,13 @@ the phone layout is exactly as before (`src/ui/use-desktop.ts` +
   one in the cover's bottom-left corner.
   Album grids fit more covers per row.
 - **Mouse:** hover highlights; right-click a song for its (…) menu at the
-  mouse; the (…) button and other sheets open as a small menu / centred window;
+  mouse; right-click an album cover for Add to / Remove from Liked Albums; the
+  (…) button and other sheets open as a small menu / centred window;
   drag a song row onto a sidebar playlist (adds it) or Liked Songs (likes it),
-  with the song and a round red (+) following the mouse. Shelves get tall
+  or an album cover onto Liked Albums (likes it), with the item and a round
+  red (+) following the mouse. Albums go nowhere else and songs don't go in
+  Liked Albums: over those the (+) becomes a grey "no" sign, the cursor
+  not-allowed, and the sidebar fades the places that won't take it. Shelves get tall
   rounded arrow buttons level with the covers, hidden searches stay visible, Add albums rows show Cancel/Dismiss on
   hover, pages switch without the iPhone slide.
 - **Keys:** Space play/pause; ←/→ 10s; Ctrl+←/→ previous/next; Ctrl+F or /
@@ -395,8 +416,9 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
   rows; fixed row heights), `TrackRow`, `Hero`, covers, sheets, swipe rows.
 - `src/songs/` - `likes.ts` (liked = session change → loaded Liked Songs list
   → the song's own data), `playlists.ts` (membership, add without duplicates,
-  remove by entry id, create), `song-buttons.tsx`, `song-menu.tsx` (the (…)
-  sheet and New playlist).
+  remove by entry id, create), `liked-albums.ts` (the same for albums, as
+  Jellyfin favourites), `song-buttons.tsx`, `song-menu.tsx` (the (…) sheet,
+  New playlist, and an album's right-click menu).
 - `src/player/player.ts` - one audio element, queue (localStorage
   `jj.player.<userId>`, saved only after restore), lock-screen handlers.
   `full-player.tsx` - the full-screen player (phone); `lyrics.tsx` - its lyrics
@@ -410,8 +432,9 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
   the other device's.
 - `src/remote/` - the live connection, commands received, remote mode and the
   "Play on" picker (see Features).
-- `src/songs/song-drag.tsx` - desktop drag of a song row onto the sidebar
-  (pointer events, not HTML drag and drop; drop targets carry `data-drop-id`).
+- `src/songs/song-drag.tsx` - desktop drag of a song row or album cover onto
+  the sidebar (pointer events, not HTML drag and drop; drop targets carry
+  `data-drop-id`; `accepts()` decides which places take which).
 - `src/downloads/` - `downloads.ts` (index: songs with `sources`, collections
   with `excluded`, jobs, progress; IndexedDB), `engine.ts` (queue, fetching
   into Cache Storage `jellyjet2-audio` at `/offline/audio/<id>`, covers in
@@ -422,7 +445,7 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
 - `src/offline/outbox.ts` - likes/playlist edits/plays made offline, sent later.
 - `src/mixes/` - `generator.ts` (recipes from play counts, last played, likes,
   genres, years), `mixes.ts` (pool per account in localStorage
-  `jj.mixes.<userId>`, four shown, Regenerate rotates then rebuilds),
+  `jj.mixes.<userId>`, eight shown, Regenerate rotates then rebuilds),
   `stations.ts` (Library/Decade radio, Artist mix).
 - `src/pipeline/` - Add albums client: `client.ts` (orchestrator API via
   `/pipeline`, Bearer key), `pipeline.ts` (key in localStorage

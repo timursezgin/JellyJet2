@@ -2,6 +2,7 @@ import type { Session } from '@/auth/session';
 import { isOnline, onReconnect, setPinger } from '@/connectivity/connection';
 import { queryClient } from '@/data/query-client';
 import { flushOutbox } from '@/offline/outbox';
+import { restorePendingAlbumLikes } from '@/songs/liked-albums';
 import { restorePendingLikes } from '@/songs/likes';
 import { checkBackup, startBackup } from './backup';
 import { loadDownloads, unloadDownloads } from './downloads';
@@ -41,6 +42,7 @@ export function startOfflineServices(session: Session) {
     await loadDownloads(session.userId);
     if (stopped) return;
     restorePendingLikes();
+    restorePendingAlbumLikes();
     await verifyFiles();
     if (!backupStarted) {
       backupStarted = true;

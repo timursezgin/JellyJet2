@@ -3,6 +3,7 @@ import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-qu
 import { useSession } from '@/auth/session';
 import * as api from '@/jellyfin/api';
 import type { JellyfinClient } from '@/jellyfin/client';
+import { queryClient } from './query-client';
 import type { BaseItem, ItemsResult } from '@/jellyfin/types';
 import { trackFromItem, type Track } from '@/player/track';
 import type { TrackSort } from '@/songs/track-sort';
@@ -58,9 +59,9 @@ const toTracks = (result: ItemsResult) => result.Items.filter((i) => i.Type === 
 
 // --- Home -------------------------------------------------------------------
 
-export function useRecentlyPlayedAlbums() {
+export function useRecentlyPlayedSongs() {
   const { client, userId } = useAccount();
-  return useScopedQuery(['recently-played-albums'], (parentId) => api.recentlyPlayedAlbums(client, userId, parentId));
+  return useScopedQuery(['recently-played-songs'], async (parentId) => toTracks(await api.recentlyPlayedSongs(client, userId, parentId)));
 }
 
 export function useRecentlyAddedAlbums() {
@@ -71,6 +72,11 @@ export function useRecentlyAddedAlbums() {
 export function useLikedSongs() {
   const { client, userId } = useAccount();
   return useScopedQuery(['liked-songs'], async (parentId) => toTracks(await api.likedSongs(client, userId, parentId)));
+}
+
+export function useLikedAlbums() {
+  const { client, userId } = useAccount();
+  return useScopedQuery(['liked-albums'], async (parentId) => (await api.likedAlbums(client, userId, parentId)).Items);
 }
 
 // --- Library ----------------------------------------------------------------
@@ -162,6 +168,17 @@ export function useAlbumTracks(albumId: string) {
   return useQuery({
     queryKey: ['album-tracks', albumId, userId],
     queryFn: async () => toTracks(await api.albumTracks(client, userId, albumId)),
+  });
+}
+
+/** An album's songs from the cache, or fetched (Home's play button on a cover). */
+export function fetchAlbumTracks(albumId: string) {
+  const { client, session } = useSession.getState();
+  const userId = session?.userId ?? '';
+  return queryClient.fetchQuery({
+    queryKey: ['album-tracks', albumId, userId],
+    queryFn: async () => toTracks(await api.albumTracks(client as JellyfinClient, userId, albumId)),
+    staleTime: 60_000,
   });
 }
 

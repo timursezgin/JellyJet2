@@ -1,3 +1,27 @@
+.status {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 3px;
+}
+
+.version {
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-45);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Under the version, lined up with its right end. */
+.status .update {
+  grid-column: 1;
+  justify-self: end;
+  font-size: 12px;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;

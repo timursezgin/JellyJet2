@@ -23,7 +23,8 @@ import { confirm } from '@/ui/confirm';
 import { ListGroup, ListRow } from '@/ui/list-row';
 import { Page } from '@/ui/page';
 import { Sheet } from '@/ui/sheet';
-import { APP_BUILD, APP_VERSION, applyUpdate, useUpdate } from '@/update/update';
+import { APP_BUILD, APP_VERSION } from '@/update/update';
+import { UpdateNotice } from '@/update/update-notice';
 import { formatBytes } from './downloaded-screen';
 import { songCount as songLabel } from './playlists-screen';
 import styles from './settings-screen.module.css';
@@ -40,19 +41,24 @@ export function SettingsScreen() {
 
   return (
     <Page title="Settings">
-      <section className={styles.server}>
-        <div className={styles.statusLine}>
-          <UpdateNotice />
+      <div className={styles.cards}>
+        <section className={styles.card}>
           <p className={styles.status} data-offline={!online || undefined}>
             <span className={styles.dot} />
             {online ? 'Connected' : 'Can’t reach the server'}
           </p>
-        </div>
-        <p className={styles.name}>{session.serverName}</p>
-        <p className={styles.detail}>
-          {address} · signed in as {session.userName}
-        </p>
-      </section>
+          <p className={styles.name}>{session.serverName}</p>
+          <p className={styles.detail}>
+            {address} · signed in as {session.userName}
+          </p>
+        </section>
+        <section className={styles.card}>
+          <p className={styles.label}>App version</p>
+          <p className={styles.name}>JellyJet {APP_VERSION}</p>
+          <p className={styles.detail}>Built {buildDate}</p>
+          <UpdateNotice className={styles.update} />
+        </section>
+      </div>
 
       <DeviceSettings />
 
@@ -74,35 +80,11 @@ export function SettingsScreen() {
           }}
         />
       </ListGroup>
-
-      <p className={`t-caption ${styles.footnote}`}>
-        JellyJet {APP_VERSION} · {buildDate}
-      </p>
     </Page>
   );
 }
 
 const buildDate = new Date(APP_BUILD).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-
-/** "Update available, please refresh!" - shown when a newer JellyJet has been published. */
-function UpdateNotice() {
-  const { available, latest, refreshing } = useUpdate();
-  if (!available) return null;
-  return (
-    <>
-      <button
-        type="button"
-        className={styles.update}
-        onClick={() => void applyUpdate()}
-        disabled={refreshing}
-        title={latest ? `JellyJet ${latest}` : undefined}
-      >
-        {refreshing ? 'Updating…' : 'Update available, please refresh!'}
-      </button>
-      <span className={styles.divider} aria-hidden="true" />
-    </>
-  );
-}
 
 const subscribeName =(listener: () => void) => onDeviceNameChange(listener);
 

@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 
 import { usePlaylists } from '@/data/queries';
 import { sameRoute, TAB_IDS, useNavigation, type Route, type TabId } from '@/nav/navigation';
-import { useSongDrag } from '@/songs/song-drag';
+import { accepts, useSongDrag } from '@/songs/song-drag';
 import { openNewPlaylist } from '@/songs/song-menu';
-import { DownloadedCover, LikedCover, PlaylistCover } from '@/ui/covers';
+import { DownloadedCover, LikedAlbumsCover, LikedCover, PlaylistCover } from '@/ui/covers';
 import { focusSearch } from './shortcuts';
 import styles from './sidebar.module.css';
 
@@ -16,13 +16,14 @@ export function Sidebar({ tabs }: { tabs: Record<TabId, { label: string; icon: L
   const selectTab = useNavigation((s) => s.selectTab);
   const openInLibrary = useNavigation((s) => s.openInLibrary);
   const playlists = usePlaylists().data ?? [];
-  const dragging = useSongDrag((s) => s.track !== null);
+  const dragging = useSongDrag((s) => s.item?.kind ?? null);
   const dropTarget = useSongDrag((s) => s.target?.id);
 
+  const refused = (id: string) => dragging !== null && !accepts(dragging, id);
   const isOpen = (route: Route) => tab === 'library' && sameRoute(libraryTop, route);
 
   return (
-    <nav className={styles.sidebar} aria-label="Sections" data-dragging={dragging || undefined}>
+    <nav className={styles.sidebar} aria-label="Sections" data-dragging={dragging ?? undefined}>
       <div className={styles.sections}>
         {TAB_IDS.map((id) => {
           const { label, icon: Icon } = tabs[id];
@@ -55,7 +56,14 @@ export function Sidebar({ tabs }: { tabs: Record<TabId, { label: string; icon: L
           label="Liked Songs"
           active={isOpen({ name: 'liked' })}
           onClick={() => openInLibrary({ name: 'liked' })}
-          drop={{ id: 'liked', name: 'Liked Songs', over: dropTarget === 'liked' }}
+          drop={{ id: 'liked', name: 'Liked Songs', over: dropTarget === 'liked', refused: refused('liked') }}
+        />
+        <SidebarItem
+          art={<LikedAlbumsCover size={36} radius={6} />}
+          label="Liked Albums"
+          active={isOpen({ name: 'liked-albums' })}
+          onClick={() => openInLibrary({ name: 'liked-albums' })}
+          drop={{ id: 'liked-albums', name: 'Liked Albums', over: dropTarget === 'liked-albums', refused: refused('liked-albums') }}
         />
         <SidebarItem
           art={<DownloadedCover size={36} radius={6} />}
@@ -81,7 +89,7 @@ export function Sidebar({ tabs }: { tabs: Record<TabId, { label: string; icon: L
               label={playlist.Name}
               active={isOpen(route)}
               onClick={() => openInLibrary(route)}
-              drop={{ id: playlist.Id, name: playlist.Name, over: dropTarget === playlist.Id }}
+              drop={{ id: playlist.Id, name: playlist.Name, over: dropTarget === playlist.Id, refused: refused(playlist.Id) }}
             />
           );
         })}
@@ -101,8 +109,8 @@ function SidebarItem({
   label: string;
   active: boolean;
   onClick(): void;
-  /** Somewhere a dragged song can be dropped: a playlist, or Liked Songs ("liked"). */
-  drop?: { id: string; name: string; over: boolean };
+  /** Somewhere a dragged item can be dropped: a playlist, Liked Songs ("liked") or Liked Albums ("liked-albums"). */
+  drop?: { id: string; name: string; over: boolean; refused: boolean };
 }) {
   return (
     <button
@@ -112,6 +120,7 @@ function SidebarItem({
       data-drop-id={drop?.id}
       data-drop-name={drop?.name}
       data-drop-over={drop?.over || undefined}
+      data-drop-refused={drop?.refused || undefined}
       onClick={onClick}
       title={label}
     >

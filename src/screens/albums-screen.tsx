@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { useAlbumList, useRecentlyAddedAlbums, useRecentlyPlayedAlbums } from '@/data/queries';
+import { useAlbumList, useLikedAlbums, useRecentlyAddedAlbums } from '@/data/queries';
 import type { BaseItem } from '@/jellyfin/types';
-import { ALBUM_CAPTION_HEIGHT, AlbumCard } from '@/ui/album-card';
+import { ALBUM_CAPTION_HEIGHT, AlbumCard, albumSubtitle } from '@/ui/album-card';
 import { Page } from '@/ui/page';
 import { LoadError } from '@/ui/states';
 import { useDebounced } from '@/ui/use-debounced';
@@ -40,19 +40,55 @@ export function AlbumsScreen({ title = 'Albums', genreId }: { title?: string; ge
   );
 }
 
-/** The newest-played or newest-added albums, from Home's "see all". */
-export function RecentAlbumsScreen({ kind }: { kind: 'played' | 'added' }) {
-  const played = useRecentlyPlayedAlbums();
-  const added = useRecentlyAddedAlbums();
-  const query = kind === 'played' ? played : added;
+/** The newest-added albums, from Home's "see all". */
+export function RecentAlbumsScreen() {
+  const query = useRecentlyAddedAlbums();
   return (
-    <Page title={kind === 'played' ? 'Recently played' : 'Recently added'}>
+    <Page title="Recently added">
       {query.isError && !query.data ? <LoadError onRetry={() => query.refetch()} /> : <AlbumGrid albums={query.data ?? []} />}
     </Page>
   );
 }
 
-export function AlbumGrid({ albums, subtitle, onNearEnd }: { albums: BaseItem[]; subtitle?: (a: BaseItem) => string; onNearEnd?(): void }) {
+/** Albums liked with their own heart, A to Z. */
+export function LikedAlbumsScreen() {
+  const [term, setTerm] = useState('');
+  const query = useLikedAlbums();
+  const albums = useMemo(() => filterAlbums(query.data ?? [], term), [query.data, term]);
+  return (
+    <Page title="Liked Albums" search={{ value: term, onChange: setTerm, placeholder: 'Search liked albums' }}>
+      {query.isError && !query.data ? (
+        <LoadError onRetry={() => query.refetch()} />
+      ) : query.data && albums.length === 0 ? (
+        <p className={styles.message}>{term ? 'No liked albums match that.' : 'Tap the heart on an album to add it here.'}</p>
+      ) : (
+        <AlbumGrid albums={albums} playable />
+      )}
+    </Page>
+  );
+}
+
+function filterAlbums(list: BaseItem[], term: string) {
+  const words = term.toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return list;
+  return list.filter((a) => {
+    const text = `${a.Name} ${albumSubtitle(a)}`.toLowerCase();
+    return words.every((w) => text.includes(w));
+  });
+}
+
+export function AlbumGrid({
+  albums,
+  subtitle,
+  onNearEnd,
+  playable,
+}: {
+  albums: BaseItem[];
+  subtitle?: (a: BaseItem) => string;
+  onNearEnd?(): void;
+  /** With a mouse, a play button on each cover plays the whole album (Liked Albums). */
+  playable?: boolean;
+}) {
   return (
     <div className={styles.grid}>
       <VirtualGrid
@@ -61,7 +97,7 @@ export function AlbumGrid({ albums, subtitle, onNearEnd }: { albums: BaseItem[];
         gap={GAP}
         cellHeight={(width) => width + ALBUM_CAPTION_HEIGHT}
         onNearEnd={onNearEnd}
-        renderCell={(i, width) => <AlbumCard album={albums[i]} size={width} subtitle={subtitle?.(albums[i])} />}
+        renderCell={(i, width) => <AlbumCard album={albums[i]} size={width} subtitle={subtitle?.(albums[i])} playable={playable} />}
       />
     </div>
   );

@@ -20,8 +20,10 @@ export type Route =
   | { name: 'albums'; genreId?: string; title?: string }
   | { name: 'tracks' }
   | { name: 'genres' }
-  | { name: 'recent-albums'; kind: 'played' | 'added' }
+  | { name: 'recent-albums' }
+  | { name: 'recent-songs' }
   | { name: 'liked' }
+  | { name: 'liked-albums' }
   | { name: 'album'; id: string; title?: string }
   | { name: 'artist'; id: string; title?: string }
   | { name: 'playlist'; id: string; title?: string }
@@ -140,9 +142,13 @@ export function routeTitle(route: Route): string {
     case 'genres':
       return 'Genres';
     case 'recent-albums':
-      return route.kind === 'played' ? 'Recently played' : 'Recently added';
+      return 'Recently added';
+    case 'recent-songs':
+      return 'Recently played';
     case 'liked':
       return 'Liked Songs';
+    case 'liked-albums':
+      return 'Liked Albums';
     case 'artist-mix':
       return 'Artist mix';
     case 'add-albums':

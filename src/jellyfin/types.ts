@@ -35,6 +35,7 @@ export interface UserItemData {
 export interface BaseItem {
   Id: string;
   Name: string;
+  SortName?: string;
   Type: 'Audio' | 'MusicAlbum' | 'MusicArtist' | 'Playlist' | 'MusicGenre' | 'Folder' | string;
   Album?: string;
   AlbumId?: string;

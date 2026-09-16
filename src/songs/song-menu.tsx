@@ -19,16 +19,19 @@ import { create } from 'zustand';
 
 import { useSession } from '@/auth/session';
 import { queryClient } from '@/data/query-client';
-import { deleteItem } from '@/jellyfin/api';
+import { artworkOf, deleteItem } from '@/jellyfin/api';
+import type { BaseItem } from '@/jellyfin/types';
 import { navigate, type Route } from '@/nav/navigation';
 import { addToQueue, closePlayer, removeFromQueue, usePlayer } from '@/player/player';
 import { artistLine, type Track } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
 import { toggleSongDownload, useSongDownloadState } from '@/downloads/download-buttons';
 import { confirm } from '@/ui/confirm';
+import { albumSubtitle } from '@/ui/album-subtitle';
 import { PlaylistCover } from '@/ui/covers';
 import { Sheet, type Anchor } from '@/ui/sheet';
 import { toast } from '@/ui/toast';
+import { setAlbumLiked, useIsAlbumLiked } from './liked-albums';
 import { setLiked, useIsLiked } from './likes';
 import { addToPlaylist, createPlaylist, removeFromPlaylist, usePlaylistMembership } from './playlists';
 import styles from './song-menu.module.css';
@@ -369,6 +372,72 @@ function NewPlaylistStandalone({ onDone }: { onDone(): void }) {
       </button>
       <p className={styles.note}>Playlists are saved to your Jellyfin account and only you can see them.</p>
     </form>
+  );
+}
+
+// --- An album's menu (right-click a cover) ----------------------------------
+
+const useAlbumMenu = create<{ album: BaseItem | null; open: boolean; anchor: Anchor | null }>(() => ({
+  album: null,
+  open: false,
+  anchor: null,
+}));
+
+const closeAlbumMenu = () => useAlbumMenu.setState({ open: false });
+
+/** Right-clicking an album cover opens its menu where the mouse is. */
+export function albumContextMenu(album: BaseItem) {
+  return (event: MouseEvent) => {
+    if (lastPointer === 'touch') return;
+    event.preventDefault();
+    useAlbumMenu.setState({ album, open: true, anchor: { x: event.clientX, y: event.clientY } });
+  };
+}
+
+export function AlbumMenuHost() {
+  const { album, open, anchor } = useAlbumMenu();
+  const liked = useIsAlbumLiked(album ?? undefined);
+  if (!album) return null;
+  const artist = album.AlbumArtists?.[0];
+  return (
+    <Sheet
+      open={open}
+      onClose={closeAlbumMenu}
+      title={album.Name}
+      anchor={anchor}
+      header={
+        <div className={styles.song}>
+          <Artwork art={artworkOf(album)} size={48} radius={8} />
+          <div className={styles.songText}>
+            <p className={styles.songTitle}>{album.Name}</p>
+            <p className={styles.songArtist}>{albumSubtitle(album)}</p>
+          </div>
+        </div>
+      }
+    >
+      <div className={styles.list}>
+        <MenuRow
+          icon={Heart}
+          filled={liked}
+          label={liked ? 'Remove from Liked Albums' : 'Add to Liked Albums'}
+          onClick={() => {
+            closeAlbumMenu();
+            void setAlbumLiked(album, !liked);
+          }}
+        />
+        {artist && (
+          <MenuRow
+            icon={MicVocal}
+            label="Go to artist"
+            onClick={() => {
+              closeAlbumMenu();
+              closePlayer();
+              navigate({ name: 'artist', id: artist.Id, title: artist.Name });
+            }}
+          />
+        )}
+      </div>
+    </Sheet>
   );
 }
 

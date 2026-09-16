@@ -1,3 +1,4 @@
+import { Heart } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { useAlbumTracks, useItem } from '@/data/queries';
@@ -6,7 +7,8 @@ import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
 import { artistLine } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
-import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
+import { HERO_ART, Hero, HeroIconButton, heroIconClass } from '@/ui/hero';
+import { setAlbumLiked, useIsAlbumLiked } from '@/songs/liked-albums';
 import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
 import { useKeepInSync } from '@/downloads/use-keep-in-sync';
 import { Page } from '@/ui/page';
@@ -23,6 +25,7 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
 
   const albumArtist = info?.AlbumArtists?.[0];
   const artistName = info?.AlbumArtist ?? albumArtist?.Name;
+  const liked = useIsAlbumLiked(info);
   const downloadLabel = useCollectionDownloadLabel('album', id);
   useKeepInSync('album', id, tracks.data);
   const totalSeconds = list.reduce((sum, t) => sum + t.duration, 0);
@@ -57,11 +60,20 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
         onPlay={list.length ? () => playTracks(list, 0, { shuffle: false }) : undefined}
         onShuffle={list.length ? () => playTracks(list, 0, { shuffle: true }) : undefined}
         actions={
-          <CollectionDownloadButton
+          <>
+            <HeroIconButton
+              label={liked ? 'Remove from Liked Albums' : 'Add to Liked Albums'}
+              active={liked}
+              onClick={() => info && void setAlbumLiked(info, !liked)}
+            >
+              <Heart size={20} strokeWidth={2.2} fill={liked ? 'currentColor' : 'none'} />
+            </HeroIconButton>
+            <CollectionDownloadButton
             info={{ kind: 'album', id, name: info?.Name ?? title ?? 'this album', art: info ? artworkOf(info) : null }}
             tracks={tracks.data}
-            className={heroIconClass}
-          />
+              className={heroIconClass}
+            />
+          </>
         }
       />
       {list.length > 0 && <TrackListHeader sort={sort} onSort={onSort} numbered hideAlbum />}

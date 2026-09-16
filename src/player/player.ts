@@ -9,6 +9,7 @@ import {
   streamUrl,
 } from '@/jellyfin/api';
 import { isOnline } from '@/connectivity/connection';
+import { queryClient } from '@/data/query-client';
 import { isDownloaded } from '@/downloads/downloads';
 import { offlineAudioPath } from '@/downloads/engine';
 import { enqueue } from '@/offline/outbox';
@@ -696,7 +697,10 @@ audio.addEventListener('playing', () => {
     const track = currentTrack();
     const s = session();
     if (track && s) {
-      reportPlaybackStart(s.client, { itemId: track.id, playSessionId, positionSeconds: audio.currentTime, ...stateReport() });
+      // Once the server has it, Home's "Recently played" can show this song first.
+      void reportPlaybackStart(s.client, { itemId: track.id, playSessionId, positionSeconds: audio.currentTime, ...stateReport() }).then(
+        () => queryClient.invalidateQueries({ queryKey: ['recently-played-songs'] }),
+      );
     }
   } else {
     reportProgress(true);

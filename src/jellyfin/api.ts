@@ -25,9 +25,9 @@ const search = (term?: string) => (term?.trim() ? { SearchTerm: term.trim() } : 
 
 // --- Home --------------------------------------------------------------------
 
-/** Albums in the order their songs were last played, newest first. */
-export async function recentlyPlayedAlbums(client: JellyfinClient, userId: string, parentId: string | null, limit = 20) {
-  const played = await client.get<ItemsResult>('/Items', {
+/** Songs in the order they were last played, newest first. */
+export function recentlyPlayedSongs(client: JellyfinClient, userId: string, parentId: string | null, limit = 100) {
+  return client.get<ItemsResult>('/Items', {
     query: {
       userId,
       ...scoped(parentId),
@@ -36,25 +36,12 @@ export async function recentlyPlayedAlbums(client: JellyfinClient, userId: strin
       Filters: 'IsPlayed',
       SortBy: 'DatePlayed',
       SortOrder: 'Descending',
-      Limit: limit * 6,
+      Limit: limit,
       Fields: TRACK_FIELDS,
+      EnableUserData: true,
       ...IMAGES,
     },
   });
-  const seen = new Set<string>();
-  const albumIds: string[] = [];
-  for (const track of played.Items) {
-    if (!track.AlbumId || seen.has(track.AlbumId)) continue;
-    seen.add(track.AlbumId);
-    albumIds.push(track.AlbumId);
-    if (albumIds.length === limit) break;
-  }
-  if (albumIds.length === 0) return [];
-  const albums = await client.get<ItemsResult>('/Items', {
-    query: { userId, Ids: albumIds.join(','), Fields: CARD_FIELDS, ...IMAGES },
-  });
-  const byId = new Map(albums.Items.map((a) => [a.Id, a]));
-  return albumIds.map((id) => byId.get(id)).filter((a): a is BaseItem => !!a);
 }
 
 export function recentlyAddedAlbums(client: JellyfinClient, userId: string, parentId: string | null, limit = 20) {
@@ -188,6 +175,24 @@ export function likedSongs(client: JellyfinClient, userId: string, parentId: str
       SortBy: 'Album,ParentIndexNumber,IndexNumber,SortName',
       SortOrder: 'Ascending',
       Fields: TRACK_FIELDS,
+      EnableUserData: true,
+      ...IMAGES,
+    },
+  });
+}
+
+/** Albums liked with their own heart (Jellyfin favourites), A to Z. */
+export function likedAlbums(client: JellyfinClient, userId: string, parentId: string | null) {
+  return client.get<ItemsResult>('/Items', {
+    query: {
+      userId,
+      ...scoped(parentId),
+      Recursive: true,
+      IncludeItemTypes: 'MusicAlbum',
+      Filters: 'IsFavorite',
+      SortBy: 'SortName',
+      SortOrder: 'Ascending',
+      Fields: CARD_FIELDS,
       EnableUserData: true,
       ...IMAGES,
     },
@@ -457,8 +462,9 @@ interface PlaybackReport {
   entryId?: string;
 }
 
-function report(client: JellyfinClient, path: string, r: PlaybackReport) {
-  void client
+/** Sent and forgotten: resolves once the server has it (or it failed). */
+function report(client: JellyfinClient, path: string, r: PlaybackReport): Promise<void> {
+  return client
     .post(path, {
       keepalive: true,
       timeoutMs: 10_000,
@@ -476,7 +482,10 @@ function report(client: JellyfinClient, path: string, r: PlaybackReport) {
         PlaylistItemId: r.entryId,
       },
     })
-    .catch(() => {});
+    .then(
+      () => {},
+      () => {},
+    );
 }
 
 export const reportPlaybackStart = (c: JellyfinClient, r: PlaybackReport) => report(c, '/Sessions/Playing', r);

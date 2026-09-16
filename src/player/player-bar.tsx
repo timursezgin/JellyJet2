@@ -137,6 +137,7 @@ export function PlayerBar() {
       </div>
 
       <div className={styles.end}>
+        <DeviceButton className={styles.side} size={19} />
         {remote ? (
           <span className={styles.remote} title={`Playing on ${remote.deviceName}`}>
             <MonitorSpeaker size={16} strokeWidth={2.2} />
@@ -167,7 +168,6 @@ export function PlayerBar() {
         >
           <ListMusic size={19} strokeWidth={2} />
         </button>
-        <DeviceButton className={styles.side} size={19} />
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 import { Plus } from 'lucide-react';
 
 import { useSession } from '@/auth/session';
-import { useLibraryCounts, useLikedSongs } from '@/data/queries';
+import { useLibraryCounts, useLikedAlbums, useLikedSongs } from '@/data/queries';
 import { useDownloads } from '@/downloads/downloads';
 import { navigate, type Route } from '@/nav/navigation';
-import { DownloadedCover, LikedCover } from '@/ui/covers';
+import { DownloadedCover, LikedAlbumsCover, LikedCover } from '@/ui/covers';
 import { ItemRow } from '@/ui/item-row';
 import { ListGroup, ListRow } from '@/ui/list-row';
 import { Page } from '@/ui/page';
@@ -24,6 +24,7 @@ const CATEGORIES: { label: string; count: CountKey; route: Route }[] = [
 export function LibraryScreen() {
   const counts = useLibraryCounts().data;
   const liked = useLikedSongs().data;
+  const likedAlbums = useLikedAlbums().data;
   const downloadedCount = useDownloads((s) => Object.keys(s.songs).length);
   // Adding to the library is for admins who may also change it.
   const canAddAlbums = useSession((s) => s.session?.permissions.canDeleteFromLibrary ?? false);
@@ -44,6 +45,12 @@ export function LibraryScreen() {
           title="Liked Songs"
           subtitle={liked ? songCount(liked.length) : undefined}
           onClick={() => navigate({ name: 'liked' })}
+        />
+        <ItemRow
+          art={<LikedAlbumsCover size={44} />}
+          title="Liked Albums"
+          subtitle={likedAlbums ? `${likedAlbums.length} ${likedAlbums.length === 1 ? 'album' : 'albums'}` : undefined}
+          onClick={() => navigate({ name: 'liked-albums' })}
         />
         <ItemRow
           art={<DownloadedCover size={44} />}

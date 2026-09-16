@@ -79,6 +79,12 @@ html[data-song-drag] * {
   cursor: grabbing !important;
 }
 
+/* …over a place that won't take it (an album over a playlist). */
+html[data-song-drag][data-drag-refused],
+html[data-song-drag][data-drag-refused] * {
+  cursor: not-allowed !important;
+}
+
 img {
   display: block;
   max-width: 100%;

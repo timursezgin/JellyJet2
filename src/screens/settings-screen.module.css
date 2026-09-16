@@ -1,38 +1,33 @@
-.server {
+/* The server and the app's version, side by side. */
+.cards {
   margin: 12px var(--page-gutter) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.card {
+  min-width: 0;
   padding: 16px;
   border-radius: var(--radius-card);
   background: var(--surface);
   border: 1px solid var(--hairline);
 }
 
-.server p {
+.card p {
   margin: 0;
 }
 
-.statusLine {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-}
-
-.update {
-  padding: 0;
+.label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
-  text-align: left;
+  color: var(--ink-50);
 }
 
-.update:disabled {
-  opacity: 0.6;
-}
-
-.divider {
-  width: 1px;
-  height: 12px;
-  background: var(--ink-35);
+.card .update {
+  margin-top: 8px;
+  font-size: 13px;
+  white-space: normal;
 }
 
 .status {
@@ -62,11 +57,6 @@
   font-size: 13px;
   color: var(--ink-45);
   font-variant-numeric: tabular-nums;
-}
-
-.footnote {
-  margin: 22px var(--page-gutter) 0;
-  text-align: center;
 }
 
 .status[data-offline] {

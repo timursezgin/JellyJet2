@@ -19,6 +19,24 @@
   color: #fff;
 }
 
+.likedAlbums {
+  background: linear-gradient(135deg, #2b2b31, #15151a);
+  color: var(--accent);
+}
+
+.record {
+  position: relative;
+  display: flex;
+}
+
+/* The heart sits on the record's lower right, cut out from it by the tile's colour. */
+.recordHeart {
+  position: absolute;
+  right: -18%;
+  bottom: -14%;
+  filter: drop-shadow(0 0 1.5px #1c1c21) drop-shadow(0 0 1.5px #1c1c21);
+}
+
 .downloaded {
   background: linear-gradient(135deg, #2b2b31, #15151a);
   color: var(--accent);

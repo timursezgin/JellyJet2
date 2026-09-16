@@ -1,0 +1,17 @@
+.update {
+  padding: 0;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.update:disabled {
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .update:not(:disabled):hover {
+    text-decoration: underline;
+  }
+}

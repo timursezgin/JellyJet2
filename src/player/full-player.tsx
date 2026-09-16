@@ -213,19 +213,10 @@ function PlayerContent() {
           </button>
         </div>
 
+        {/* Where it plays on the left (Play on, AirPlay); what's shown on the right (lyrics, queue). */}
         <div className={styles.secondary}>
-          <button
-            type="button"
-            className={styles.side}
-            data-active={lyricsOpen || undefined}
-            onClick={toggleLyrics}
-            aria-label="Lyrics"
-            aria-pressed={lyricsOpen}
-          >
-            <MessageSquareQuote size={22} strokeWidth={2} />
-          </button>
-          {remote && <span className={styles.remote}>Playing on {remote.deviceName}</span>}
-          <div className={styles.secondaryEnd}>
+          <div className={styles.secondaryGroup}>
+            <DeviceButton className={styles.side} size={22} />
             {airPlay && !remote && (
               <button
                 type="button"
@@ -236,7 +227,19 @@ function PlayerContent() {
                 <Airplay size={22} strokeWidth={2} />
               </button>
             )}
-            <DeviceButton className={styles.side} size={22} />
+          </div>
+          {remote && <span className={styles.remote}>Playing on {remote.deviceName}</span>}
+          <div className={styles.secondaryGroup}>
+            <button
+              type="button"
+              className={styles.side}
+              data-active={lyricsOpen || undefined}
+              onClick={toggleLyrics}
+              aria-label="Lyrics"
+              aria-pressed={lyricsOpen}
+            >
+              <MessageSquareQuote size={22} strokeWidth={2} />
+            </button>
             <button type="button" className={styles.side} onClick={() => setQueueOpen(true)} aria-label="Queue">
               <ListMusic size={23} strokeWidth={2} />
             </button>

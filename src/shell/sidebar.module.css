@@ -81,16 +81,19 @@
   background: var(--selected-fill);
 }
 
-/* A song being dragged: Liked Songs and playlists are where it can go; the one under it lights up. */
-.sidebar[data-dragging] .item:not([data-drop-id]) {
+/* Something being dragged: the places that take it stay bright and the one under
+   it lights up; the rest fade (for an album, everything but Liked Albums). */
+.sidebar[data-dragging] .item:not([data-drop-id]),
+.sidebar[data-dragging] .item[data-drop-refused] {
   opacity: 0.4;
 }
 
-.sidebar[data-dragging] .item[data-drop-id]:not([data-drop-over]) {
+.sidebar[data-dragging] .item[data-drop-id]:not([data-drop-over]),
+.sidebar[data-dragging] .item[data-drop-refused] {
   background: transparent;
 }
 
-.item[data-drop-over] {
+.item[data-drop-over]:not([data-drop-refused]) {
   color: var(--ink);
   background: var(--accent-tint);
   box-shadow: inset 0 0 0 1px var(--accent-border);
