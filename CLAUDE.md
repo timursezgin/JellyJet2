@@ -37,9 +37,9 @@ download service behind Add albums, now lives here in `pipeline/`.
 - **Versioning:** the app's version is `version` in `package.json` (also in
   `package-lock.json`), shown beside the server's name on Home ("v2.3.0") and
   in its own card next to the server's on Settings, with the build date.
-  Raise it with each commit that changes the app: the last number for fixes
-  (2.1.0 → 2.1.1), the middle one for new features (2.1.1 → 2.2.0). Started
-  at 2.1.0 (versioning, device names, one-place-at-a-time Play on).
+  Raise the last number with each commit that changes the app, features
+  included (2.3.1 → 2.3.2); the middle number only goes up when the owner says
+  so (2.4.0 was undone to 2.3.2 for that reason). Started at 2.1.0.
 
 ## Rules
 
@@ -219,7 +219,9 @@ Testing on this PC:
   row; refreshed once the server has a song's start report; "see all" is a
   song list), Liked Songs, Liked Albums (with a mouse, a white play symbol on
   the cover plays the whole album from its first song; cover or name opens
-  it), Made for you, Recently added, Stations.
+  it), Made for you, Recently added, Stations. The two "recent" rows slide
+  back to their start by themselves when a newer item arrives first (`Shelf`'s
+  `newest`); other rows keep their scroll position.
   Playback reported to Jellyfin (`/Sessions/Playing*`) so play counts and
   mixes stay accurate.
 - **Lyrics** (from Jellyfin's lyrics plugin, `/Audio/{id}/Lyrics`): a quote

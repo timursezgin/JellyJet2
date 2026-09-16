@@ -39,7 +39,7 @@ export function HomeScreen() {
       }
     >
       <SectionHeader title="Recently played" onOpen={() => navigate({ name: 'recent-songs' })} />
-      <SongShelf query={played} empty="Nothing played yet." />
+      <SongShelf query={played} empty="Nothing played yet." newestFirst />
 
       <SectionHeader title="Liked Songs" onOpen={() => navigate({ name: 'liked' })} />
       <SongShelf query={liked} empty="Songs you like will show up here." />
@@ -50,7 +50,7 @@ export function HomeScreen() {
       <MadeForYou />
 
       <SectionHeader title="Recently added" onOpen={() => navigate({ name: 'recent-albums' })} />
-      <AlbumShelf query={added} empty="Nothing added yet." />
+      <AlbumShelf query={added} empty="Nothing added yet." newestFirst />
 
       <Stations />
     </Page>
@@ -84,10 +84,19 @@ function SongCard({ track, onPlay }: { track: Track; onPlay(): void }) {
 }
 
 /** Up to 20 songs; tapping one plays the shelf from there. */
-function SongShelf({ query, empty }: { query: { data?: Track[]; isPending: boolean }; empty: string }) {
+function SongShelf({
+  query,
+  empty,
+  newestFirst,
+}: {
+  query: { data?: Track[]; isPending: boolean };
+  empty: string;
+  /** A "recent" row: slides back to show a newly arrived first card. */
+  newestFirst?: boolean;
+}) {
   if (!query.data?.length) return <ShelfMessage loading={query.isPending} text={empty} />;
   return (
-    <Shelf>
+    <Shelf newest={newestFirst ? query.data[0].id : undefined}>
       {query.data.slice(0, 20).map((track, i, list) => (
         <SongCard key={track.id} track={track} onPlay={() => playTracks(list, i)} />
       ))}
@@ -99,14 +108,17 @@ function AlbumShelf({
   query,
   empty,
   playable,
+  newestFirst,
 }: {
   query: { data?: BaseItem[]; isPending: boolean };
   empty: string;
   playable?: boolean;
+  /** A "recent" row: slides back to show a newly arrived first card. */
+  newestFirst?: boolean;
 }) {
   if (!query.data?.length) return <ShelfMessage loading={query.isPending} text={empty} />;
   return (
-    <Shelf>
+    <Shelf newest={newestFirst ? query.data[0].Id : undefined}>
       {query.data.slice(0, 20).map((album) => (
         <AlbumCard key={album.Id} album={album} size={146} small playable={playable} />
       ))}

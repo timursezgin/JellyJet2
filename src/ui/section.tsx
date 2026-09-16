@@ -36,9 +36,18 @@ const pointerIsMouse = window.matchMedia('(hover: hover) and (pointer: fine)').m
 /**
  * A row of cards that scrolls sideways. With a mouse, arrows at either end
  * (shown on hover) page through it, since a mouse can't swipe.
+ * `newest`: the first card's key in a newest-first row (Recently played /
+ * added); when a newer one arrives the row slides back to the start to show it.
  */
-export function Shelf({ children }: { children: ReactNode }) {
+export function Shelf({ children, newest }: { children: ReactNode; newest?: string }) {
   const scroller = useRef<HTMLDivElement>(null);
+  const shownNewest = useRef(newest);
+  useEffect(() => {
+    if (newest === undefined || newest === shownNewest.current) return;
+    const first = shownNewest.current === undefined;
+    shownNewest.current = newest;
+    if (!first) scroller.current?.scrollTo({ left: 0, behavior: 'smooth' });
+  }, [newest]);
   const [ends, setEnds] = useState({ start: true, end: true, middle: 0 });
 
   const measure = () => {
