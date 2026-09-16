@@ -39,7 +39,7 @@ download service behind Add albums, now lives here in `pipeline/`.
   in its own card next to the server's on Settings, with the build date.
   Raise the last number with each commit that changes the app, features
   included (2.3.1 → 2.3.2); the middle number only goes up when the owner says
-  so (2.4.0 was undone to 2.3.2 for that reason). Started at 2.1.0.
+  so. Started at 2.1.0.
 
 ## Rules
 
