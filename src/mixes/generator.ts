@@ -29,6 +29,8 @@ export const MIX_KICKER: Record<MixKind, string> = {
 };
 
 const MIX_SIZE = 25;
+/** How many of your most-played genres get a mix (Home shows eight cards). */
+const TOP_GENRES = 5;
 const RECENT_DAYS = 90;
 const HEAVY_DAYS = 30;
 const REDISCOVER_DAYS = 182;
@@ -72,10 +74,10 @@ export async function generateMixes(client: JellyfinClient, userId: string, pare
 
   const concepts: Concept[] = [];
 
-  // Genre mixes: your three most-played genres.
+  // Genre mixes: your most-played genres.
   const genreScore = new Map<string, number>();
   for (const t of basis) for (const g of t.Genres ?? []) genreScore.set(g, (genreScore.get(g) ?? 0) + weight(t));
-  const topGenres = [...genreScore.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const topGenres = [...genreScore.entries()].sort((a, b) => b[1] - a[1]).slice(0, TOP_GENRES);
   const genrePools = await Promise.all(
     topGenres.map(([genre]) => api.randomSongsInGenre(client, userId, parentId, genre, 60).then((r) => r.Items)),
   );

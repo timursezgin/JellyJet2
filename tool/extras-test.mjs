@@ -218,6 +218,8 @@ await page.getByText(mixNames[0], { exact: true }).first().click();
 await top().getByText(/\d+ songs ·/).waitFor();
 const mixMeta = await top().getByText(/\d+ songs ·/).first().textContent();
 log('mix page:', mixNames[0], '-', mixMeta);
+const songsOnPage = () => top().locator('[class*="title"]').evaluateAll((els) => els.slice(0, 6).map((e) => e.textContent));
+const firstMixSongs = await songsOnPage();
 check(/^(1\d|2[0-5]) songs/.test(mixMeta), 'the mix page lists 10-25 songs');
 await top().getByRole('button', { name: 'Save as a playlist' }).click();
 await page.getByText('Saved to your playlists').waitFor();
@@ -236,7 +238,20 @@ await page.waitForFunction(
 ).catch(() => {});
 const after = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label').replace(/^Play /, '')));
 log('after Regenerate:', after);
-check(after.length > 0 && after.join('|') !== before, 'Regenerate shows different mixes');
+// With more mixes than fit on screen, Regenerate brings different ones along.
+// When they all already fit (a small library), it rebuilds them: same kinds of
+// mix, different songs inside.
+let freshSongs = false;
+if (after.join('|') === before) {
+  await page.getByText(after[0], { exact: true }).first().click();
+  await top().getByText(/\d+ songs ·/).waitFor();
+  const songsNow = await songsOnPage();
+  freshSongs = songsNow.length > 0 && songsNow.join('|') !== firstMixSongs.join('|');
+  log('same mixes, songs inside changed:', freshSongs);
+  await tab('Home');
+  await page.waitForTimeout(600);
+}
+check(after.length > 0 && (after.join('|') !== before || freshSongs), 'Regenerate brings different mixes');
 
 await page.reload();
 await page.getByText('Made for you').waitFor();

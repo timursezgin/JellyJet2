@@ -171,6 +171,8 @@ let remoteClock = { seconds: 0, at: 0, running: false };
 
 /** Stop playing here without forgetting the queue (the music is moving elsewhere). */
 function stopHere() {
+  clearTimeout(startWatchdog);
+  stopKeepingAwake();
   reportStopped();
   switchingTracks = false;
   audio.pause();
@@ -295,8 +297,60 @@ function load(index: number, { autoplay, startAt = 0 }: { autoplay: boolean; sta
   switchingTracks = autoplay;
   audio.src = sourceFor(track, s);
   updateMetadata(track);
-  if (autoplay) startPlayback();
+  if (autoplay) {
+    retriedUid = null;
+    startPlayback();
+    watchStart(startAt);
+  } else {
+    clearTimeout(startWatchdog);
+  }
   save(true);
+}
+
+// --- A song that loads but never starts ------------------------------------
+// iOS sometimes hands back an audio element that won't make a sound after the
+// app has been paused for a while: play() is accepted, nothing plays. Giving
+// the element a fresh source frees it. If even that doesn't start, the "Ready
+// to play here" card asks for a tap rather than leaving the music silently stopped.
+
+/** How long a song gets to actually start before it's treated as stuck. */
+const START_LIMIT_MS = 3000;
+/** A song that is still loading is given this long in all before giving up on it. */
+const STALL_LIMIT_MS = 15_000;
+
+let startWatchdog: ReturnType<typeof setTimeout> | undefined;
+let watchedFrom = 0;
+let retriedUid: string | null = null;
+
+function watchStart(from: number, waited = 0) {
+  clearTimeout(startWatchdog);
+  if (controller) return;
+  watchedFrom = from;
+  startWatchdog = setTimeout(() => {
+    const track = currentTrack();
+    const s = session();
+    if (!track || !s || controller || !get().playing) return;
+    const moving = !audio.paused && audio.currentTime > watchedFrom + 0.05;
+    if (moving) return;
+    // Still fetching (a slow connection): give it longer rather than start over.
+    if (!audio.paused && audio.readyState < HTMLMediaElement.HAVE_FUTURE_DATA && waited < STALL_LIMIT_MS) {
+      waited += START_LIMIT_MS;
+      watchStart(watchedFrom, waited);
+      return;
+    }
+    if (retriedUid === track.uid) {
+      set({ playing: false, buffering: false, needsTap: true });
+      reportWaiting();
+      return;
+    }
+    retriedUid = track.uid;
+    pendingSeek = watchedFrom > 0 ? watchedFrom : null;
+    switchingTracks = true;
+    audio.src = sourceFor(track, s);
+    audio.load();
+    startPlayback();
+    watchStart(watchedFrom);
+  }, START_LIMIT_MS);
 }
 
 function startPlayback() {
@@ -370,6 +424,7 @@ export function play() {
   }
   set({ playing: true });
   startPlayback();
+  watchStart(audio.currentTime);
 }
 
 export function pause() {
@@ -377,9 +432,11 @@ export function pause() {
     controller.pause();
     return;
   }
+  clearTimeout(startWatchdog);
   switchingTracks = false;
   audio.pause();
   set({ playing: false });
+  keepSessionAwake();
 }
 
 export function togglePlay() {
@@ -561,6 +618,8 @@ export function moveInQueue(from: number, to: number) {
 }
 
 export function clearQueue() {
+  clearTimeout(startWatchdog);
+  stopKeepingAwake();
   leaveRemoteMode();
   reportStopped();
   audio.pause();
@@ -652,6 +711,7 @@ audio.addEventListener('pause', () => {
   set({ playing: false, buffering: false });
   reportProgress(true);
   syncMediaSession();
+  keepSessionAwake();
   save(true);
   activity('now');
 });
@@ -675,6 +735,7 @@ audio.addEventListener('durationchange', () => {
 
 audio.addEventListener('timeupdate', () => {
   if (!loadedUid) return;
+  if (!audio.paused && audio.currentTime > watchedFrom + 0.05) clearTimeout(startWatchdog);
   const now = performance.now();
   if (now - lastProgressReport > 10_000) reportProgress(false);
   if (now - lastSaved > 5_000) save(false);
@@ -702,6 +763,7 @@ audio.addEventListener('ended', () => {
     loadedUid = null;
     set({ playing: false, buffering: false, index: 0 });
     syncMediaSession();
+    keepSessionAwake();
     save(true);
   }
 });
@@ -852,6 +914,42 @@ function registerRemoteCommands() {
 
 registerRemoteCommands();
 audio.addEventListener('playing', registerRemoteCommands);
+
+/**
+ * While paused, iOS lets the lock-screen player go quiet after a while, and
+ * then its play button can't wake the app again (WebKit 243258, still open).
+ * Telling iOS what's playing every few seconds keeps that player alive for as
+ * long as the app itself is (it can't help once iOS suspends the app).
+ */
+const AWAKE_EVERY_MS = 5000;
+let awakeTimer: ReturnType<typeof setInterval> | undefined;
+let awakeTicks = 0;
+
+function keepSessionAwake() {
+  clearInterval(awakeTimer);
+  if (!('mediaSession' in navigator)) return;
+  awakeTicks = 0;
+  awakeTimer = setInterval(() => {
+    const { playing, remote, queue } = get();
+    const track = currentTrack();
+    if (playing || remote || queue.length === 0 || !track) {
+      stopKeepingAwake();
+      return;
+    }
+    awakeTicks += 1;
+    syncMediaSession();
+    registerRemoteCommands();
+    // The song itself changes rarely; re-stating it now and then is enough.
+    if (awakeTicks % 3 === 0) updateMetadata(track);
+  }, AWAKE_EVERY_MS);
+}
+
+function stopKeepingAwake() {
+  clearInterval(awakeTimer);
+  awakeTimer = undefined;
+}
+
+audio.addEventListener('playing', stopKeepingAwake);
 
 // --- Remembering the queue between launches -------------------------------
 

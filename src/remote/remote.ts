@@ -54,6 +54,10 @@ const EMPTY_GRACE_MS = 5_000;
 const SETTLE_MS = 8_000;
 /** A device sent music that hasn't started it by now didn't get it. */
 const START_TIMEOUT_MS = 12_000;
+/** A "playing" device whose last report is this much older than the newest isn't followed. */
+const STALE_REPORT_MS = 60_000;
+/** A followed device told to play that hasn't started by now isn't really there. */
+const WAKE_TIMEOUT_MS = 8_000;
 /** After a report, the device's note is read this long later (it writes it a second after a change)... */
 const NOTE_DELAY_MS = 1_800;
 /** ...and at most this often. */
@@ -138,7 +142,7 @@ function onSessions(all: SessionInfo[]) {
   const devices = all.filter(isOtherJellyJet);
   useDevices.setState({ devices, loaded: true });
   followRemote(all);
-  followPlayback(devices);
+  followPlayback(devices, all);
 }
 
 // --- One place at a time ------------------------------------------------------------
@@ -153,13 +157,24 @@ function busyHere() {
  * Another device is playing and this one isn't: follow it as its remote, so
  * the play button here controls that music instead of starting a second one.
  */
-function followPlayback(devices: SessionInfo[]) {
+function followPlayback(devices: SessionInfo[], all: SessionInfo[]) {
   if (busyHere()) return;
   const { remote } = usePlayer.getState();
   const current = remote ? devices.find((d) => d.DeviceId === remote.deviceId) : undefined;
   if (current && isPlayingThere(current)) return;
+  // Only devices that reported just now: a session left behind by an app that
+  // was killed can still say it's playing. "Now" comes from the newest activity
+  // the server itself has recorded (this device's own requests keep it current),
+  // so the server's clock is compared with its own.
+  const newest = Math.max(0, ...all.map(lastActive));
   const playing = devices
-    .filter((d) => isPlayingThere(d) && !isSettling(d.DeviceId) && d.DeviceId !== remote?.deviceId)
+    .filter(
+      (d) =>
+        isPlayingThere(d) &&
+        !isSettling(d.DeviceId) &&
+        d.DeviceId !== remote?.deviceId &&
+        (checkIn(d) === 0 || checkIn(d) > newest - STALE_REPORT_MS),
+    )
     .sort((a, b) => checkIn(b) - checkIn(a));
   const target = playing[0];
   if (!target) return;
@@ -168,6 +183,7 @@ function followPlayback(devices: SessionInfo[]) {
 }
 
 const checkIn = (s: SessionInfo) => Date.parse(s.LastPlaybackCheckIn ?? s.LastActivityDate ?? '') || 0;
+const lastActive = (s: SessionInfo) => Math.max(checkIn(s), Date.parse(s.LastActivityDate ?? '') || 0);
 
 /** Music started on this device: any other device of the account that's playing pauses. */
 function claimPlayback() {
@@ -406,10 +422,12 @@ const controller: RemoteController = {
   play() {
     nudgeRemoteState({ playing: true });
     playstate('Unpause');
+    watchItResponds(true);
   },
   pause() {
     nudgeRemoteState({ playing: false });
     playstate('Pause');
+    watchItResponds(false);
   },
   next() {
     playstate('NextTrack');
@@ -462,6 +480,30 @@ const controller: RemoteController = {
   },
 };
 
+/**
+ * Play or pause was pressed for the device being followed. If it hasn't done
+ * as asked by now, it isn't really there - an app that was killed (or a laptop
+ * that slept) can leave a session behind that still looks alive - so the music
+ * comes back to this device rather than going nowhere.
+ */
+function watchItResponds(asked: boolean) {
+  clearTimeout(wakeTimer);
+  const device = usePlayer.getState().remote;
+  if (!device) return;
+  wakeTimer = setTimeout(() => {
+    const { remote, queue, index, shuffle, repeat } = usePlayer.getState();
+    if (!remote || remote.deviceId !== device.deviceId) return;
+    const session = lastAll.find((x) => x.DeviceId === device.deviceId);
+    if (!session || isPlayingThere(session) === asked) return;
+    toast(`${device.deviceName} isn’t answering - the music is back here`);
+    const position = currentPosition();
+    stopControlling();
+    if (asked && queue.length > 0) resumeQueue(queue, index, position, { shuffle, repeat });
+  }, WAKE_TIMEOUT_MS);
+}
+
+let wakeTimer: ReturnType<typeof setTimeout> | undefined;
+
 // --- Choosing where to play ----------------------------------------------------------
 
 function startControlling(device: RemoteDevice) {
@@ -475,6 +517,7 @@ function startControlling(device: RemoteDevice) {
 
 function stopControlling() {
   awaiting = null;
+  clearTimeout(wakeTimer);
   forgetNote();
   leaveRemoteMode();
 }

@@ -12,7 +12,7 @@ import { SectionHeader, Shelf } from '@/ui/section';
 import { Sheet } from '@/ui/sheet';
 import styles from './home-mixes.module.css';
 
-/** Home's "Made for you": four mix cards and Regenerate. */
+/** Home's "Made for you": the mix cards and Regenerate. */
 export function MadeForYou() {
   const userId = useSession((s) => s.session?.userId);
   const mixes = useMixes(useShallow(visibleMixes));

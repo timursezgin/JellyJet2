@@ -248,6 +248,14 @@ Testing on this PC:
     volume is replaced by "Playing on …", the queue is read-only (tap a song to
     play it there) and the handoff card is hidden. A controlled device paused
     stays followed; if another starts playing, it follows that one.
+  - A device is only followed if its report is recent - within a minute of the
+    newest activity the server has recorded for any session (this device's own
+    requests keep that current, so the server's clock is compared with itself).
+    A session left behind by an app that was killed can still claim to be playing.
+  - If a followed device doesn't do as it's told within 8s (play or pause), it
+    isn't really there: a toast says so and the music comes back to this device,
+    queue and all. Together with the check above, a phone is never left unable
+    to play because a ghost session says something else is playing.
   - **Claim:** music starting on a device (not as a remote) pauses any other
     device on the account that's playing. Devices just paused are ignored for
     8s while their reports catch up (no ping-pong).
@@ -279,12 +287,23 @@ Testing on this PC:
   header-safe ASCII, max 40), sent as the `Device` in the auth header - so it
   shows in Play on, "Playing on …", the handoff card and Jellyfin - and
   re-announced (capabilities) on save so other devices see it at once.
+- **A song that loads but never starts** (`player.ts`, `watchStart`): iOS can
+  accept `play()` after a long pause and make no sound (WebKit 295518), which
+  left the queue stopped at the next song. Three seconds after a song is meant
+  to start, if it isn't actually moving, the song is loaded again with a fresh
+  source (still loading on a slow connection just waits, up to 15s); if that
+  doesn't start it either, the "Ready to play here" card asks for a tap rather
+  than sitting silent.
 - **Offline detection** (`connectivity/connection.ts`): a failed request
   only counts once `/System/Ping` also fails (6s limit) - a single slow reply
   used to flip the app "offline", and the next song, not downloaded, was
   skipped, stopping the music.
 - **Made for you** mixes (v1's recipes, built on the phone, kept until
-  Regenerate, savable as "JellyJet · <name>" playlists). **Stations**: Artist
+  Regenerate, savable as "JellyJet · <name>" playlists). Home shows **eight**
+  (`MIXES_IN_VIEW`); Regenerate slides the pool window on by four, so half the
+  cards are new, and rebuilds the pool when fewer than that are left (a small
+  library then gets the same kinds of mix with different songs). Genre mixes
+  come from the top five genres, to keep the pool bigger than the screen. **Stations**: Artist
   mix, Library radio (offline it shuffles downloads), Decade radio.
 - **Add albums** (admins with deletion rights): key from
   `_pipeline/orchestrator/api_key.txt` typed once per phone; Soulseek search
@@ -292,7 +311,14 @@ Testing on this PC:
   a download row left for **Cancel** (in progress) or **Dismiss** (done or
   failed).
 - **Lock screen:** playback continues locked, songs advance, next/previous
-  work. Accepted iOS limit: paused from the lock screen, iOS suspends the web
+  work. While paused, the app re-states what's playing to iOS every 5s
+  (`keepSessionAwake`: playback state, handlers, and the song every 15s) so the
+  lock-screen player doesn't go quiet. **Tried on iOS 27 (Sept 2026): it does
+  not fix the timeout** - once the app has been paused a while, its lock-screen
+  player still can't restart it ([WebKit 243258], open), because iOS suspends
+  the app and nothing in the page runs. The refresh is kept (it keeps the
+  player's details right while the app is alive) but don't expect more from it;
+  a real fix needs Apple, or a native app. Accepted iOS limit: paused from the lock screen, iOS suspends the web
   app and hands the lock-screen player elsewhere; resuming needs the app
   opened. No workarounds (a silent-audio trick was tried and removed at the
   owner's request). A native app remains a possible later addition.
@@ -413,6 +439,10 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
   start.
 - `pipeline/` - the orchestrator (see "This computer is tim-box").
 - `deploy/` - Caddyfile + compose for the `JellyJet2` container.
+- `tool/icons.mjs` - draws the app icons (the JJ in Archivo Bold on the app's
+  red, second J raised like a beamed note) with Playwright, straight into
+  `public/`. `--preview` writes samples instead. Re-run it if the look changes;
+  an iPhone only picks up a new icon when the home-screen icon is re-added.
 
 ## Code and platform lessons
 

@@ -7,13 +7,15 @@ import * as api from '@/jellyfin/api';
 import { generateMixes, type Mix } from './generator';
 
 /**
- * The pool of generated mixes. Home shows four at a time; Regenerate moves on
- * to the next four and builds a fresh pool once they've all been shown. The
+ * The pool of generated mixes. Home shows eight at a time; Regenerate moves on
+ * to the next eight and builds a fresh pool once they have all been shown. The
  * pool is kept on the phone, so mixes stay put between launches (and offline)
  * until Regenerate is tapped.
  */
 
-export const MIXES_IN_VIEW = 4;
+export const MIXES_IN_VIEW = 8;
+/** Regenerate slides the window on by half a screen: half the cards are new. */
+const REGENERATE_STEP = MIXES_IN_VIEW / 2;
 
 interface MixesState {
   userId: string | null;
@@ -73,8 +75,10 @@ export const findMix = (id: string) => useMixes.getState().pool.find((m) => m.id
 export async function regenerateMixes() {
   const { pool, windowStart, generating } = useMixes.getState();
   if (generating) return;
-  const next = windowStart + MIXES_IN_VIEW;
-  if (pool.length > 0 && next < pool.length) {
+  const next = windowStart + REGENERATE_STEP;
+  // Move along while that brings in cards not on screen; otherwise build new
+  // mixes, so Regenerate always changes what's shown.
+  if (pool.length >= next + REGENERATE_STEP) {
     useMixes.setState({ windowStart: next });
     save();
     return;
