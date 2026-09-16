@@ -152,7 +152,7 @@ Testing on this PC:
 - Tapping the song that's already playing does nothing (paused: resumes).
 
 ### Downloads
-- Download buttons on songs, playlists, albums and Liked Songs. A downloaded
+- Download buttons on songs, playlists, albums, Liked Songs and Liked Albums. A downloaded
   collection **automatically fetches songs added later**.
 - **Removing a download always asks first.** The song leaves Downloaded but
   stays in its playlists; a downloaded playlist won't re-fetch a song whose
@@ -202,9 +202,18 @@ Testing on this PC:
   lyrics and queue on the right.
 - **Liked Albums** (`songs/liked-albums.ts`): an album's own heart, kept as a
   Jellyfin favourite on the album - not a playlist, and separate from liking
-  its songs. The heart sits between Shuffle and download on album pages; the
-  Liked Albums page is a grid of whole albums (A-Z, hidden search; with a
-  mouse, the same white play symbol on each cover as Home's row). Offline
+  its songs. Its icon is not the song heart: a record with a small heart
+  (`ui/album-like-icon.tsx`; outline = not liked, filled = liked), used on
+  album pages between Shuffle and download, in the album right-click menu, and
+  white on a blue gradient as the Liked Albums cover. The Liked Albums page has
+  a Liked Songs-style header ("12 albums · 9 hr 5 min" from the albums' run
+  times; Play and Shuffle play every liked album's songs, album by album A-Z,
+  loaded ahead so a tap starts at once, and fetched again when the liked
+  albums change), a download button like Liked Songs' (collection
+  `liked-albums`: every song of every liked album; liking an album later
+  downloads it, unliking lets its songs go unless something else keeps them)
+  over a grid of the albums (hidden search hides the header;
+  with a mouse, the same white play symbol on each cover as Home's row). Offline
   changes go through the outbox like song likes.
 - **Home rows:** Recently played (songs, newest first, like the Liked Songs
   row; refreshed once the server has a song's start report; "see all" is a

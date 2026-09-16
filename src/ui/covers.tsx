@@ -1,7 +1,8 @@
-import { ArrowDownToLine, Disc3, Heart, Radio } from 'lucide-react';
+import { ArrowDownToLine, Heart, Radio } from 'lucide-react';
 
 import { usePlaylistCoverArt } from '@/data/queries';
 import type { Track } from '@/player/track';
+import { AlbumLikeIcon } from './album-like-icon';
 import { Artwork } from './artwork';
 import styles from './covers.module.css';
 
@@ -59,15 +60,11 @@ export function LikedCover({ size, radius = 10 }: CoverProps) {
   );
 }
 
-/** Liked Albums: a record with a small heart. */
+/** Liked Albums: the album page's liked icon (a record with a filled heart), white on blue. */
 export function LikedAlbumsCover({ size, radius = 10 }: CoverProps) {
-  const heart = Math.round(size * 0.2);
   return (
     <div className={`${styles.special} ${styles.likedAlbums}`} style={{ width: size, height: size, borderRadius: radius }}>
-      <span className={styles.record}>
-        <Disc3 size={Math.round(size * 0.44)} strokeWidth={2} />
-        <Heart className={styles.recordHeart} size={heart} fill="currentColor" strokeWidth={0} />
-      </span>
+      <AlbumLikeIcon size={Math.round(size * 0.5)} strokeWidth={2} fill="currentColor" />
     </div>
   );
 }

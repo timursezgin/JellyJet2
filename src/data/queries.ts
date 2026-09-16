@@ -1,4 +1,5 @@
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import { useSession } from '@/auth/session';
 import * as api from '@/jellyfin/api';
@@ -77,6 +78,31 @@ export function useLikedSongs() {
 export function useLikedAlbums() {
   const { client, userId } = useAccount();
   return useScopedQuery(['liked-albums'], async (parentId) => (await api.likedAlbums(client, userId, parentId)).Items);
+}
+
+/**
+ * The songs of every liked album, album by album (in the Liked Albums order),
+ * each in disc and track order - for Liked Albums' Play and Shuffle, loaded
+ * ahead so a tap starts playback at once (iOS).
+ */
+export function useLikedAlbumTracks(albums: BaseItem[] | undefined) {
+  const { client, userId } = useAccount();
+  const ids = albums?.map((a) => a.Id) ?? [];
+  const idList = ids.join(',');
+  const query = useQuery({
+    queryKey: ['liked-album-tracks', userId],
+    enabled: albums !== undefined,
+    queryFn: async () => ({
+      albums: idList,
+      tracks: toTracks({ Items: await api.songsOfAlbums(client, userId, ids), TotalRecordCount: 0 }),
+    }),
+  });
+  // Fetched for a different set of liked albums (one liked since): fetch again.
+  const stale = query.data !== undefined && query.data.albums !== idList;
+  useEffect(() => {
+    if (albums !== undefined && stale && !query.isFetching) void query.refetch();
+  }, [albums, stale, query.isFetching]); // eslint-disable-line react-hooks/exhaustive-deps
+  return albums !== undefined && !stale ? query.data?.tracks : undefined;
 }
 
 // --- Library ----------------------------------------------------------------

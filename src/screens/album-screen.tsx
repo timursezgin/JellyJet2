@@ -1,4 +1,3 @@
-import { Heart } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { useAlbumTracks, useItem } from '@/data/queries';
@@ -6,6 +5,7 @@ import { artworkOf } from '@/jellyfin/api';
 import { navigate } from '@/nav/navigation';
 import { playTracks } from '@/player/player';
 import { artistLine } from '@/player/track';
+import { AlbumLikeIcon } from '@/ui/album-like-icon';
 import { Artwork } from '@/ui/artwork';
 import { HERO_ART, Hero, HeroIconButton, heroIconClass } from '@/ui/hero';
 import { setAlbumLiked, useIsAlbumLiked } from '@/songs/liked-albums';
@@ -66,7 +66,7 @@ export function AlbumScreen({ id, title }: { id: string; title?: string }) {
               active={liked}
               onClick={() => info && void setAlbumLiked(info, !liked)}
             >
-              <Heart size={20} strokeWidth={2.2} fill={liked ? 'currentColor' : 'none'} />
+              <AlbumLikeIcon size={22} strokeWidth={2} fill={liked ? 'currentColor' : 'none'} />
             </HeroIconButton>
             <CollectionDownloadButton
             info={{ kind: 'album', id, name: info?.Name ?? title ?? 'this album', art: info ? artworkOf(info) : null }}

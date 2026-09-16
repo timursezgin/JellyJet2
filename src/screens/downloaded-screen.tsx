@@ -7,7 +7,7 @@ import { downloadSupport } from '@/downloads/support';
 import { navigate } from '@/nav/navigation';
 import { Artwork } from '@/ui/artwork';
 import { HERO_ART } from '@/ui/hero';
-import { DownloadedCover, LikedCover, PlaylistCover } from '@/ui/covers';
+import { DownloadedCover, LikedAlbumsCover, LikedCover, PlaylistCover } from '@/ui/covers';
 import { ItemRow } from '@/ui/item-row';
 import { SectionHeader } from '@/ui/section';
 import { TrackCollection } from './playlist-screen';
@@ -99,6 +99,8 @@ export function DownloadedScreen() {
               art={
                 c.kind === 'liked' ? (
                   <LikedCover size={44} />
+                ) : c.kind === 'liked-albums' ? (
+                  <LikedAlbumsCover size={44} />
                 ) : c.kind === 'playlist' ? (
                   <PlaylistCover playlistId={c.id} size={44} />
                 ) : (
@@ -106,11 +108,13 @@ export function DownloadedScreen() {
                 )
               }
               title={c.name}
-              subtitle={`${c.kind === 'album' ? 'Album' : 'Playlist'} · ${songCount(c.trackIds.length - c.excluded.length)}`}
+              subtitle={`${c.kind === 'album' ? 'Album' : c.kind === 'liked-albums' ? 'Albums' : 'Playlist'} · ${songCount(c.trackIds.length - c.excluded.length)}`}
               onClick={() =>
                 navigate(
                   c.kind === 'liked'
                     ? { name: 'liked' }
+                    : c.kind === 'liked-albums'
+                      ? { name: 'liked-albums' }
                     : c.kind === 'album'
                       ? { name: 'album', id: c.id, title: c.name }
                       : { name: 'playlist', id: c.id, title: c.name },

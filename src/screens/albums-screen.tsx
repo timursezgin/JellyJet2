@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 
-import { useAlbumList, useLikedAlbums, useRecentlyAddedAlbums } from '@/data/queries';
+import { useAlbumList, useLikedAlbums, useLikedAlbumTracks, useRecentlyAddedAlbums } from '@/data/queries';
+import { ticksToSeconds } from '@/jellyfin/api';
+import { playTracks } from '@/player/player';
+import { LikedAlbumsCover } from '@/ui/covers';
+import { CollectionDownloadButton, useCollectionDownloadLabel } from '@/downloads/download-buttons';
+import { useKeepInSync } from '@/downloads/use-keep-in-sync';
+import { HERO_ART, Hero, heroIconClass } from '@/ui/hero';
+import { formatLength } from './album-screen';
 import type { BaseItem } from '@/jellyfin/types';
 import { ALBUM_CAPTION_HEIGHT, AlbumCard, albumSubtitle } from '@/ui/album-card';
 import { Page } from '@/ui/page';
@@ -50,17 +57,46 @@ export function RecentAlbumsScreen() {
   );
 }
 
-/** Albums liked with their own heart, A to Z. */
+/** Albums liked with their own heart, A to Z, under a Liked Songs-style header. */
 export function LikedAlbumsScreen() {
   const [term, setTerm] = useState('');
   const query = useLikedAlbums();
-  const albums = useMemo(() => filterAlbums(query.data ?? [], term), [query.data, term]);
+  const all = query.data;
+  const tracks = useLikedAlbumTracks(all);
+  useKeepInSync('liked-albums', 'liked-albums', tracks);
+  const downloadLabel = useCollectionDownloadLabel('liked-albums', 'liked-albums');
+  const albums = useMemo(() => filterAlbums(all ?? [], term), [all, term]);
+  const searching = term.trim().length > 0;
+  const count = all?.length ?? 0;
+  const seconds = all?.reduce((sum, a) => sum + ticksToSeconds(a.RunTimeTicks), 0) ?? 0;
+  const meta = count
+    ? [`${count.toLocaleString()} ${count === 1 ? 'album' : 'albums'}`, seconds ? formatLength(seconds) : '', downloadLabel].filter(Boolean).join(' · ')
+    : undefined;
+  // Play and Shuffle wait for the songs, so a tap starts playback straight away.
+  const ready = count > 0 && tracks && tracks.length > 0 ? tracks : null;
   return (
-    <Page title="Liked Albums" search={{ value: term, onChange: setTerm, placeholder: 'Search liked albums' }}>
-      {query.isError && !query.data ? (
+    <Page title="Liked Albums" variant="detail" search={{ value: term, onChange: setTerm, placeholder: 'Search Liked Albums' }}>
+      {!searching && (
+        <Hero
+          layout="side"
+          art={<LikedAlbumsCover size={HERO_ART} />}
+          title="Liked Albums"
+          meta={meta}
+          onPlay={ready ? () => playTracks(ready, 0, { shuffle: false }) : undefined}
+          onShuffle={ready ? () => playTracks(ready, 0, { shuffle: true }) : undefined}
+          actions={
+            <CollectionDownloadButton
+              info={{ kind: 'liked-albums', id: 'liked-albums', name: 'Liked Albums', art: null }}
+              tracks={tracks}
+              className={heroIconClass}
+            />
+          }
+        />
+      )}
+      {query.isError && !all ? (
         <LoadError onRetry={() => query.refetch()} />
-      ) : query.data && albums.length === 0 ? (
-        <p className={styles.message}>{term ? 'No liked albums match that.' : 'Tap the heart on an album to add it here.'}</p>
+      ) : all && albums.length === 0 ? (
+        <p className={styles.message}>{searching ? 'No liked albums match that.' : 'Like an album from its page and it shows up here.'}</p>
       ) : (
         <AlbumGrid albums={albums} playable />
       )}

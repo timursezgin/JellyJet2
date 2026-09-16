@@ -2,6 +2,8 @@ import { create } from 'zustand';
 
 import { useSession } from '@/auth/session';
 import { isOnline } from '@/connectivity/connection';
+import { useDownloads } from '@/downloads/downloads';
+import { syncCollection } from '@/downloads/engine';
 import { useLikedAlbums } from '@/data/queries';
 import { queryClient } from '@/data/query-client';
 import { setFavorite } from '@/jellyfin/api';
@@ -85,6 +87,8 @@ export async function setAlbumLiked(album: BaseItem, liked: boolean) {
     return;
   }
   void queryClient.invalidateQueries({ queryKey: likedAlbumsKey() });
+  // A downloaded Liked Albums fetches the new album's songs (or lets go of an unliked one's).
+  if (useDownloads.getState().collections['liked-albums']) void syncCollection('liked-albums');
 }
 
 /** Show album likes made offline (and not yet synced) after the app is reopened. */

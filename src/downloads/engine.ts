@@ -408,7 +408,13 @@ async function fetchCollectionTracks(c: DownloadedCollection): Promise<Track[]> 
   let result: ItemsResult;
   if (c.kind === 'album') result = await api.albumTracks(client, session.userId, c.id);
   else if (c.kind === 'playlist') result = await api.playlistTracks(client, session.userId, c.id);
-  else result = await api.likedSongs(client, session.userId, await api.musicLibraryId(client));
+  else if (c.kind === 'liked') result = await api.likedSongs(client, session.userId, await api.musicLibraryId(client));
+  else {
+    // Liked Albums: every song of every liked album.
+    const albums = await api.likedAlbums(client, session.userId, await api.musicLibraryId(client));
+    const items = await api.songsOfAlbums(client, session.userId, albums.Items.map((a) => a.Id));
+    result = { Items: items, TotalRecordCount: items.length };
+  }
   return result.Items.filter((i) => i.Type === 'Audio').map(trackFromItem);
 }
 

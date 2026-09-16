@@ -8,7 +8,8 @@ import type { Track } from '@/player/track';
  *
  * A song is downloaded or not - one copy, whatever brought it in. Each copy
  * remembers its "sources": `song` (downloaded on its own) and/or the
- * collections that include it (`album:<id>`, `playlist:<id>`, `liked`).
+ * collections that include it (`album:<id>`, `playlist:<id>`, `liked`,
+ * `liked-albums`).
  * The file stays while it has at least one source.
  *
  * A downloaded collection fetches songs added to it later, except ones whose
@@ -19,7 +20,7 @@ import type { Track } from '@/player/track';
  */
 
 export type SongSource = string;
-export type CollectionKind = 'album' | 'playlist' | 'liked';
+export type CollectionKind = 'album' | 'playlist' | 'liked' | 'liked-albums';
 
 export interface DownloadedSong {
   track: Track;
@@ -71,7 +72,9 @@ export const useDownloads = create<DownloadsState>(() => ({
   missing: {},
 }));
 
-export const collectionKey = (kind: CollectionKind, id: string) => (kind === 'liked' ? 'liked' : `${kind}:${id}`);
+/** Liked Songs and Liked Albums are one of a kind: their key is just their kind. */
+export const collectionKey = (kind: CollectionKind, id: string) =>
+  kind === 'liked' || kind === 'liked-albums' ? kind : `${kind}:${id}`;
 
 // --- Persistence ------------------------------------------------------------
 

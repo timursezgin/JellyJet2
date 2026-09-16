@@ -27,6 +27,7 @@ import { artistLine, type Track } from '@/player/track';
 import { Artwork } from '@/ui/artwork';
 import { toggleSongDownload, useSongDownloadState } from '@/downloads/download-buttons';
 import { confirm } from '@/ui/confirm';
+import { AlbumLikeIcon } from '@/ui/album-like-icon';
 import { albumSubtitle } from '@/ui/album-subtitle';
 import { PlaylistCover } from '@/ui/covers';
 import { Sheet, type Anchor } from '@/ui/sheet';
@@ -417,7 +418,7 @@ export function AlbumMenuHost() {
     >
       <div className={styles.list}>
         <MenuRow
-          icon={Heart}
+          icon={AlbumLikeIcon}
           filled={liked}
           label={liked ? 'Remove from Liked Albums' : 'Add to Liked Albums'}
           onClick={() => {
@@ -450,7 +451,7 @@ function MenuRow({
   destructive,
   accent,
 }: {
-  icon: LucideIcon;
+  icon: LucideIcon | typeof AlbumLikeIcon;
   label: string;
   onClick(): void;
   filled?: boolean;

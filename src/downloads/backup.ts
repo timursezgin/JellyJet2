@@ -121,9 +121,9 @@ export async function restoreBackup() {
     }
     // Collections, with the songs removed from them kept removed.
     for (const entry of data.collections) {
-      let name = 'Liked Songs';
+      let name = entry.kind === 'liked-albums' ? 'Liked Albums' : 'Liked Songs';
       let art = null;
-      if (entry.kind !== 'liked') {
+      if (entry.kind !== 'liked' && entry.kind !== 'liked-albums') {
         try {
           const item: BaseItem = await api.item(client, session.userId, entry.id);
           name = item.Name;

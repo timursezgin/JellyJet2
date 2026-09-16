@@ -199,6 +199,38 @@ export function likedAlbums(client: JellyfinClient, userId: string, parentId: st
   });
 }
 
+/**
+ * Every song on these albums, album by album in the order given, each in disc
+ * and track order. A hundred albums per request.
+ */
+export async function songsOfAlbums(client: JellyfinClient, userId: string, albumIds: string[]) {
+  const items: BaseItem[] = [];
+  for (let i = 0; i < albumIds.length; i += 100) {
+    const result = await client.get<ItemsResult>('/Items', {
+      query: {
+        userId,
+        AlbumIds: albumIds.slice(i, i + 100).join(','),
+        Recursive: true,
+        IncludeItemTypes: 'Audio',
+        Fields: TRACK_FIELDS,
+        EnableUserData: true,
+        ...IMAGES,
+      },
+      timeoutMs: 60_000,
+    });
+    items.push(...result.Items);
+  }
+  const order = new Map(albumIds.map((id, i) => [id, i]));
+  return items
+    .filter((i) => i.Type === 'Audio' && i.AlbumId !== undefined && order.has(i.AlbumId))
+    .sort(
+      (a, b) =>
+        order.get(a.AlbumId!)! - order.get(b.AlbumId!)! ||
+        (a.ParentIndexNumber ?? 1) - (b.ParentIndexNumber ?? 1) ||
+        (a.IndexNumber ?? 0) - (b.IndexNumber ?? 0),
+    );
+}
+
 // --- Details -----------------------------------------------------------------
 
 export function item(client: JellyfinClient, userId: string, id: string) {
