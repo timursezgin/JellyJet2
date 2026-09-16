@@ -48,7 +48,7 @@ export function SignInScreen() {
   return (
     <div className={styles.screen}>
       <form className={styles.form} onSubmit={submit} noValidate>
-        <img className={styles.icon} src="/icons/Icon-192.png" alt="" width={64} height={64} />
+        <img className={styles.icon} src="/icons/Icon-192.png?v=2" alt="" width={64} height={64} />
         <h1 className="t-large-title">Sign in</h1>
         <p className={`t-secondary ${styles.subtitle}`}>
           {customServer

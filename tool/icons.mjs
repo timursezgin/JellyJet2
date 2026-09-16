@@ -3,6 +3,10 @@
 //   node tool/icons.mjs            -> writes public/favicon.png and public/icons/*
 //   node tool/icons.mjs --preview  -> one sheet in scratch/, nothing overwritten
 // Needs Playwright WebKit (the same one the tests use).
+// The file names never change, so caches (Cloudflare, browsers, the service
+// worker) would keep the old pictures: after changing the icons, raise the
+// ?v= on every icon address in index.html, public/manifest.webmanifest and
+// src/screens/sign-in-screen.tsx.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

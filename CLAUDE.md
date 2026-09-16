@@ -441,8 +441,12 @@ Possible later: install as a desktop app (Chrome/Edge) with downloads/offline.
 - `deploy/` - Caddyfile + compose for the `JellyJet2` container.
 - `tool/icons.mjs` - draws the app icons (the JJ in Archivo Bold on the app's
   red, second J raised like a beamed note) with Playwright, straight into
-  `public/`. `--preview` writes samples instead. Re-run it if the look changes;
-  an iPhone only picks up a new icon when the home-screen icon is re-added.
+  `public/`. `--preview` writes samples instead. Re-run it if the look changes,
+  and **raise the `?v=` on every icon address** (`index.html`,
+  `public/manifest.webmanifest`, `sign-in-screen.tsx`): the file names stay the
+  same, so Cloudflare, browsers and the service worker would go on serving the
+  old pictures (the desktop install prompt showed the old icon this way). An
+  iPhone only picks up a new icon when the home-screen icon is re-added.
 
 ## Code and platform lessons
 
